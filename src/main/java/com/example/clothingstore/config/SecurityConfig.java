@@ -77,8 +77,13 @@ public class SecurityConfig {
                                 (session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
                 httpSecurity.authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/api/**").permitAll()
-                                .anyRequest().permitAll());
+                                // .requestMatchers("/api/**").permitAll() //
+                                .requestMatchers("/auth/**",
+                                                "/swagger-ui/**",
+                                                "/v3/api-docs/**",
+                                                "/images/**")
+                                .permitAll()
+                                .anyRequest().authenticated());
 
                 httpSecurity.exceptionHandling(ex -> ex
                                 .authenticationEntryPoint(authenticationEntryPointException) // 401
@@ -86,7 +91,6 @@ public class SecurityConfig {
 
                 httpSecurity.addFilterBefore(jwtAuthFilter,
                                 UsernamePasswordAuthenticationFilter.class);
-
 
                 return httpSecurity.build();
         }

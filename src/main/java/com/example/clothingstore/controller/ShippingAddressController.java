@@ -18,7 +18,7 @@ import com.example.clothingstore.util.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
 
-@PreAuthorize("hasRole('CUSTOMER')")
+// @PreAuthorize("hasRole('CUSTOMER')")
 @RestController
 @RequestMapping("/shipping-address")
 @RequiredArgsConstructor

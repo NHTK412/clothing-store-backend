@@ -12,6 +12,9 @@ import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.CustomerService;
 import com.example.clothingstore.util.ApiResponse;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,16 +32,19 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/customer")
+@RequiredArgsConstructor
 public class CustomerController {
 
-    @Autowired
-    private CustomerService customerService;
+    // @Autowired
+    // private CustomerService customerService;
+
+    private final CustomerService customerService;
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @PutMapping("/me")
     public ResponseEntity<ApiResponse<CustomerResponseDTO>> updateMe(
             @AuthenticationPrincipal CustomerUserDetails userDetails,
-            @RequestBody CustomerRequestDTO customerRequestDTO) {
+            @Valid @RequestBody CustomerRequestDTO customerRequestDTO) {
 
         // BCryptPasswordEncoder bCryptPasswordEncoder = BCryptPasswordEncoder();
 
@@ -72,8 +78,9 @@ public class CustomerController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CustomerSummaryDTO>>> getAllCustomer(@RequestParam Integer page,
-            @RequestParam Integer size) {
+    public ResponseEntity<ApiResponse<List<CustomerSummaryDTO>>> getAllCustomer(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
         List<CustomerSummaryDTO> customerSummaryDTO = customerService.getAllCustomer(pageable);
@@ -81,20 +88,23 @@ public class CustomerController {
         return ResponseEntity.ok(new ApiResponse<List<CustomerSummaryDTO>>(true, null, customerSummaryDTO));
     }
 
+    // Xem lại admin k tự tạo customer
+    // ======================================================================================================================
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<CustomerResponseDTO>> createCustomer(
-            @RequestBody CustomerRequestDTO customerRequestDTO) {
+            @Valid @RequestBody CustomerRequestDTO customerRequestDTO) {
 
         CustomerResponseDTO customerResponseDTO = customerService.createCustomer(customerRequestDTO);
 
         return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
     }
+    // ======================================================================================================================
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{customerId}") // dành cho admin
     public ResponseEntity<ApiResponse<CustomerResponseDTO>> updateCustomer(@PathVariable Integer customerId,
-            @RequestBody CustomerRequestDTO customerRequestDTO) {
+            @Valid @RequestBody CustomerRequestDTO customerRequestDTO) {
 
         // BCryptPasswordEncoder bCryptPasswordEncoder = BCryptPasswordEncoder();
 

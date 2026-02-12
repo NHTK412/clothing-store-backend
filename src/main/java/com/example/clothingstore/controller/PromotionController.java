@@ -12,6 +12,9 @@ import com.example.clothingstore.model.Promotion;
 import com.example.clothingstore.service.PromotionService;
 import com.example.clothingstore.util.ApiResponse;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +30,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/admin/promotion")
+@RequiredArgsConstructor
 public class PromotionController {
 
-    @Autowired
-    private PromotionService promotionService;
+    // @Autowired
+    // private PromotionService promotionService;
+
+    private final PromotionService promotionService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
     @GetMapping("/{promotionId}")
@@ -44,7 +50,7 @@ public class PromotionController {
     @PreAuthorize("hasAnyRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<PromotionResponseDTO>> createPromotion(
-            @RequestBody PromotionRequestDTO promotionRequestDTO) {
+            @Valid @RequestBody PromotionRequestDTO promotionRequestDTO) {
 
         PromotionResponseDTO promotionResponseDTO = promotionService.createPromotion(promotionRequestDTO);
 
@@ -58,7 +64,7 @@ public class PromotionController {
     @PreAuthorize("hasAnyRole('CUSTOMER')")
     @PostMapping("/applicable-discount")
     public ResponseEntity<ApiResponse<List<PromotionSummaryDTO>>> getApplicableDiscountPromotion(
-            @RequestBody CartCheckPromotionDTO cartCheckPromotionDTO) {
+            @Valid @RequestBody CartCheckPromotionDTO cartCheckPromotionDTO) {
         List<PromotionSummaryDTO> promotionSummaryDTOs = promotionService
                 .getApplicableDiscountPromotion(cartCheckPromotionDTO);
 
@@ -68,10 +74,11 @@ public class PromotionController {
         return ResponseEntity.ok(apiResponse);
 
     }
+
     @PreAuthorize("hasAnyRole('CUSTOMER')")
     @PostMapping("/applicable")
     public ResponseEntity<ApiResponse<List<PromotionSummaryDTO>>> getApplicablePromotion(
-            @RequestBody CartCheckPromotionDTO cartCheckPromotionDTO,
+            @Valid @RequestBody CartCheckPromotionDTO cartCheckPromotionDTO,
             @RequestParam List<PromotionTypeEnum> promotionTypes) {
         List<PromotionSummaryDTO> promotionSummaryDTOs = promotionService
                 .getApplicablePromotion(cartCheckPromotionDTO, promotionTypes);
@@ -82,11 +89,12 @@ public class PromotionController {
         return ResponseEntity.ok(apiResponse);
 
     }
-    
+
     @PreAuthorize("hasAnyRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PromotionSummaryDTO>>> getAllPromotions(@RequestParam Integer page,
-            @RequestParam Integer size) {
+    public ResponseEntity<ApiResponse<List<PromotionSummaryDTO>>> getAllPromotions(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
 
         PageRequest pageable = PageRequest.of(page, size);
 

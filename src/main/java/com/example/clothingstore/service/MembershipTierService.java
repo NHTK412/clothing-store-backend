@@ -15,16 +15,22 @@ import com.example.clothingstore.model.MembershipTier;
 import com.example.clothingstore.repository.MembershipTierRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class MembershipTierService {
 
-        @Autowired
-        private MembershipTierMapper membershipTierMapper;
+        // @Autowired
+        // private MembershipTierMapper membershipTierMapper;
 
-        @Autowired
-        private MembershipTierRepository membershipTierRepository;
+        // @Autowired
+        // private MembershipTierRepository membershipTierRepository;
 
+        private final MembershipTierMapper membershipTierMapper;
+        private final MembershipTierRepository membershipTierRepository;
+
+        @Transactional
         public List<MembershipTierResponseDTO> getAllMembershipTier(Pageable pageable) {
                 Page<MembershipTier> membershipTiers = membershipTierRepository.findAll(pageable);
 

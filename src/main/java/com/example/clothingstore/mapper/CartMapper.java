@@ -10,11 +10,17 @@ import com.example.clothingstore.dto.cartdetail.CartItemResponseDTO;
 // import com.example.clothingstore.dto.cartdetail.CartDetailResponseDTO;
 import com.example.clothingstore.model.Cart;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
+@RequiredArgsConstructor
+
 public class CartMapper {
 
-    @Autowired
-    private CartDetailMapper cartDetailMapper;
+    // @Autowired
+    // private CartDetailMapper cartDetailMapper;
+
+    private final CartDetailMapper cartDetailMapper;
 
     public CartResponseDTO convertModelTOCartResponseDTO(Cart cart) {
         CartResponseDTO cartResponseDTO = new CartResponseDTO();

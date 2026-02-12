@@ -14,17 +14,25 @@ import com.example.clothingstore.dto.promotiongroup.PromotionGroupResponseDTO;
 import com.example.clothingstore.enums.PromotionTypeEnum;
 import com.example.clothingstore.model.Promotion;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
+@RequiredArgsConstructor
+
 public class PromotionMapper {
 
-    @Autowired
-    private PromotionGroupMapper promotionGroupMapper;
+    // @Autowired
+    // private PromotionGroupMapper promotionGroupMapper;
 
-    @Autowired
-    private DiscountMapper discountMapper;
+    // @Autowired
+    // private DiscountMapper discountMapper;
 
-    @Autowired
-    private GiftMapper giftMapper;
+    // @Autowired
+    // private GiftMapper giftMapper;
+
+    private final PromotionGroupMapper promotionGroupMapper;
+    private final DiscountMapper discountMapper;
+    private final GiftMapper giftMapper;
 
     public PromotionResponseDTO convertModelToPromotionResponseDTO(Promotion promotion) {
         PromotionResponseDTO promotionResponseDTO = new PromotionResponseDTO();

@@ -24,29 +24,37 @@ import com.example.clothingstore.repository.MembershipTierRepository;
 import com.example.clothingstore.util.JwtUtil;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 // import ch.qos.logback.core.testUtil.RandomUtil;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
     // @Autowired
     // AccountRepository accountRepository;
 
-    @Autowired
-    private CustomerRepository customerRepository;
+    // @Autowired
+    // private CustomerRepository customerRepository;
 
-    @Autowired
-    private AdminRepository adminRepository;
+    // @Autowired
+    // private AdminRepository adminRepository;
 
-    @Autowired
-    private MembershipTierRepository membershipTierRepository;
+    // @Autowired
+    // private MembershipTierRepository membershipTierRepository;
 
-    @Autowired
-    private CartRepository cartRepository;
+    // @Autowired
+    // private CartRepository cartRepository;
 
-    @Autowired
-    JwtUtil jwtUtil;
+    // @Autowired
+    // JwtUtil jwtUtil;
+
+    private final CustomerRepository customerRepository;
+    private final AdminRepository adminRepository;
+    private final MembershipTierRepository membershipTierRepository;
+    private final CartRepository cartRepository;
+    private final JwtUtil jwtUtil;
 
     private static long expiration = 1000 * 60 * 60 * 4; // 4h
 
@@ -59,7 +67,7 @@ public class AuthService {
     public AuthResponseDTO register(String userName, String password) {
 
         if (customerRepository.existsByUserName(userName)) {
-            throw new ConflictException("Tên đăng nhập đã tồn tại");
+            throw new ConflictException("Username already exists");
         }
 
         Customer customer = new Customer();
@@ -123,6 +131,7 @@ public class AuthService {
     // return authResponseDTO;
     // }
 
+    @Transactional
     public AuthResponseDTO login(String userName, String password, Boolean admin) {
 
         if (admin) {
@@ -164,6 +173,7 @@ public class AuthService {
         return authResponseDTO;
     }
 
+    @Transactional
     public AuthResponseDTO loginAdmin(String userName, String password) {
         Admin admin = adminRepository.findByUserName(userName)
                 .orElseThrow(() -> new NotFoundException("Tên đăng nhập không tồn tại"));

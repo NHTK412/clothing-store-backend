@@ -21,21 +21,27 @@ import com.example.clothingstore.dto.category.CategorySummaryDTO;
 import com.example.clothingstore.service.CategoryService;
 import com.example.clothingstore.util.ApiResponse;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
 @RequestMapping("/category")
+@RequiredArgsConstructor
 public class CategoryController {
 
-    @Autowired
-    private CategoryService categoryService;
+    // @Autowired
+    // private CategoryService categoryService;
 
+    private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CategorySummaryDTO>>> getAllCategory(@RequestParam Integer page,
-            @RequestParam Integer size) {
+    public ResponseEntity<ApiResponse<List<CategorySummaryDTO>>> getAllCategory(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
         List<CategorySummaryDTO> categorySummaryDTOs = categoryService.getAllCategory(pageable);
@@ -54,7 +60,7 @@ public class CategoryController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<CategoryResponseDTO>> createCategory(
-            @RequestBody CategoryRequestDTO categoryRequestDTO) {
+            @Valid @RequestBody CategoryRequestDTO categoryRequestDTO) {
 
         CategoryResponseDTO categoryResponseDTO = categoryService.createCategory(categoryRequestDTO);
 
@@ -64,7 +70,7 @@ public class CategoryController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{categoryId}")
     public ResponseEntity<ApiResponse<CategoryResponseDTO>> updateCategory(@PathVariable Integer categoryId,
-            @RequestBody CategoryRequestDTO categoryRequestDTO) {
+            @Valid @RequestBody CategoryRequestDTO categoryRequestDTO) {
 
         CategoryResponseDTO categoryResponseDTO = categoryService.updateCategory(categoryId, categoryRequestDTO);
 
@@ -82,8 +88,9 @@ public class CategoryController {
 
     // endpoint này dùng cho bên admin hiển thị danh sách các danh mục
     @GetMapping("/details")
-    public ResponseEntity<ApiResponse<List<CategoryResponseDTO>>> getAllCategoriesDetailed(@RequestParam Integer page,
-            @RequestParam Integer size) {
+    public ResponseEntity<ApiResponse<List<CategoryResponseDTO>>> getAllCategoriesDetailed(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
         List<CategoryResponseDTO> categorySummaryDTOs = categoryService.getAllCategoriesDetailed(pageable);

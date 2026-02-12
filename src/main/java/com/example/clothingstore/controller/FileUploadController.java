@@ -9,6 +9,8 @@ import com.example.clothingstore.dto.fileupload.FileUploadResponseDTO;
 import com.example.clothingstore.service.FileUploadService;
 import com.example.clothingstore.util.ApiResponse;
 
+import lombok.RequiredArgsConstructor;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -21,10 +23,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
 @RequestMapping("file-upload")
+@RequiredArgsConstructor
+
 public class FileUploadController {
 
-    @Autowired
-    private FileUploadService fileUploadService;
+    // @Autowired
+    // private FileUploadService fileUploadService;
+
+    private final FileUploadService fileUploadService;
 
     @PreAuthorize("hasRole('ADMIN')")
     // Consumer để nói kiểu gửi lên

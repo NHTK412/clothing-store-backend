@@ -19,19 +19,26 @@ import com.example.clothingstore.model.Customer;
 import com.example.clothingstore.repository.CustomerRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class CustomerService {
 
-    @Autowired
-    private CustomerRepository customerRepository;
+    // @Autowired
+    // private CustomerRepository customerRepository;
 
     // @Autowired
     // private AccountRepository accountRepository;
 
-    @Autowired
-    private CustomerMapper customerMapper;
+    // @Autowired
+    // private CustomerMapper customerMapper;
 
+    private final CustomerRepository customerRepository;
+    // private final AccountRepository accountRepository;
+    private final CustomerMapper customerMapper;
+
+    @Transactional
     public CustomerResponseDTO getCustomerById(Integer customerId) {
 
         // Customer customer =
@@ -46,7 +53,7 @@ public class CustomerService {
     }
 
     
-
+    @Transactional
     public List<CustomerSummaryDTO> getAllCustomer(Pageable pageable) {
 
         // Page<Customer> customers =

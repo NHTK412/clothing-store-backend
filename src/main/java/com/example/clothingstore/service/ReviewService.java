@@ -21,25 +21,34 @@ import com.example.clothingstore.repository.ProductRepository;
 import com.example.clothingstore.repository.ReviewRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class ReviewService {
 
-    @Autowired
-    private ReviewRepository reviewRepository;
+    // @Autowired
+    // private ReviewRepository reviewRepository;
 
-    @Autowired
-    private ProductRepository productRepository;
+    // @Autowired
+    // private ProductRepository productRepository;
 
-    @Autowired
-    private CustomerRepository customerRepository;
+    // @Autowired
+    // private CustomerRepository customerRepository;
 
-    @Autowired
-    private OrderDetailRepository orderDetailRepository;
+    // @Autowired
+    // private OrderDetailRepository orderDetailRepository;
 
-    @Autowired
-    private ReviewMapper reviewMapper;
+    // @Autowired
+    // private ReviewMapper reviewMapper;
 
+    private final ReviewRepository reviewRepository;
+    private final ProductRepository productRepository;
+    private final CustomerRepository customerRepository;
+    private final OrderDetailRepository orderDetailRepository;
+    private final ReviewMapper reviewMapper;
+
+    @Transactional
     public List<ReviewResponseDTO> getALLReviewByProductId(Integer productId, Pageable pageable) {
         Page<Review> reviews = reviewRepository.findByProduct_ProductId(productId, pageable);
 

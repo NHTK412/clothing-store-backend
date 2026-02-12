@@ -11,6 +11,10 @@ import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.CartService;
 import com.example.clothingstore.util.ApiResponse;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,10 +29,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 @PreAuthorize("hasRole('CUSTOMER')")
 @RestController
 @RequestMapping("customer/cart")
+@RequiredArgsConstructor
 public class CartController {
 
-    @Autowired
-    private CartService cartService;
+    // @Autowired
+    // private CartService cartService;
+
+    private final CartService cartService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<CartResponseDTO>> getCartByCustomer(
@@ -44,7 +51,7 @@ public class CartController {
 
     @PostMapping("items")
     public ResponseEntity<ApiResponse<CartItemResponseDTO>> addCartItemByCart(
-            @RequestBody CartItemRequestDTO cartDetailRequestDTO,
+            @Valid @RequestBody CartItemRequestDTO cartDetailRequestDTO,
             @AuthenticationPrincipal CustomerUserDetails userDetails) {
 
         Integer customerId = userDetails.getUserId();
@@ -57,7 +64,8 @@ public class CartController {
 
     @PatchMapping("items/{cartDetailId}")
     public ResponseEntity<ApiResponse<CartItemResponseDTO>> updateCartItem(
-            @PathVariable Integer cartDetailId, @RequestParam(required = false) Integer quantity,
+            @PathVariable Integer cartDetailId,
+            @RequestParam(required = false) Integer quantity,
             @AuthenticationPrincipal CustomerUserDetails userDetails) {
 
         Integer customerId = userDetails.getUserId();

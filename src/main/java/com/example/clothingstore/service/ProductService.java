@@ -35,22 +35,30 @@ import com.example.clothingstore.repository.ProductDetailRepository;
 import com.example.clothingstore.repository.ProductRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class ProductService {
 
-    @Autowired
-    ProductRepository productRepository;
+    // @Autowired
+    // ProductRepository productRepository;
 
-    @Autowired
-    ProductColorRepository productColorRepository;
+    // @Autowired
+    // ProductColorRepository productColorRepository;
 
-    @Autowired
-    ProductDetailRepository productDetailRepository;
+    // @Autowired
+    // ProductDetailRepository productDetailRepository;
 
-    @Autowired
-    CategoryRepository categoryRepository;
+    // @Autowired
+    // CategoryRepository categoryRepository;
 
+    private final ProductRepository productRepository;
+    private final ProductColorRepository productColorRepository;
+    private final ProductDetailRepository productDetailRepository;
+    private final CategoryRepository categoryRepository;
+
+    @Transactional
     public ProductResponseDTO getProductDetailById(Integer productId) {
 
         Product product = productRepository.findById(productId)
@@ -59,6 +67,7 @@ public class ProductService {
         return new ProductResponseDTO(product);
     }
 
+    @Transactional
     public List<ProductSummaryDTO> getAllProduct(Integer categoryId, Pageable pageable) {
 
         Page<Product> products = (categoryId == null) ? productRepository.findAll(pageable)
@@ -180,7 +189,6 @@ public class ProductService {
             // productColors.add(productColor);
             product.getProductColors().add(productColor);
         }
-
 
     }
 

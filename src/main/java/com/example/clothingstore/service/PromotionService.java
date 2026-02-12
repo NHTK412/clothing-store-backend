@@ -31,28 +31,38 @@ import com.example.clothingstore.repository.ProductDetailRepository;
 import com.example.clothingstore.repository.PromotionRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class PromotionService {
 
-    @Autowired
-    private PromotionRepository promotionRepository;
+    // @Autowired
+    // private PromotionRepository promotionRepository;
 
-    @Autowired
-    private ProductDetailRepository productDetailRepository;
+    // @Autowired
+    // private ProductDetailRepository productDetailRepository;
 
-    @Autowired
-    private PromotionMapper promotionMapper;
+    // @Autowired
+    // private PromotionMapper promotionMapper;
 
-    @Autowired
-    private PromotionGroupMapper promotionGroupMapper;
+    // @Autowired
+    // private PromotionGroupMapper promotionGroupMapper;
 
-    @Autowired
-    private GiftMapper giftMapper;
+    // @Autowired
+    // private GiftMapper giftMapper;
 
-    @Autowired
-    private DiscountMapper discountMapper;
+    // @Autowired
+    // private DiscountMapper discountMapper;
 
+    private final PromotionRepository promotionRepository;
+    private final ProductDetailRepository productDetailRepository;
+    private final PromotionMapper promotionMapper;
+    private final PromotionGroupMapper promotionGroupMapper;
+    private final GiftMapper giftMapper;
+    private final DiscountMapper discountMapper;
+
+    @Transactional
     public PromotionResponseDTO getPromotionById(Integer promotionId) {
         Promotion promotion = promotionRepository.findById(promotionId)
                 .orElseThrow(() -> new NotFoundException("Invalue Promotion Code"));
@@ -268,7 +278,6 @@ public class PromotionService {
 
         return promotionSummaryDTOs;
     }
-
 
     public List<PromotionSummaryDTO> getAllPromotions(PageRequest pageable) {
 

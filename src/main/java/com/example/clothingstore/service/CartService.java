@@ -24,25 +24,34 @@ import com.example.clothingstore.repository.CartRepository;
 import com.example.clothingstore.repository.ProductDetailRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class CartService {
 
-    @Autowired
-    private CartRepository cartRepository;
+    // @Autowired
+    // private CartRepository cartRepository;
 
-    @Autowired
-    private CartDetailRepository cartDetailRepository;
+    // @Autowired
+    // private CartDetailRepository cartDetailRepository;
 
-    @Autowired
-    private ProductDetailRepository productDetailRepository;
+    // @Autowired
+    // private ProductDetailRepository productDetailRepository;
 
-    @Autowired
-    private CartMapper cartMapper;
+    // @Autowired
+    // private CartMapper cartMapper;
 
-    @Autowired
-    private CartDetailMapper cartDetailMapper;
+    // @Autowired
+    // private CartDetailMapper cartDetailMapper;
 
+    private final CartRepository cartRepository;
+    private final CartDetailRepository cartDetailRepository;
+    private final ProductDetailRepository productDetailRepository;
+    private final CartMapper cartMapper;
+    private final CartDetailMapper cartDetailMapper;
+
+    @Transactional
     public CartResponseDTO getCartByCustomer(Integer customerId) {
         Cart cart = cartRepository.findByCustomerIdWithALLFetch(customerId)
                 .orElseThrow(() -> new NotFoundException("Invalue Cart By Customer"));
@@ -64,6 +73,7 @@ public class CartService {
 
         CartItem cartItem = optionalCartItem.orElse(null);
 
+        // Nếu cartItem đã tồn tại, cộng dồn số lượng
         Integer quantity = (cartItem == null) ? cartItemRequestDTO.getQuantity()
                 : cartItem.getQuantity() + cartItemRequestDTO.getQuantity();
 

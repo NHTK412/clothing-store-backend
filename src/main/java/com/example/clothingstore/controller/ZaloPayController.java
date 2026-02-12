@@ -14,16 +14,22 @@ import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.ZaloPayService;
 import com.example.clothingstore.util.ApiResponse;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * Controller xử lý các API liên quan đến thanh toán ZaloPay
  * Đây là lớp điều khiển REST API để tương tác với hệ thống thanh toán ZaloPay
  */
 @RestController // Đánh dấu đây là REST Controller, tự động chuyển đổi response thành JSON
 @RequestMapping("/zalopay") // Định nghĩa base URL cho tất cả API trong controller này
+@RequiredArgsConstructor
+
 public class ZaloPayController {
 
-    @Autowired // Tự động inject ZaloPayService vào controller
-    private ZaloPayService zaloPayService;
+    // @Autowired // Tự động inject ZaloPayService vào controller
+    // private ZaloPayService zaloPayService;
+
+    private final ZaloPayService zaloPayService; // Sử dụng Lombok để tự động tạo constructor và inject service
 
     /**
      * API tạo đơn hàng thanh toán ZaloPay
@@ -36,7 +42,8 @@ public class ZaloPayController {
      */
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/create-order") // Mapping cho HTTP POST request
-    public ResponseEntity<ApiResponse<ZaloPayResponseDTO>> createOrder(@AuthenticationPrincipal CustomerUserDetails userDetails,@RequestBody CreateOrderRequest req)
+    public ResponseEntity<ApiResponse<ZaloPayResponseDTO>> createOrder(
+            @AuthenticationPrincipal CustomerUserDetails userDetails, @RequestBody CreateOrderRequest req)
             throws Exception {
         // Gọi service để tạo đơn hàng trên ZaloPay
         // JSONObject res = zaloPayService.createOrder(req);
@@ -45,7 +52,7 @@ public class ZaloPayController {
 
         Integer userId = userDetails.getUserId();
 
-        ZaloPayResponseDTO res = zaloPayService.createOrder(userId,req);
+        ZaloPayResponseDTO res = zaloPayService.createOrder(userId, req);
 
         return ResponseEntity.ok(new ApiResponse<>(true, "Create ZaloPay order successfully", res));
     }

@@ -16,18 +16,27 @@ import com.example.clothingstore.exception.customer.AccessDeniedHandlerException
 import com.example.clothingstore.exception.customer.AuthenticationEntryPointException;
 import com.example.clothingstore.filter.JwtAuthFilter;
 
+import lombok.RequiredArgsConstructor;
+
 @EnableMethodSecurity
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-        @Autowired
-        private JwtAuthFilter jwtAuthFilter;
+        // @Autowired
+        // private JwtAuthFilter jwtAuthFilter;
 
-        @Autowired
-        private AuthenticationEntryPointException authenticationEntryPointException;
+        // @Autowired
+        // private AuthenticationEntryPointException authenticationEntryPointException;
 
-        @Autowired
-        private AccessDeniedHandlerException accessDeniedHandlerException;
+        // @Autowired
+        // private AccessDeniedHandlerException accessDeniedHandlerException;
+
+        private final JwtAuthFilter jwtAuthFilter;
+
+        private final AuthenticationEntryPointException authenticationEntryPointException;
+
+        private final AccessDeniedHandlerException accessDeniedHandlerException;
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -42,7 +51,7 @@ public class SecurityConfig {
                                         "GET",
                                         "POST",
                                         "PUT",
-                                        "DELETE","PATCH",
+                                        "DELETE", "PATCH",
                                         "OPTIONS"));
 
                         corsConfiguration.setAllowedHeaders(List.of(
@@ -77,6 +86,7 @@ public class SecurityConfig {
 
                 httpSecurity.addFilterBefore(jwtAuthFilter,
                                 UsernamePasswordAuthenticationFilter.class);
+
 
                 return httpSecurity.build();
         }

@@ -1,5 +1,6 @@
 package com.example.clothingstore.dto.discount;
 
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,10 +10,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DiscountRequestDTO {
 
-    private Double discountPercentage;
+    @Positive(message = "Discount percentage must be positive")
+    private Double discountPercentage; // % giảm giá
 
-    private Double discountAmount;
+    @Positive(message = "Discount percentage must be positive")
+    private Double discountAmount; // số tiền giảm giá
 
-    private Double maxDiscount;
+    @Positive(message = "Discount percentage must be positive")
+    private Double maxDiscount; // số tiền giảm tối đa
 
 }

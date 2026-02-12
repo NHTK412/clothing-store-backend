@@ -22,6 +22,9 @@ import com.example.clothingstore.model.Order;
 import com.example.clothingstore.repository.OrderRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
@@ -33,10 +36,14 @@ import java.util.*;
  * toán
  */
 @Service // Đánh dấu đây là một Spring Service bean
+@RequiredArgsConstructor
+
 public class ZaloPayService {
 
-    @Autowired
-    private OrderRepository orderRepository;
+    // @Autowired
+    // private OrderRepository orderRepository;
+
+    private final OrderRepository orderRepository;
 
     /**
      * Tạo mã giao dịch duy nhất (app_trans_id)
@@ -68,6 +75,7 @@ public class ZaloPayService {
      * @throws Exception nếu có lỗi khi gọi API ZaloPay
      */
     // public JSONObject createOrder(CreateOrderRequest req) throws Exception {
+    @Transactional
     public ZaloPayResponseDTO createOrder(Integer userId, CreateOrderRequest req) throws Exception {
 
         Order o = orderRepository.findById(req.getOrderId())

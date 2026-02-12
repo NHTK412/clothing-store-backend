@@ -17,16 +17,22 @@ import com.example.clothingstore.model.Category;
 import com.example.clothingstore.repository.CategoryRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class CategoryService {
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    // @Autowired
+    // private CategoryRepository categoryRepository;
 
-    @Autowired
-    private CategoryMapper categoryMapper;
+    // @Autowired
+    // private CategoryMapper categoryMapper;
 
+    private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
+
+    @Transactional
     public List<CategorySummaryDTO> getAllCategory(Pageable pageable) {
         // Page<Category> categories = categoryRepository.findAll(pageable);
         Page<Category> categories = categoryRepository.findByStatus(CategoryStatusEnum.ACTIVE, pageable);
@@ -36,6 +42,7 @@ public class CategoryService {
                 .toList();
     }
 
+    @Transactional
     public CategoryResponseDTO getCategoryById(Integer categoryId) {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Invalid category code"));
@@ -77,6 +84,7 @@ public class CategoryService {
         return categoryResponseDTO;
     }
 
+    @Transactional
     public List<CategoryResponseDTO> getAllCategoriesDetailed(Pageable pageable) {
         Page<Category> categories = categoryRepository.findAll(pageable);
         return categories.stream()

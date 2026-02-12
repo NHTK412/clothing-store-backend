@@ -16,13 +16,18 @@ import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.ShippingAddressService;
 import com.example.clothingstore.util.ApiResponse;
 
+import lombok.RequiredArgsConstructor;
+
 @PreAuthorize("hasRole('CUSTOMER')")
 @RestController
 @RequestMapping("/shipping-address")
+@RequiredArgsConstructor
 public class ShippingAddressController {
 
-        @Autowired
-        private ShippingAddressService shippingAddressService;
+        // @Autowired
+        // private ShippingAddressService shippingAddressService;
+
+        private final ShippingAddressService shippingAddressService;
 
         @PreAuthorize("hasRole('CUSTOMER')")
         @GetMapping

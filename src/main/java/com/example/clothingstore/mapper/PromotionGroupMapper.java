@@ -15,11 +15,17 @@ import com.example.clothingstore.model.Product;
 import com.example.clothingstore.model.ProductColor;
 import com.example.clothingstore.model.PromotionGroup;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
+@RequiredArgsConstructor
+
 public class PromotionGroupMapper {
 
-        @Autowired
-        private ProductDetailMapper productDetailMapper;
+        // @Autowired
+        // private ProductDetailMapper productDetailMapper;
+
+        private final ProductDetailMapper productDetailMapper;
 
         // @Autowired
         // private ProductMapper productMapper;

@@ -17,19 +17,26 @@ import com.example.clothingstore.repository.CustomerRepository;
 import com.example.clothingstore.repository.ShippingAddressRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class ShippingAddressService {
 
-        @Autowired
-        private ShippingAddressRepository shippingAddressRepository;
+        // @Autowired
+        // private ShippingAddressRepository shippingAddressRepository;
 
-        @Autowired
-        private CustomerRepository customerRepository;
+        // @Autowired
+        // private CustomerRepository customerRepository;
 
-        @Autowired
-        private ShippingAddressMapper shippingAddressMapper;
+        // @Autowired
+        // private ShippingAddressMapper shippingAddressMapper;
 
+        private final ShippingAddressRepository shippingAddressRepository;
+        private final CustomerRepository customerRepository;
+        private final ShippingAddressMapper shippingAddressMapper;
+
+        @Transactional
         public List<ShippingAddressResponseDTO> getAllShippingAddresses(Integer customerId, Pageable pageable) {
 
                 Page<ShippingAddress> shippingAddresses = shippingAddressRepository
@@ -89,6 +96,7 @@ public class ShippingAddressService {
                 return shippingAddressMapper.convertModelToShippingAddressResponseDTO(shippingAddress);
         }
 
+        @Transactional
         public List<ShippingAddressResponseDTO> getAddressesByCustomerId(Integer customerId, Pageable pageable) {
                 Page<ShippingAddress> shippingAddresses = shippingAddressRepository
                                 .findByCustomer_CustomerId(customerId, pageable);

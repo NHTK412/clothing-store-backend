@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ApiResponse<T> {
 
+    // private Integer code;
+
     private Boolean success;
 
     private String message;

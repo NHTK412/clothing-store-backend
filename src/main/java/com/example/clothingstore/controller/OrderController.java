@@ -25,19 +25,27 @@ import com.example.clothingstore.model.Order;
 import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.OrderService;
 import com.example.clothingstore.util.ApiResponse;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/orders")
+@RequiredArgsConstructor
+
 public class OrderController {
 
-    @Autowired
-    private OrderService orderService;
+    // @Autowired
+    // private OrderService orderService;
+
+    private final OrderService orderService;
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping
     public ResponseEntity<ApiResponse<OrderResponseDTO>> createOrder(@AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody OrderRequestDTO orderRequestDTO) {
+            @Valid @RequestBody OrderRequestDTO orderRequestDTO) {
 
         // Integer customerId = 1; // Temporary hardcoded customer ID for testing
 
@@ -63,8 +71,10 @@ public class OrderController {
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<List<OrderSummaryDTO>>> getAllOrderByCustomer(@RequestParam Integer page,
-            @RequestParam Integer size, @AuthenticationPrincipal CustomerUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<List<OrderSummaryDTO>>> getAllOrderByCustomer(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @AuthenticationPrincipal CustomerUserDetails userDetails) {
         // return new String();
 
         Pageable pageable = PageRequest.of(page - 1, size);
@@ -84,8 +94,9 @@ public class OrderController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<OrderSummaryDTO>>> getAllOrder(@RequestParam Integer page,
-            @RequestParam Integer size) {
+    public ResponseEntity<ApiResponse<List<OrderSummaryDTO>>> getAllOrder(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
         // return new String();
 
         Pageable pageable = PageRequest.of(page - 1, size);

@@ -36,24 +36,32 @@ import com.example.clothingstore.repository.ProductDetailRepository;
 import com.example.clothingstore.repository.PromotionRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class OrderService {
 
-        @Autowired
-        private OrderRepository orderRepository;
+        // @Autowired
+        // private OrderRepository orderRepository;
 
-        @Autowired
-        private ProductDetailRepository productDetailRepository;
+        // @Autowired
+        // private ProductDetailRepository productDetailRepository;
 
-        @Autowired
-        private PromotionRepository promotionRepository;
+        // @Autowired
+        // private PromotionRepository promotionRepository;
 
-        @Autowired
-        private CustomerRepository customerRepository;
+        // @Autowired
+        // private CustomerRepository customerRepository;
 
-        @Autowired
-        private CartRepository cartRepository;
+        // @Autowired
+        // private CartRepository cartRepository;
+
+        private final OrderRepository orderRepository;
+        private final ProductDetailRepository productDetailRepository;
+        private final PromotionRepository promotionRepository;
+        private final CustomerRepository customerRepository;
+        private final CartRepository cartRepository;
 
         // @Transactional
         // public OrderResponseDTO createOrder(String userName, OrderRequestDTO
@@ -359,6 +367,7 @@ public class OrderService {
                 return orderResponseDTO;
         }
 
+        @Transactional
         public OrderResponseDTO getOrderById(Integer orderId) {
 
                 Order order = orderRepository.findById(orderId)
@@ -445,6 +454,7 @@ public class OrderService {
                 return orderResponseDTO;
         }
 
+        @Transactional
         public List<OrderSummaryDTO> getAllOrdersByCustomer(Integer customerId, Pageable pageable) {
 
                 Page<Order> orders = orderRepository.findAllByCustomerId(customerId, pageable);
@@ -482,6 +492,7 @@ public class OrderService {
                 return orderSummaries;
         }
 
+        @Transactional
         public List<OrderSummaryDTO> getAllOrders(Pageable pageable) {
 
                 Page<Order> orders = orderRepository.findAll(pageable);

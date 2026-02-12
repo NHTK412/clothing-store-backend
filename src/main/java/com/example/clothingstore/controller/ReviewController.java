@@ -10,6 +10,8 @@ import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.ReviewService;
 import com.example.clothingstore.util.ApiResponse;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +28,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
 @RequestMapping("/product/{productId}/reviews")
+@RequiredArgsConstructor
+
 public class ReviewController {
 
-    @Autowired
-    private ReviewService reviewService;
+    // @Autowired
+    // private ReviewService reviewService;
+
+    private final ReviewService reviewService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
     @GetMapping
@@ -49,7 +55,8 @@ public class ReviewController {
             @PathVariable Integer productId,
             ReviewRequestDTO reviewRequestDTO, @AuthenticationPrincipal CustomerUserDetails userDetails) {
 
-        ReviewResponseDTO reviewResponseDTO = reviewService.createReviewByProductId(orderdetailId, userDetails.getUserId(), productId,
+        ReviewResponseDTO reviewResponseDTO = reviewService.createReviewByProductId(orderdetailId,
+                userDetails.getUserId(), productId,
                 reviewRequestDTO);
 
         return ResponseEntity.ok(new ApiResponse<ReviewResponseDTO>(true, null, reviewResponseDTO));

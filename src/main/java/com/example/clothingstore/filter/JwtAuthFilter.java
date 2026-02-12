@@ -28,21 +28,28 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    // @Autowired
+    // private JwtUtil jwtUtil;
+
+    private final JwtUtil jwtUtil;
 
     // @Autowired
     // private Auth accountService;
 
-    @Autowired
-    private CustomerRepository customerRepository;
+    // @Autowired
+    // private CustomerRepository customerRepository;
 
-    @Autowired
-    private AdminRepository adminRepository;
+    // @Autowired
+    // private AdminRepository adminRepository;
+
+    private final CustomerRepository customerRepository;
+    private final AdminRepository adminRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -74,10 +81,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             .orElseThrow(() -> new NotFoundException("Username không tồn tại"));
 
                     // userDetails = User.builder()
-                    //         .username(customer.getUserName())
-                    //         .password(customer.getPassword())
-                    //         .authorities(List.of(new SimpleGrantedAuthority(RoleEnum.ROLE_CUSTOMER.name())))
-                    //         .build();
+                    // .username(customer.getUserName())
+                    // .password(customer.getPassword())
+                    // .authorities(List.of(new
+                    // SimpleGrantedAuthority(RoleEnum.ROLE_CUSTOMER.name())))
+                    // .build();
                     userDetails = CustomerUserDetails.builder()
                             .userName(customer.getUserName())
                             .password(customer.getPassword())
@@ -89,10 +97,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             .orElseThrow(() -> new NotFoundException("Username không tồn tại"));
 
                     // userDetails = User.builder()
-                    //         .username(admin.getUserName())
-                    //         .password(admin.getPassword())
-                    //         .authorities(List.of(new SimpleGrantedAuthority(RoleEnum.ROLE_ADMIN.name())))
-                    //         .build();
+                    // .username(admin.getUserName())
+                    // .password(admin.getPassword())
+                    // .authorities(List.of(new SimpleGrantedAuthority(RoleEnum.ROLE_ADMIN.name())))
+                    // .build();
 
                     userDetails = CustomerUserDetails.builder()
                             .userName(admin.getUserName())
@@ -101,7 +109,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             .authorities(List.of(new SimpleGrantedAuthority(RoleEnum.ROLE_ADMIN.name())))
                             .build();
 
-                        
                 } else {
                     throw new RuntimeException("Role không tồn tại");
                 }

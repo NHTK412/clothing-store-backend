@@ -13,12 +13,18 @@ import com.example.clothingstore.dto.auth.AuthResponseDTO;
 import com.example.clothingstore.service.AuthService;
 import com.example.clothingstore.util.ApiResponse;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("auth")
+@RequiredArgsConstructor
 public class AuthController {
 
-    @Autowired
-    AuthService authService;
+    // @Autowired
+    // AuthService authService;
+
+    private final AuthService authService;
 
     // @PostMapping("/login")
     // public ResponseEntity<ApiResponse<AuthResponseDTO>> login(@RequestBody
@@ -32,14 +38,15 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponseDTO>> login(@RequestParam(defaultValue = "false") Boolean admin,
-            @RequestBody AuthRequestDTO authRequestDTO) {
-        AuthResponseDTO authResponseDTO = authService.login(authRequestDTO.getUsername(), authRequestDTO.getPassword(), admin);
+            @Valid @RequestBody AuthRequestDTO authRequestDTO) {
+        AuthResponseDTO authResponseDTO = authService.login(authRequestDTO.getUsername(), authRequestDTO.getPassword(),
+                admin);
         return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null, authResponseDTO));
     }
 
     // Đăng ký tài khoản
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthResponseDTO>> register(@RequestBody AuthRequestDTO authRequestDTO) {
+    public ResponseEntity<ApiResponse<AuthResponseDTO>> register(@Valid @RequestBody AuthRequestDTO authRequestDTO) {
 
         AuthResponseDTO authResponseDTO = authService.register(authRequestDTO.getUsername(),
                 authRequestDTO.getPassword());
@@ -47,7 +54,7 @@ public class AuthController {
     }
 
     @PostMapping("/login-admin")
-    public ResponseEntity<ApiResponse<AuthResponseDTO>> loginAdmin(@RequestBody AuthRequestDTO authRequestDTO) {
+    public ResponseEntity<ApiResponse<AuthResponseDTO>> loginAdmin(@Valid @RequestBody AuthRequestDTO authRequestDTO) {
         AuthResponseDTO authResponseDTO = authService.loginAdmin(authRequestDTO.getUsername(),
                 authRequestDTO.getPassword());
         return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null, authResponseDTO));

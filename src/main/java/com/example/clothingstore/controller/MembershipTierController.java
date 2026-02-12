@@ -15,6 +15,9 @@ import com.example.clothingstore.dto.membershiptier.MembershipTierResponseDTO;
 import com.example.clothingstore.service.MembershipTierService;
 import com.example.clothingstore.util.ApiResponse;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,10 +28,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/membership-tier")
+@RequiredArgsConstructor
 public class MembershipTierController {
 
-        @Autowired
-        private MembershipTierService membershipTierService;
+        // @Autowired
+        // private MembershipTierService membershipTierService;
+
+        private final MembershipTierService membershipTierService;
 
         @PreAuthorize("hasRole('ADMIN')")
         @GetMapping
@@ -49,7 +55,7 @@ public class MembershipTierController {
         @PreAuthorize("hasRole('ADMIN')")
         @PostMapping
         public ResponseEntity<ApiResponse<MembershipTierResponseDTO>> createMembershipTier(
-                        @RequestBody MembershipTierRequestDTO membershipTierRequestDTO) {
+                        @Valid @RequestBody MembershipTierRequestDTO membershipTierRequestDTO) {
 
                 MembershipTierResponseDTO membershipTierResponseDTO = membershipTierService
                                 .createMembershipTier(membershipTierRequestDTO);
@@ -74,7 +80,7 @@ public class MembershipTierController {
         @PutMapping("/{membershipTieId}")
         public ResponseEntity<ApiResponse<MembershipTierResponseDTO>> updateMembershipTier(
                         @PathVariable Integer membershipTieId,
-                        @RequestBody MembershipTierRequestDTO membershipTierRequestDTO) {
+                        @Valid @RequestBody MembershipTierRequestDTO membershipTierRequestDTO) {
 
                 MembershipTierResponseDTO membershipTierResponseDTO = membershipTierService
                                 .updateMembershipTier(membershipTieId, membershipTierRequestDTO);

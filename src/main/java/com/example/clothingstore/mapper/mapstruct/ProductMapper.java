@@ -1,6 +1,7 @@
 package com.example.clothingstore.mapper.mapstruct;
 
 import org.mapstruct.AfterMapping;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -76,5 +77,12 @@ public interface ProductMapper {
             productSummaryDTO.setAverageRating(0.0);
         }
     }
+
+    @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "status", constant = "ACTIVE")
+    @Mapping(target = "productId", ignore = true)
+    @Mapping(target = "categories", ignore = true)
+    @Mapping(target = "reviews", ignore = true)
+    void updateEntityFromDTO(ProductRequestDTO productRequestDTO, @MappingTarget Product product);
 
 }

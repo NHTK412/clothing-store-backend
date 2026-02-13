@@ -78,7 +78,8 @@ public class CategoryService {
 
         // category = categoryMapper.convertCategoryRequestToModel(categoryRequestDTO,
         // category);
-        category = categoryMapper.toEntity(categoryRequestDTO);
+        // category = categoryMapper.toEntity(categoryRequestDTO);
+        categoryMapper.updateEntityFromDTO(categoryRequestDTO, category);
 
         categoryRepository.save(category);
 

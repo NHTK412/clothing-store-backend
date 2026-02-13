@@ -211,8 +211,9 @@ public class ProductService {
         ProductColor productColor = productColorRepository.findById(productColorId)
                 .orElseThrow(() -> new NotFoundException("Invalid product color id"));
 
-        productColor.setColor(productColorRequest.getColor());
-        productColor.setProductImage(productColorRequest.getProductImage());
+        // productColor.setColor(productColorRequest.getColor());
+        // productColor.setProductImage(productColorRequest.getProductImage());
+        productColorMapper.updateEntityFromDTO(productColorRequest, productColor);
 
         productColorRepository.save(productColor);
 
@@ -281,8 +282,9 @@ public class ProductService {
         ProductDetail productDetail = productDetailRepository.findById(productDetailId)
                 .orElseThrow(() -> new NotFoundException("Invalid product detail id"));
 
-        productDetail.setSize(productDetailRequest.getSize());
-        productDetail.setQuantity(productDetailRequest.getQuantity());
+        // productDetail.setSize(productDetailRequest.getSize());
+        // productDetail.setQuantity(productDetailRequest.getQuantity());
+        productDetailMapper.updateEntityFromDTO(productDetailRequest, productDetail);
 
         productDetailRepository.save(productDetail);
 

@@ -1,6 +1,7 @@
 package com.example.clothingstore.mapper.mapstruct;
 
 import org.mapstruct.AfterMapping;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -20,5 +21,7 @@ public interface ReviewMapper {
             reviewResponseDTO.setUserNameCustomer(review.getCustomer().getUserName());
         }
     }
+
+  
 
 }

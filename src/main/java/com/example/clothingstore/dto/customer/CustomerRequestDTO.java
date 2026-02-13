@@ -7,6 +7,7 @@ import com.example.clothingstore.enums.GenderEnum;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -36,6 +37,7 @@ public class CustomerRequestDTO {
     private String fullName;
 
     // @NotNull(message = "Date is required")
+    @Past(message = "Date must be in the past")
     private LocalDateTime date;
 
     // @NotBlank(message = "Phone is required")

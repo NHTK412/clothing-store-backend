@@ -1,6 +1,7 @@
 package com.example.clothingstore.mapper.mapstruct;
 
 import org.mapstruct.AfterMapping;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -27,5 +28,10 @@ public interface CategoryMapper {
     default void setProductCount(Category category, @MappingTarget CategorySummaryDTO categorySummaryDTO) {
         categorySummaryDTO.setProductCount(category.getProducts().size());
     }
+
+    @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "categoryId", ignore = true)
+    @Mapping(target = "products", ignore = true)
+    void updateEntityFromDTO(CategoryRequestDTO categoryRequestDTO, @MappingTarget Category category);
 
 }

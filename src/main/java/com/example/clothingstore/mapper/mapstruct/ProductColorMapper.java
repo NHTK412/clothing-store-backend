@@ -1,6 +1,7 @@
 package com.example.clothingstore.mapper.mapstruct;
 
 import org.mapstruct.AfterMapping;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -30,5 +31,11 @@ public interface ProductColorMapper {
     }
 
     ProductColorResponseDTO toResponseDTO(ProductColor productColor);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "status", constant = "ACTIVE")
+    @Mapping(target = "colorId", ignore = true)
+    @Mapping(target = "product", ignore = true)
+    void updateEntityFromDTO(ProductColorRequestDTO productColorRequestDTO, @MappingTarget ProductColor productColor);
 
 }

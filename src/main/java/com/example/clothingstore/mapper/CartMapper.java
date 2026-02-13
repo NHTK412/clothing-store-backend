@@ -2,6 +2,8 @@ package com.example.clothingstore.mapper;
 
 import java.util.List;
 
+import org.mapstruct.AfterMapping;
+import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -9,6 +11,7 @@ import com.example.clothingstore.dto.cart.CartResponseDTO;
 import com.example.clothingstore.dto.cartdetail.CartItemResponseDTO;
 // import com.example.clothingstore.dto.cartdetail.CartDetailResponseDTO;
 import com.example.clothingstore.model.Cart;
+import com.example.clothingstore.model.Category;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,5 +40,7 @@ public class CartMapper {
 
         return cartResponseDTO;
     }
+
+    
 
 }

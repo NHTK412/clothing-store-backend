@@ -149,10 +149,17 @@
 		</dependency>
 
 		<!-- Kiểm tra dữ liệu -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
+		</dependency> -->
+
+		<!-- MapStruct : giúp convert data-->
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+        <version>1.5.5.Final</version>
+    </dependency>
 
 	</dependencies>
 
@@ -167,6 +174,15 @@
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
 						</path>
+
+						<!-- Mapstruct -->
+						<path>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>1.5.5.Final</version>
+                        </path>
+						<!-- Mapstruct -->
+						
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
@@ -182,6 +198,7 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			
 		</plugins>
 	</build>
 

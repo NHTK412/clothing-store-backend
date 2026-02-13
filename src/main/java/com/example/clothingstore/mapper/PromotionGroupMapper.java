@@ -19,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-
 public class PromotionGroupMapper {
 
         // @Autowired

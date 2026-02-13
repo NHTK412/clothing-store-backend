@@ -12,7 +12,8 @@ import com.example.clothingstore.dto.category.CategoryResponseDTO;
 import com.example.clothingstore.dto.category.CategorySummaryDTO;
 import com.example.clothingstore.enums.CategoryStatusEnum;
 import com.example.clothingstore.exception.customer.NotFoundException;
-import com.example.clothingstore.mapper.CategoryMapper;
+import com.example.clothingstore.mapper.mapstruct.CategoryMapper;
+// import com.example.clothingstore.mapper.CategoryMapper;
 import com.example.clothingstore.model.Category;
 import com.example.clothingstore.repository.CategoryRepository;
 
@@ -37,8 +38,12 @@ public class CategoryService {
         // Page<Category> categories = categoryRepository.findAll(pageable);
         Page<Category> categories = categoryRepository.findByStatus(CategoryStatusEnum.ACTIVE, pageable);
 
+        // return categories.stream()
+        // .map((category) ->
+        // categoryMapper.convertCategoryToCategorySummaryDTO(category))
+        // .toList();
         return categories.stream()
-                .map((category) -> categoryMapper.convertCategoryToCategorySummaryDTO(category))
+                .map(categoryMapper::toSummaryDTO)
                 .toList();
     }
 
@@ -47,18 +52,23 @@ public class CategoryService {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Invalid category code"));
 
-        return categoryMapper.convertCategoryToCategoryResponseDTO(category);
+        // return categoryMapper.convertCategoryToCategoryResponseDTO(category);
+        return categoryMapper.toResponseDTO(category);
+
     }
 
     @Transactional
     public CategoryResponseDTO createCategory(CategoryRequestDTO categoryRequestDTO) {
         Category category = new Category();
 
-        category = categoryMapper.convertCategoryRequestToModel(categoryRequestDTO, category);
+        // category = categoryMapper.convertCategoryRequestToModel(categoryRequestDTO,
+        // category);
+        category = categoryMapper.toEntity(categoryRequestDTO);
 
         categoryRepository.save(category);
 
-        return categoryMapper.convertCategoryToCategoryResponseDTO(category);
+        // return categoryMapper.convertCategoryToCategoryResponseDTO(category);
+        return categoryMapper.toResponseDTO(category);
     }
 
     @Transactional
@@ -66,18 +76,23 @@ public class CategoryService {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Invalid category code"));
 
-        category = categoryMapper.convertCategoryRequestToModel(categoryRequestDTO, category);
+        // category = categoryMapper.convertCategoryRequestToModel(categoryRequestDTO,
+        // category);
+        category = categoryMapper.toEntity(categoryRequestDTO);
 
         categoryRepository.save(category);
 
-        return categoryMapper.convertCategoryToCategoryResponseDTO(category);
+        // return categoryMapper.convertCategoryToCategoryResponseDTO(category);
+        return categoryMapper.toResponseDTO(category);
     }
 
     @Transactional
     public CategoryResponseDTO deleteCategory(Integer categoryId) {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Invalid category code"));
-        CategoryResponseDTO categoryResponseDTO = categoryMapper.convertCategoryToCategoryResponseDTO(category);
+        // CategoryResponseDTO categoryResponseDTO =
+        // categoryMapper.convertCategoryToCategoryResponseDTO(category);
+        CategoryResponseDTO categoryResponseDTO = categoryMapper.toResponseDTO(category);
 
         categoryRepository.delete(category);
 
@@ -88,7 +103,9 @@ public class CategoryService {
     public List<CategoryResponseDTO> getAllCategoriesDetailed(Pageable pageable) {
         Page<Category> categories = categoryRepository.findAll(pageable);
         return categories.stream()
-                .map((category) -> categoryMapper.convertCategoryToCategoryResponseDTO(category))
+                // .map((category) ->
+                // categoryMapper.convertCategoryToCategoryResponseDTO(category))
+                .map(categoryMapper::toResponseDTO)
                 .toList();
     }
 

@@ -25,6 +25,9 @@ import com.example.clothingstore.dto.productdetail.ProductDetailResponseDTO;
 import com.example.clothingstore.dto.productdetail.ProductDetailUpdateDTO;
 import com.example.clothingstore.enums.StatusEnum;
 import com.example.clothingstore.exception.customer.NotFoundException;
+import com.example.clothingstore.mapper.mapstruct.ProductColorMapper;
+import com.example.clothingstore.mapper.mapstruct.ProductDetailMapper;
+import com.example.clothingstore.mapper.mapstruct.ProductMapper;
 import com.example.clothingstore.model.Category;
 import com.example.clothingstore.model.Product;
 import com.example.clothingstore.model.ProductColor;
@@ -58,13 +61,19 @@ public class ProductService {
     private final ProductDetailRepository productDetailRepository;
     private final CategoryRepository categoryRepository;
 
+    // Các mapper
+    private final ProductMapper productMapper;
+    private final ProductColorMapper productColorMapper;
+    private final ProductDetailMapper productDetailMapper;
+
     @Transactional
     public ProductResponseDTO getProductDetailById(Integer productId) {
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Invalid product code"));
 
-        return new ProductResponseDTO(product);
+        // return new ProductResponseDTO(product);
+        return productMapper.toResponseDTO(product);
     }
 
     @Transactional
@@ -76,7 +85,8 @@ public class ProductService {
         List<ProductSummaryDTO> productSummaryDTOs = products.toList()
                 .stream()
                 .map((product) -> {
-                    return new ProductSummaryDTO(product);
+                    // return new ProductSummaryDTO(product);
+                    return productMapper.toSummaryDTO(product);
                 })
                 .toList();
 
@@ -95,7 +105,8 @@ public class ProductService {
 
         productRepository.save(product);
 
-        return new ProductSummaryDTO(product);
+        // return new ProductSummaryDTO(product);
+        return productMapper.toSummaryDTO(product);
     }
 
     @Transactional
@@ -115,7 +126,8 @@ public class ProductService {
 
         productRepository.save(product);
 
-        return new ProductSummaryDTO(product);
+        // return new ProductSummaryDTO(product);
+        return productMapper.toSummaryDTO(product);
     }
 
     // @Transactional
@@ -204,7 +216,9 @@ public class ProductService {
 
         productColorRepository.save(productColor);
 
-        ProductColorResponseDTO productColorResponseDTO = new ProductColorResponseDTO(productColor);
+        // ProductColorResponseDTO productColorResponseDTO = new
+        // ProductColorResponseDTO(productColor);
+        ProductColorResponseDTO productColorResponseDTO = productColorMapper.toResponseDTO(productColor);
         return productColorResponseDTO;
     }
 
@@ -218,7 +232,9 @@ public class ProductService {
 
         productColorRepository.save(productColor);
 
-        ProductColorResponseDTO productColorResponseDTO = new ProductColorResponseDTO(productColor);
+        // ProductColorResponseDTO productColorResponseDTO = new
+        // ProductColorResponseDTO(productColor);
+        ProductColorResponseDTO productColorResponseDTO = productColorMapper.toResponseDTO(productColor);
         return productColorResponseDTO;
     }
 
@@ -231,7 +247,9 @@ public class ProductService {
 
         ProductColor savedProductColor = productColorRepository.save(productColor);
 
-        ProductColorResponseDTO productColorResponseDTO = new ProductColorResponseDTO(savedProductColor);
+        // ProductColorResponseDTO productColorResponseDTO = new
+        // ProductColorResponseDTO(savedProductColor);
+        ProductColorResponseDTO productColorResponseDTO = productColorMapper.toResponseDTO(savedProductColor);
         return productColorResponseDTO;
     }
 
@@ -250,6 +268,8 @@ public class ProductService {
 
         ProductDetail savedProductDetail = productDetailRepository.save(productDetail);
 
+        // ProductDetailResponseDTO productDetailResponseDTO =
+        // productDetailMapper.toResponseDTO(savedProductDetail);
         ProductDetailResponseDTO productDetailResponseDTO = new ProductDetailResponseDTO(savedProductDetail);
         return productDetailResponseDTO;
     }
@@ -266,7 +286,9 @@ public class ProductService {
 
         productDetailRepository.save(productDetail);
 
-        ProductDetailResponseDTO productDetailResponseDTO = new ProductDetailResponseDTO(productDetail);
+        // ProductDetailResponseDTO productDetailResponseDTO = new
+        // ProductDetailResponseDTO(productDetail);
+        ProductDetailResponseDTO productDetailResponseDTO = productDetailMapper.toResponseDTO(productDetail);
         return productDetailResponseDTO;
     }
 
@@ -280,7 +302,9 @@ public class ProductService {
 
         productDetailRepository.save(productDetail);
 
-        ProductDetailResponseDTO productDetailResponseDTO = new ProductDetailResponseDTO(productDetail);
+        // ProductDetailResponseDTO productDetailResponseDTO = new
+        // ProductDetailResponseDTO(productDetail);
+        ProductDetailResponseDTO productDetailResponseDTO = productDetailMapper.toResponseDTO(productDetail);
         return productDetailResponseDTO;
     }
 
@@ -393,7 +417,8 @@ public class ProductService {
         // Chuyển thành INACTIVE cho các product detail không có trong update
 
         productRepository.save(product);
-        return new ProductSummaryDTO(product);
+        // return new ProductSummaryDTO(product);
+        return productMapper.toSummaryDTO(product);
 
     }
 

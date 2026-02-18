@@ -31,7 +31,7 @@ public class CustomerMapper {
 
         customerResponseDTO.setPhone(customer.getPhone());
 
-        customerResponseDTO.setMembership(customer.getMembershipTier().getDescription());
+        // customerResponseDTO.setMembership(customer.getMembershipTier().getDescription()); ================================
 
         customerResponseDTO.setColorMembership(customer.getMembershipTier().getColor());
 
@@ -62,7 +62,7 @@ public class CustomerMapper {
 
         customerSummaryDTO.setPhone(customer.getPhone());
 
-        customerSummaryDTO.setMembership(customer.getMembershipTier().getDescription());
+        // customerSummaryDTO.setMembership(customer.getMembershipTier().getDescription()); ================================
 
         customerSummaryDTO.setColorMembership(customer.getMembershipTier().getColor());
 

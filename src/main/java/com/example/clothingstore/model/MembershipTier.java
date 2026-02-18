@@ -27,19 +27,13 @@ public class MembershipTier extends Base {
     private Integer tiedId;
 
     @Column(name = "MinimumSpending")
-    private Double minimumSpending;
-
-    @Column(name = "DiscountRate")
-    private Double discountRate;
-
-    @Column(name = "Description")
-    private String description;
+    private Double minimumSpending; // Số tiền tối thiểu để đạt được hạng thành viên này
 
     @Column(name = "Color")
     private String color;
 
     @Column(name = "TierName")
-    private String tierName;
+    private String tierName; // Tên hạng thành viên (ví dụ: Đồng, Bạc, Vàng, Bạch Kim)
 
     @OneToMany(mappedBy = "membershipTier")
     private List<Customer> customers;

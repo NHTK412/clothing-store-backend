@@ -1,132 +1,132 @@
-package com.example.clothingstore.mapper;
+// package com.example.clothingstore.mapper;
 
-import java.util.List;
-import java.util.stream.Collectors;
+// import java.util.List;
+// import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+// import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.stereotype.Component;
 
-import com.example.clothingstore.dto.product.ProductPromotionDTO;
-import com.example.clothingstore.dto.productcolor.ProductColorPromotionDTO;
-import com.example.clothingstore.dto.productdetail.ProductDetailPromotionDTO;
-import com.example.clothingstore.dto.promotiongroup.PromotionGroupRequestDTO;
-import com.example.clothingstore.dto.promotiongroup.PromotionGroupResponseDTO;
-import com.example.clothingstore.model.Product;
-import com.example.clothingstore.model.ProductColor;
-import com.example.clothingstore.model.PromotionGroup;
+// import com.example.clothingstore.dto.product.ProductPromotionDTO;
+// import com.example.clothingstore.dto.productcolor.ProductColorPromotionDTO;
+// import com.example.clothingstore.dto.productdetail.ProductDetailPromotionDTO;
+// import com.example.clothingstore.dto.promotiongroup.PromotionGroupRequestDTO;
+// import com.example.clothingstore.dto.promotiongroup.PromotionGroupResponseDTO;
+// import com.example.clothingstore.model.Product;
+// import com.example.clothingstore.model.ProductColor;
+// import com.example.clothingstore.model.PromotionGroup;
 
-import lombok.RequiredArgsConstructor;
+// import lombok.RequiredArgsConstructor;
 
-@Component
-@RequiredArgsConstructor
-public class PromotionGroupMapper {
+// @Component
+// @RequiredArgsConstructor
+// public class PromotionGroupMapper {
 
-        // @Autowired
-        // private ProductDetailMapper productDetailMapper;
+//         // @Autowired
+//         // private ProductDetailMapper productDetailMapper;
 
-        private final ProductDetailMapper productDetailMapper;
+//         private final ProductDetailMapper productDetailMapper;
 
-        // @Autowired
-        // private ProductMapper productMapper;
+//         // @Autowired
+//         // private ProductMapper productMapper;
 
-        public PromotionGroupResponseDTO convertModelPromotionGroupResponseDTO(PromotionGroup promotionGroup) {
+//         public PromotionGroupResponseDTO convertModelPromotionGroupResponseDTO(PromotionGroup promotionGroup) {
 
-                PromotionGroupResponseDTO promotionGroupResponseDTO = new PromotionGroupResponseDTO();
+//                 PromotionGroupResponseDTO promotionGroupResponseDTO = new PromotionGroupResponseDTO();
 
-                promotionGroupResponseDTO.setGroupId(promotionGroup.getGroupId());
+//                 promotionGroupResponseDTO.setGroupId(promotionGroup.getGroupId());
 
-                promotionGroupResponseDTO.setGroupName(promotionGroup.getGroupName());
+//                 promotionGroupResponseDTO.setGroupName(promotionGroup.getGroupName());
 
-                promotionGroupResponseDTO.setDescription(promotionGroup.getDescription());
+//                 promotionGroupResponseDTO.setDescription(promotionGroup.getDescription());
 
-                promotionGroupResponseDTO.setMinPurchaseQuantity(promotionGroup.getMinPurchaseQuantity());
+//                 promotionGroupResponseDTO.setMinPurchaseQuantity(promotionGroup.getMinPurchaseQuantity());
 
-                List<ProductPromotionDTO> productPromotionDTOs = promotionGroup.getProductDetails()
-                                .stream()
-                                .collect(Collectors.groupingBy((productDetail) -> productDetail.getProductColor()
-                                                .getProduct().getProductId()))
-                                .entrySet()
-                                .stream()
-                                .map((productEntry) -> {
+//                 List<ProductPromotionDTO> productPromotionDTOs = promotionGroup.getProductDetails()
+//                                 .stream()
+//                                 .collect(Collectors.groupingBy((productDetail) -> productDetail.getProductColor()
+//                                                 .getProduct().getProductId()))
+//                                 .entrySet()
+//                                 .stream()
+//                                 .map((productEntry) -> {
 
-                                        Product product = productEntry.getValue().get(0).getProductColor().getProduct();
+//                                         Product product = productEntry.getValue().get(0).getProductColor().getProduct();
 
-                                        ProductPromotionDTO productPromotionDTO = new ProductPromotionDTO();
+//                                         ProductPromotionDTO productPromotionDTO = new ProductPromotionDTO();
 
-                                        productPromotionDTO.setProductId(product.getProductId());
+//                                         productPromotionDTO.setProductId(product.getProductId());
 
-                                        productPromotionDTO.setProductName(product.getProductName());
+//                                         productPromotionDTO.setProductName(product.getProductName());
 
-                                        productPromotionDTO.setProductPrice(product.getUnitPrice());
+//                                         productPromotionDTO.setProductPrice(product.getUnitPrice());
 
-                                        List<ProductColorPromotionDTO> productColorPromotionDTOs = productEntry
-                                                        .getValue()
-                                                        .stream()
-                                                        .collect(Collectors.groupingBy((productDetail) -> productDetail
-                                                                        .getProductColor()
-                                                                        .getColorId()))
-                                                        .entrySet()
-                                                        .stream()
-                                                        .map((productColorEntry) -> {
+//                                         List<ProductColorPromotionDTO> productColorPromotionDTOs = productEntry
+//                                                         .getValue()
+//                                                         .stream()
+//                                                         .collect(Collectors.groupingBy((productDetail) -> productDetail
+//                                                                         .getProductColor()
+//                                                                         .getColorId()))
+//                                                         .entrySet()
+//                                                         .stream()
+//                                                         .map((productColorEntry) -> {
 
-                                                                ProductColor productColor = productColorEntry
-                                                                                .getValue()
-                                                                                .get(0)
-                                                                                .getProductColor();
+//                                                                 ProductColor productColor = productColorEntry
+//                                                                                 .getValue()
+//                                                                                 .get(0)
+//                                                                                 .getProductColor();
 
-                                                                ProductColorPromotionDTO productColorPromotionDTO = new ProductColorPromotionDTO();
+//                                                                 ProductColorPromotionDTO productColorPromotionDTO = new ProductColorPromotionDTO();
 
-                                                                productColorPromotionDTO
-                                                                                .setColorId(productColor.getColorId());
+//                                                                 productColorPromotionDTO
+//                                                                                 .setColorId(productColor.getColorId());
 
-                                                                productColorPromotionDTO
-                                                                                .setColor(productColor.getColor());
+//                                                                 productColorPromotionDTO
+//                                                                                 .setColor(productColor.getColor());
 
-                                                                productColorPromotionDTO
-                                                                                .setColorImage(productColor.getColor());
+//                                                                 productColorPromotionDTO
+//                                                                                 .setColorImage(productColor.getColor());
 
-                                                                List<ProductDetailPromotionDTO> productDetailPromotionDTOs = productColorEntry
-                                                                                .getValue()
-                                                                                .stream()
-                                                                                .map((productDetail) -> {
-                                                                                        return productDetailMapper
-                                                                                                        .convertModeDetailPromotionDTO(
-                                                                                                                        productDetail);
-                                                                                })
-                                                                                .toList();
+//                                                                 List<ProductDetailPromotionDTO> productDetailPromotionDTOs = productColorEntry
+//                                                                                 .getValue()
+//                                                                                 .stream()
+//                                                                                 .map((productDetail) -> {
+//                                                                                         return productDetailMapper
+//                                                                                                         .convertModeDetailPromotionDTO(
+//                                                                                                                         productDetail);
+//                                                                                 })
+//                                                                                 .toList();
 
-                                                                productColorPromotionDTO.setProductDetails(
-                                                                                productDetailPromotionDTOs);
+//                                                                 productColorPromotionDTO.setProductDetails(
+//                                                                                 productDetailPromotionDTOs);
 
-                                                                return productColorPromotionDTO;
+//                                                                 return productColorPromotionDTO;
 
-                                                                // productColorPromotionDTO.setProductDetails(null);
+//                                                                 // productColorPromotionDTO.setProductDetails(null);
 
-                                                        })
-                                                        .toList();
+//                                                         })
+//                                                         .toList();
 
-                                        productPromotionDTO.setProductcolors(productColorPromotionDTOs);
+//                                         productPromotionDTO.setProductcolors(productColorPromotionDTOs);
 
-                                        return productPromotionDTO;
-                                })
-                                .toList();
+//                                         return productPromotionDTO;
+//                                 })
+//                                 .toList();
 
-                promotionGroupResponseDTO.setProductPromotionDTOs(productPromotionDTOs);
+//                 promotionGroupResponseDTO.setProductPromotionDTOs(productPromotionDTOs);
 
-                return promotionGroupResponseDTO;
-        }
+//                 return promotionGroupResponseDTO;
+//         }
 
-        public PromotionGroup convertProductGroupRequestDTOTOModel(PromotionGroupRequestDTO promotionGroupRequestDTO,
-                        PromotionGroup promotionGroup) {
+//         public PromotionGroup convertProductGroupRequestDTOTOModel(PromotionGroupRequestDTO promotionGroupRequestDTO,
+//                         PromotionGroup promotionGroup) {
 
-                promotionGroup.setGroupName(promotionGroupRequestDTO.getGroupName());
+//                 promotionGroup.setGroupName(promotionGroupRequestDTO.getGroupName());
 
-                promotionGroup.setDescription(promotionGroupRequestDTO.getDescription());
+//                 promotionGroup.setDescription(promotionGroupRequestDTO.getDescription());
 
-                promotionGroup.setMinPurchaseQuantity(promotionGroupRequestDTO.getMinPurchaseQuantity());
+//                 promotionGroup.setMinPurchaseQuantity(promotionGroupRequestDTO.getMinPurchaseQuantity());
 
-                return promotionGroup;
-        }
+//                 return promotionGroup;
+//         }
 
-        // public PromotionGroup convertProductGroupRequestDTOToModel(ProductGro)
-}
+//         // public PromotionGroup convertProductGroupRequestDTOToModel(ProductGro)
+// }

@@ -16,9 +16,9 @@ public class MembershipTierMapper {
 
         membershipTier.setMinimumSpending(membershipTierRequestDTO.getMinimumSpending());
 
-        membershipTier.setDiscountRate(membershipTierRequestDTO.getDiscountRate());
+        // membershipTier.setDiscountRate(membershipTierRequestDTO.getDiscountRate());
 
-        membershipTier.setDescription(membershipTierRequestDTO.getDescription());
+        // membershipTier.setDescription(membershipTierRequestDTO.getDescription());
 
         return membershipTier;
     }
@@ -31,9 +31,9 @@ public class MembershipTierMapper {
 
         membershipTierResponseDTO.setMinimumSpending(membershipTier.getMinimumSpending());
 
-        membershipTierResponseDTO.setDiscountRate(membershipTier.getDiscountRate());
+        // membershipTierResponseDTO.setDiscountRate(membershipTier.getDiscountRate());
 
-        membershipTierResponseDTO.setDescription(membershipTier.getDescription());
+        // membershipTierResponseDTO.setDescription(membershipTier.getDescription());
 
         membershipTierResponseDTO.setColor(membershipTier.getColor());
 

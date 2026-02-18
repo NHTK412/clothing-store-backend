@@ -16,11 +16,11 @@ import com.example.clothingstore.model.Customer;
 @Mapper(componentModel = "spring")
 public interface CustomerMapper {
 
-    @Mapping(source = "membershipTier.description", target = "membership")
+    // @Mapping(source = "membershipTier.description", target = "membership")
     @Mapping(source = "membershipTier.color", target = "colorMembership")
     CustomerResponseDTO toResponseDTO(Customer customer);
 
-    @Mapping(source = "membershipTier.description", target = "membership")
+    // @Mapping(source = "membershipTier.description", target = "membership")
     @Mapping(source = "membershipTier.color", target = "colorMembership")
     CustomerSummaryDTO toSummaryDTO(Customer customer);
 

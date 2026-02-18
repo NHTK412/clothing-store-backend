@@ -12,4 +12,8 @@ public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
 
     List<Promotion> findByPromotionTypeIn(List<PromotionTypeEnum> promotionTypes);
 
+    // Tìm các mã khuyển mãi trong khoảng thời gian hiện tại và có kiểu là AUTOMATIC
+    List<Promotion> findByPromotionTypeAndStartDateBeforeAndEndDateAfter(PromotionTypeEnum promotionType,
+            java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
+
 }

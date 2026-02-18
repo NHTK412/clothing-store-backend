@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.clothingstore.dto.cart.CartResponseDTO;
 import com.example.clothingstore.dto.cartdetail.CartItemRequestDTO;
 import com.example.clothingstore.dto.cartdetail.CartItemResponseDTO;
+import com.example.clothingstore.dto.order.OrderPreviewDTO;
 import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.CartService;
 import com.example.clothingstore.util.ApiResponse;
@@ -14,6 +15,8 @@ import com.example.clothingstore.util.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -86,6 +89,19 @@ public class CartController {
 
         return ResponseEntity.ok(new ApiResponse<CartItemResponseDTO>(true, null, cartItemResponseDTO));
 
+    }
+
+    // Xem trước đơn hàng
+    @GetMapping("preview")
+    public ResponseEntity<ApiResponse<OrderPreviewDTO>> previewOrder(
+            @AuthenticationPrincipal CustomerUserDetails userDetails,
+            @RequestParam List<Integer> cartItemIds,
+            @RequestParam(required = false) List<Integer> promotionIds) {
+        Integer customerId = userDetails.getUserId();
+
+        OrderPreviewDTO orderPreviewDTO = cartService.previewOrder(customerId, cartItemIds, promotionIds);
+
+        return ResponseEntity.ok(new ApiResponse<OrderPreviewDTO>(true, null, orderPreviewDTO));
     }
 
 }

@@ -52,11 +52,11 @@ public class ProductDetail extends Base {
     @JoinColumn(name = "ProductColor")
     private ProductColor productColor;
 
-    @ManyToMany(mappedBy = "productDetails")
-    private List<PromotionGroup> promotionGroups;
+    // @ManyToMany(mappedBy = "productDetails")
+    // private List<PromotionGroup> promotionGroups;
 
-    @OneToMany(mappedBy = "productDetail")
-    private List<Gift> gits;
+    // @OneToMany(mappedBy = "productDetail")
+    // private List<Gift> gits;
 
     // @OneToMany(mappedBy = "productDetail")
     // private List<OrderDetail> orderDetails;

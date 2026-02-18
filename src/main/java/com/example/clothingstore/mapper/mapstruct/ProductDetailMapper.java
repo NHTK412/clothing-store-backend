@@ -15,8 +15,8 @@ public interface ProductDetailMapper {
 
     @Mapping(target = "status", constant = "ACTIVE")
     @Mapping(target = "detailId", ignore = true)
-    @Mapping(target = "gits", ignore = true)
-    @Mapping(target = "promotionGroups", ignore = true)
+    // @Mapping(target = "gits", ignore = true)
+    // @Mapping(target = "promotionGroups", ignore = true)
     @Mapping(target = "productColor", ignore = true)
     ProductDetail toEntity(ProductDetailRequestDTO productDetailRequestDTO);
 
@@ -24,8 +24,8 @@ public interface ProductDetailMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "detailId", ignore = true)
-    @Mapping(target = "gits", ignore = true)
-    @Mapping(target = "promotionGroups", ignore = true)
+    // @Mapping(target = "gits", ignore = true)
+    // @Mapping(target = "promotionGroups", ignore = true)
     @Mapping(target = "productColor", ignore = true)
     @Mapping(target = "status", ignore = true)
     void updateEntityFromDTO(ProductDetailRequestDTO productDetailRequestDTO,

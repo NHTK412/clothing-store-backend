@@ -3,39 +3,47 @@ package com.example.clothingstore.dto.promotion;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.example.clothingstore.dto.discount.DiscountResponseDTO;
-import com.example.clothingstore.dto.gift.GiftResponseDTO;
-import com.example.clothingstore.dto.promotiongroup.PromotionGroupResponseDTO;
+import com.example.clothingstore.enums.PromotionScopeTypeEnum;
 import com.example.clothingstore.enums.PromotionTypeEnum;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class PromotionResponseDTO {
 
     private Integer promotionId;
 
     private String promotionName;
 
-    private PromotionTypeEnum promotionType;
-
     private String description;
 
-    // private String applyCondition;
+    private PromotionTypeEnum promotionType;
+
+    private Integer priority;
+
+    private Boolean isActive;
 
     private LocalDateTime startDate;
 
     private LocalDateTime endDate;
 
-    // private String applyType;
+    private Boolean stackable;
 
-    private List<PromotionGroupResponseDTO> promotionGroupResponseDTOs;
+    private String couponCode;
 
-    private DiscountResponseDTO discountResponseDTO;
+    private Integer usageLimit;
 
-    private List<GiftResponseDTO> giftResponseDTOs;
+    private PromotionScopeTypeEnum promotionScopeType;
+
+    private List<PromotionConditionResponseDTO> conditions;
+
+    private List<PromotionActionResponseDTO> actions;
+
+    private List<PromotionGroupResponseDTO> promotionGroups;
 }

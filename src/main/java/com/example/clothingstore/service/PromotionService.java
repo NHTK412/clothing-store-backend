@@ -1,306 +1,376 @@
-// package com.example.clothingstore.service;
-
-// import java.util.ArrayList;
-// import java.util.List;
-// import java.util.Map;
-// import java.util.stream.Collector;
-// import java.util.stream.Collectors;
-// import java.util.Set;
-
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.data.domain.Page;
-// import org.springframework.data.domain.PageRequest;
-// import org.springframework.stereotype.Service;
-
-// import com.example.clothingstore.dto.cart.CartCheckPromotionDTO;
-// import com.example.clothingstore.dto.promotion.PromotionRequestDTO;
-// import com.example.clothingstore.dto.promotion.PromotionResponseDTO;
-// import com.example.clothingstore.dto.promotion.PromotionSummaryDTO;
-// import com.example.clothingstore.enums.PromotionTypeEnum;
-// import com.example.clothingstore.exception.customer.NotFoundException;
-// import com.example.clothingstore.mapper.DiscountMapper;
-// import com.example.clothingstore.mapper.GiftMapper;
-// import com.example.clothingstore.mapper.PromotionGroupMapper;
-// import com.example.clothingstore.mapper.PromotionMapper;
-// import com.example.clothingstore.model.Discount;
-// import com.example.clothingstore.model.Gift;
-// import com.example.clothingstore.model.ProductDetail;
-// import com.example.clothingstore.model.Promotion;
-// import com.example.clothingstore.model.PromotionGroup;
-// import com.example.clothingstore.repository.ProductDetailRepository;
-// import com.example.clothingstore.repository.PromotionRepository;
+package com.example.clothingstore.service;
 
-// import jakarta.transaction.Transactional;
-// import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-// @Service
-// @RequiredArgsConstructor
-// public class PromotionService {
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
-//     // @Autowired
-//     // private PromotionRepository promotionRepository;
+import com.example.clothingstore.dto.promotion.PromotionActionResponseDTO;
+import com.example.clothingstore.dto.promotion.PromotionConditionResponseDTO;
+import com.example.clothingstore.dto.promotion.PromotionCreateRequestDTO;
+import com.example.clothingstore.dto.promotion.PromotionGroupRequestDTO;
+import com.example.clothingstore.dto.promotion.PromotionGroupResponseDTO;
+import com.example.clothingstore.dto.promotion.PromotionResponseDTO;
+// import com.example.clothingstore.action.PromotionActionFactory;
+// import com.example.clothingstore.action.PromotionActionStrategy;
+import com.example.clothingstore.enums.PromotionActionTypeEnum;
+import com.example.clothingstore.enums.PromotionConditionTypeEnum;
+import com.example.clothingstore.enums.PromotionTypeEnum;
+import com.example.clothingstore.exception.customer.BadRequestException;
+import com.example.clothingstore.exception.customer.NotFoundException;
+import com.example.clothingstore.mapper.mapstruct.PromotionGroupMapper;
+import com.example.clothingstore.model.Product;
+import com.example.clothingstore.model.Promotion;
+import com.example.clothingstore.model.PromotionAction;
+import com.example.clothingstore.model.PromotionCondition;
+import com.example.clothingstore.model.PromotionGroup;
+import com.example.clothingstore.repository.ProductRepository;
+import com.example.clothingstore.repository.PromotionGroupRepository;
+import com.example.clothingstore.repository.PromotionRepository;
+import com.example.clothingstore.validator.PromotionValidator;
 
-//     // @Autowired
-//     // private ProductDetailRepository productDetailRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
-//     // @Autowired
-//     // private PromotionMapper promotionMapper;
+@Service
+@RequiredArgsConstructor
+public class PromotionService {
 
-//     // @Autowired
-//     // private PromotionGroupMapper promotionGroupMapper;
+    final private PromotionRepository promotionRepository;
 
-//     // @Autowired
-//     // private GiftMapper giftMapper;
+    final private ProductRepository productRepository;
 
-//     // @Autowired
-//     // private DiscountMapper discountMapper;
+    final private PromotionGroupRepository promotionGroupRepository;
 
-//     private final PromotionRepository promotionRepository;
-//     private final ProductDetailRepository productDetailRepository;
-//     private final PromotionMapper promotionMapper;
-//     private final PromotionGroupMapper promotionGroupMapper;
-//     private final GiftMapper giftMapper;
-//     private final DiscountMapper discountMapper;
+    final private PromotionValidator promotionValidator;
 
-//     @Transactional
-//     public PromotionResponseDTO getPromotionById(Integer promotionId) {
-//         Promotion promotion = promotionRepository.findById(promotionId)
-//                 .orElseThrow(() -> new NotFoundException("Invalue Promotion Code"));
+    final private PromotionGroupMapper promotionGroupMapper;
 
-//         return promotionMapper.convertModelToPromotionResponseDTO(promotion);
-//     }
+    // final private PromotionActionFactory promotionActionFactory;
 
-//     @Transactional
-//     public PromotionResponseDTO createPromotion(PromotionRequestDTO dto) {
+    @Scheduled(fixedDelay = 1000 * 60) // Chạy sau mỗi 1 giây kể từ khi kết thúc lần chạy trước
+    // Kiểm tra hết hạn khuyến mãi và cập nhật trạng thái
+    @Transactional
+    public void checkAndExpirePromotions() {
 
-//         // Promotion promotion = ;
+        LocalDateTime now = LocalDateTime.now();
 
-//         // Convert DTO → Model
-//         Promotion promotion = promotionMapper.convertPromotionRequestDTOToModel(dto, new Promotion());
+        List<Promotion> activePromotions = promotionRepository.findByIsActive(true);
 
-//         List<PromotionGroup> groups = dto.getPromotionGroupRequestDTOs()
-//                 .stream()
-//                 .map(groupDTO -> {
+        for (Promotion promotion : activePromotions) {
 
-//                     // PromotionGroup group = new PromotionGroup();
-//                     PromotionGroup group = promotionGroupMapper
-//                             .convertProductGroupRequestDTOTOModel(groupDTO, new PromotionGroup());
+            if (promotion.getEndDate().isBefore(now)) {
+                promotion.setIsActive(false);
+                promotionRepository.save(promotion);
 
-//                     // Lấy danh sách ProductDetail
-//                     List<ProductDetail> productDetails = productDetailRepository
-//                             .findAllById(groupDTO.getProductDetailIds());
+                if (promotion.getPromotionType() == PromotionTypeEnum.AUTOMATIC) {
 
-//                     group.setProductDetails(productDetails);
+                    List<PromotionCondition> promotionConditions = promotion.getPromotionConditions();
 
-//                     // Set quan hệ 2 chiều
-//                     group.setPromotion(promotion);
+                    boolean checkCondtion = promotionConditions.stream()
+                            .allMatch((promotionCondition) -> promotionCondition
+                                    .getConditionType() == PromotionConditionTypeEnum.PRODUCT_SPECIFIC);
 
-//                     return group;
-//                 })
-//                 .collect(Collectors.toList());
+                    if (checkCondtion) {
+                        List<PromotionAction> promotionActions = promotion.getPromotionActions();
 
-//         promotion.setPromotionGroups(groups);
+                        for (PromotionAction promotionAction : promotionActions) {
+                            if (promotionAction.getActionType() == PromotionActionTypeEnum.PRODUCT_FIXED_DISCOUNT
+                                    || promotionAction
+                                            .getActionType() == PromotionActionTypeEnum.PRODUCT_PERCENT_DISCOUNT) {
+                                Map<String, Object> actionParams = promotionAction.getValue();
 
-//         if (dto.getPromotionType() == PromotionTypeEnum.GIFT) {
+                                Integer promtionGroupId = (Integer) actionParams.get("promtionGroupId");
 
-//             List<Gift> gifts = dto.getGiftRequestDTOs()
-//                     .stream()
-//                     .map(giftDTO -> {
-//                         // Gift gift = new Gift();
+                                Optional<PromotionGroup> promotionGroup = promotionGroupRepository
+                                        .findById(promtionGroupId);
 
-//                         Gift gift = giftMapper.convertGiftRequestDTOToModel(giftDTO, new Gift());
+                                if (!promotionGroup.isPresent()) {
+                                    break;
+                                }
 
-//                         gift.setProductDetail(
-//                                 productDetailRepository.findById(giftDTO.getProductDetailId())
-//                                         .orElseThrow(() -> new NotFoundException("Invalid Product Code")));
+                                List<Product> products = promotionGroup.get().getProducts();
 
-//                         gift.setPromotion(promotion);
+                                for (Product product : products) {
+                                    product.setDiscount(0.0);
+                                }
 
-//                         return gift;
-//                     })
-//                     .collect(Collectors.toList());
+                                productRepository.saveAll(products);
 
-//             promotion.setGits(gifts);
+                            }
+                        }
+                    }
+                }
 
-//         } else {
-//             // Discount discount = new Discount();
+            }
 
-//             boolean isAmount = dto.getPromotionType() == PromotionTypeEnum.DISCOUNT_AMOUNT;
+        }
+    }
 
-//             Discount discount = discountMapper.convertDiscountRequestDTOTOModel(
-//                     dto.getDiscountRequestDTO(),
-//                     new Discount(),
-//                     isAmount);
+    // }
 
-//             discount.setPromotion(promotion);
+    @Scheduled(fixedDelay = 1000 * 60) // Chạy sau mỗi 1 giây kể từ khi kết thúc lần chạy trước
+    @Transactional
+    public void checkAndActivatePromotions() {
 
-//             promotion.setDiscount(discount);
-//         }
+        LocalDateTime now = LocalDateTime.now();
 
-//         promotionRepository.save(promotion);
+        List<Promotion> inactivePromotions = promotionRepository.findByIsActive(false);
 
-//         return promotionMapper.convertModelToPromotionResponseDTO(promotion);
-//     }
+        for (Promotion promotion : inactivePromotions) {
+            if (promotion.getStartDate().isBefore(now) && promotion.getEndDate().isAfter(now)) {
+                promotion.setIsActive(true);
+                promotionRepository.save(promotion);
 
-//     @Transactional
-//     public List<PromotionSummaryDTO> getApplicableDiscountPromotion(CartCheckPromotionDTO cartCheckPromotionDTO) {
+                // Nếu khuyến mãi là giảm giá, thì gán lại giá trị discount cho sản phẩm
+                PromotionTypeEnum promotionType = promotion.getPromotionType();
 
-//         List<Promotion> promotions = promotionRepository
-//                 .findByPromotionTypeIn(
-//                         List.of(PromotionTypeEnum.DISCOUNT_AMOUNT, PromotionTypeEnum.DISCOUNT_PERCENTAGE));
+                if (promotionType == PromotionTypeEnum.AUTOMATIC) {
+                    List<PromotionCondition> promotionConditions = promotion.getPromotionConditions();
 
-//         List<PromotionSummaryDTO> promotionSummaryDTOs = new ArrayList<>();
+                    boolean checkCondtion = promotionConditions.stream()
+                            .allMatch((promotionCondition) -> promotionCondition
+                                    .getConditionType() == PromotionConditionTypeEnum.PRODUCT_SPECIFIC);
 
-//         List<Integer> productDetailIds = cartCheckPromotionDTO.getCartItems()
-//                 .stream()
-//                 .map(item -> item.getProductDetailId())
-//                 .collect(Collectors.toList());
+                    if (checkCondtion) {
+                        List<PromotionAction> promotionActions = promotion.getPromotionActions();
 
-//         Map<Integer, ProductDetail> productDetailsInCart = productDetailRepository.findAllById(productDetailIds)
-//                 .stream()
-//                 .collect(Collectors.toMap(
-//                         productDetail -> productDetail.getDetailId(),
-//                         productDetail -> productDetail));
+                        for (PromotionAction promotionAction : promotionActions) {
+                            if (promotionAction.getActionType() == PromotionActionTypeEnum.PRODUCT_FIXED_DISCOUNT) {
+                                Map<String, Object> actionParams = promotionAction.getValue();
 
-//         Map<ProductDetail, Integer> productDetailsInCartMap = cartCheckPromotionDTO
-//                 .getCartItems()
-//                 .stream()
-//                 .collect(Collectors.toMap(cartItem -> productDetailsInCart.get(cartItem.getProductDetailId()),
-//                         cartItem -> cartItem.getQuantity()));
+                                Integer promtionGroupId = (Integer) actionParams.get("promtionGroupId");
 
-//         // List<Integer> productDetailIds = cartCheckPromotionDTO.getCartItems()
-//         // .stream()
-//         // .map(item -> item.getProductDetailId())
-//         // .collect(Collectors.toList());
+                                // Number discount = ;
+                                Double fixedDiscount = (Double) ((Number) actionParams.get("fixedDiscount"))
+                                        .doubleValue();
 
-//         // List<ProductDetail> productDetailsInCart = productDetailRepository
-//         // .findAllById(productDetailIds);
+                                // này break khỏi vòng lặp ok hơn
+                                // PromotionGroup promotionGroup =
+                                // promotionGroupRepository.findById(promtionGroupId)
+                                // .orElseThrow(() -> new NotFoundException("Invalid Promotion Group Code"));
+                                Optional<PromotionGroup> promotionGroup = promotionGroupRepository
+                                        .findById(promtionGroupId);
 
-//         // Map<ProductDetail, Integer> productDetailQuantityMap =
-//         // productDetailRepository
-//         // .findAllById(productDetailIds).stream()
-//         // .collect(Collectors.toMap(
-//         // productDetail -> productDetail
-//         // ,
-//         // ));
+                                if (!promotionGroup.isPresent()) {
+                                    break;
+                                }
 
-//         for (Promotion promotion : promotions) {
-//             if (isProductInPromotionGroup(productDetailsInCartMap, promotion)) {
+                                List<Product> products = promotionGroup.get().getProducts();
 
-//                 PromotionSummaryDTO promotionSummaryDTO = promotionMapper.convertModelToPromotionSummaryDTO(promotion);
+                                for (Product product : products) {
+                                    product.setDiscount(fixedDiscount);
+                                }
 
-//                 promotionSummaryDTOs.add(promotionSummaryDTO);
+                                productRepository.saveAll(products);
 
-//             }
-//         }
+                            } else if (promotionAction
+                                    .getActionType() == PromotionActionTypeEnum.PRODUCT_PERCENT_DISCOUNT) {
+                                Map<String, Object> actionParams = promotionAction.getValue();
 
-//         return promotionSummaryDTOs;
-//     }
+                                Number discount = (Number) actionParams.get("discountPercentage");
+                                Double discountPercentage = (Double) discount.doubleValue();
 
-//     // Hàm này check xem ProductDetail có trong PromotionGroup của Promotion không
-//     // private Boolean isProductInPromotionGroup(List<ProductDetail>
-//     // productDetailsInCart, Promotion promotion) {
-//     private Boolean isProductInPromotionGroup(Map<ProductDetail, Integer> productDetailsInCartMap,
-//             Promotion promotion) {
+                                Integer promtionGroupId = (Integer) actionParams.get("promtionGroupId");
 
-//         List<PromotionGroup> promotionGroups = promotion.getPromotionGroups();
+                                // // này break khỏi vòng lặp ok hơn
+                                // PromotionGroup promotionGroup =
+                                // promotionGroupRepository.findById(promtionGroupId)
+                                // .orElseThrow(() -> new NotFoundException("Invalid Promotion Group Code"));
 
-//         Set<ProductDetail> productDetails = productDetailsInCartMap.keySet();
+                                Optional<PromotionGroup> promotionGroup = promotionGroupRepository
+                                        .findById(promtionGroupId);
 
-//         for (PromotionGroup group : promotionGroups) {
+                                if (!promotionGroup.isPresent()) {
+                                    break;
+                                }
 
-//             Integer count = 0;
+                                List<Product> products = promotionGroup.get().getProducts();
 
-//             for (ProductDetail productDetailInCart : productDetails) {
-//                 if (group.getProductDetails().contains(productDetailInCart)) {
-//                     count = count + productDetailsInCartMap.get(productDetailInCart);
-//                 }
-//             }
-//             if (count < group.getMinPurchaseQuantity()) {
-//                 return false;
-//             }
+                                // List<Product> products = promotionGroup.getProducts();
 
-//         }
-//         return true;
-//     }
+                                for (Product product : products) {
+                                    // product.setDiscount(fixedDiscount);
+                                    Double discountValue = product.getUnitPrice() * discountPercentage / 100;
 
-//     @Transactional
-//     public List<PromotionSummaryDTO> getApplicablePromotion(CartCheckPromotionDTO cartCheckPromotionDTO,
-//             List<PromotionTypeEnum> promotionTypes) {
+                                    product.setDiscount(discountValue);
+                                }
 
-//         List<Promotion> promotions = promotionRepository
-//                 .findByPromotionTypeIn(promotionTypes);
+                                productRepository.saveAll(products);
 
-//         List<PromotionSummaryDTO> promotionSummaryDTOs = new ArrayList<>();
+                            }
+                        }
 
-//         List<Integer> productDetailIds = cartCheckPromotionDTO.getCartItems()
-//                 .stream()
-//                 .map(item -> item.getProductDetailId())
-//                 .collect(Collectors.toList());
+                    }
+                }
+            }
+        }
 
-//         Map<Integer, ProductDetail> productDetailsInCart = productDetailRepository.findAllById(productDetailIds)
-//                 .stream()
-//                 .collect(Collectors.toMap(
-//                         productDetail -> productDetail.getDetailId(),
-//                         productDetail -> productDetail));
+    }
 
-//         Map<ProductDetail, Integer> productDetailsInCartMap = cartCheckPromotionDTO
-//                 .getCartItems()
-//                 .stream()
-//                 .collect(Collectors.toMap(cartItem -> productDetailsInCart.get(cartItem.getProductDetailId()),
-//                         cartItem -> cartItem.getQuantity()));
+    @Transactional
+    public PromotionResponseDTO createPromotion(PromotionCreateRequestDTO requestDTO) {
 
-//         // List<Integer> productDetailIds = cartCheckPromotionDTO.getCartItems()
-//         // .stream()
-//         // .map(item -> item.getProductDetailId())
-//         // .collect(Collectors.toList());
+        promotionValidator.validatePromotionRequest(requestDTO);
 
-//         // List<ProductDetail> productDetailsInCart = productDetailRepository
-//         // .findAllById(productDetailIds);
+        Promotion promotion = new Promotion();
+        promotion.setPromotionName(requestDTO.getPromotionName());
+        promotion.setDescription(requestDTO.getDescription());
+        promotion.setPromotionType(requestDTO.getPromotionType());
+        promotion.setStartDate(requestDTO.getStartDate());
+        promotion.setEndDate(requestDTO.getEndDate());
+        // promotion.setPriority(requestDTO.getPriority());
+        promotion.setStackable(requestDTO.getStackable());
+        promotion.setPromotionScopeType(requestDTO.getPromotionScopeType());
+        promotion.setIsActive(false);
 
-//         // Map<ProductDetail, Integer> productDetailQuantityMap =
-//         // productDetailRepository
-//         // .findAllById(productDetailIds).stream()
-//         // .collect(Collectors.toMap(
-//         // productDetail -> productDetail
-//         // ,
-//         // ));
+        if (requestDTO.getPromotionType() == PromotionTypeEnum.AUTOMATIC) {
+            promotion.setStackable(true); // Tự động kích hoạt nếu là khuyến mãi tự động
+        }
 
-//         for (Promotion promotion : promotions) {
-//             if (isProductInPromotionGroup(productDetailsInCartMap, promotion)) {
+        if (requestDTO.getPromotionType() == PromotionTypeEnum.COUPON_CODE) {
+            if (requestDTO.getCouponCode() == null || requestDTO.getCouponCode().isBlank()) {
+                throw new BadRequestException("Coupon code is required for COUPON_CODE type");
+            }
+            promotion.setCouponCode(requestDTO.getCouponCode());
+            promotion.setUsageLimit(requestDTO.getUsageLimit());
+        }
 
-//                 PromotionSummaryDTO promotionSummaryDTO = promotionMapper.convertModelToPromotionSummaryDTO(promotion);
-
-//                 promotionSummaryDTOs.add(promotionSummaryDTO);
-
-//             }
-//         }
-
-//         return promotionSummaryDTOs;
-//     }
-
-//     public List<PromotionSummaryDTO> getAllPromotions(PageRequest pageable) {
-
-//         Page<Promotion> promotions = promotionRepository.findAll(pageable);
-
-//         List<PromotionSummaryDTO> promotionSummaryDTOs = promotions
-//                 .stream()
-//                 .map(promotion -> promotionMapper.convertModelToPromotionSummaryDTO(promotion))
-//                 .collect(Collectors.toList());
-
-//         return promotionSummaryDTOs;
-//     }
-
-//     @Transactional
-//     public PromotionResponseDTO deletePromotion(Integer promotionId) {
-
-//         Promotion promotion = promotionRepository.findById(promotionId)
-//                 .orElseThrow(() -> new NotFoundException("Invalue Promotion Code"));
-
-//         PromotionResponseDTO promotionResponseDTO = promotionMapper.convertModelToPromotionResponseDTO(promotion);
-
-//         promotionRepository.delete(promotion);
-
-//         return promotionResponseDTO;
-//     }
-// }
+        // ================================================================
+        if (requestDTO.getPromotionGroupIds() != null && !requestDTO.getPromotionGroupIds().isEmpty()) {
+            List<PromotionGroup> promotionGroups = promotionGroupRepository
+                    .findAllById(requestDTO.getPromotionGroupIds());
+
+            for (PromotionGroup promotionGroup : promotionGroups) {
+                promotionGroup.setPromotion(promotion);
+            }
+
+            promotionGroupRepository.saveAll(promotionGroups);
+
+            promotion.setPromotionGroups(promotionGroups);
+
+        }
+        // ================================================================
+
+        // if (requestDTO.getPromotionGroups() != null &&
+        // !requestDTO.getPromotionGroups().isEmpty()) {
+        // List<PromotionGroup> promotionGroups =
+        // requestDTO.getPromotionGroups().stream()
+        // .map(groupDTO -> createPromotionGroup(groupDTO, promotion))
+        // .collect(Collectors.toList());
+        // promotion.setPromotionGroups(promotionGroups);
+        // }
+
+        if (requestDTO.getConditions() != null && !requestDTO.getConditions().isEmpty()) {
+            List<PromotionCondition> conditions = requestDTO.getConditions().stream()
+                    .map(conditionDTO -> {
+                        PromotionCondition condition = new PromotionCondition();
+                        condition.setConditionType(conditionDTO.getConditionType());
+                        condition.setOperator(conditionDTO.getOperator());
+                        condition.setValue(conditionDTO.getValue());
+                        condition.setPromotion(promotion);
+                        return condition;
+                    })
+                    .collect(Collectors.toList());
+            promotion.setPromotionConditions(conditions);
+        }
+
+        if (requestDTO.getActions() != null && !requestDTO.getActions().isEmpty()) {
+            List<PromotionAction> actions = requestDTO.getActions().stream()
+                    .map(actionDTO -> {
+                        PromotionAction action = new PromotionAction();
+                        action.setActionType(actionDTO.getActionType());
+                        action.setValue(actionDTO.getValue());
+                        action.setPromotion(promotion);
+                        return action;
+                    })
+                    .collect(Collectors.toList());
+            promotion.setPromotionActions(actions);
+        }
+
+        Promotion savedPromotion = promotionRepository.save(promotion);
+
+        // logger.info("Promotion created successfully with ID: {}",
+        // savedPromotion.getPromotionId());
+
+        return mapToResponseDTO(savedPromotion);
+    }
+
+    private PromotionGroup createPromotionGroup(PromotionGroupRequestDTO groupDTO, Promotion promotion) {
+
+        PromotionGroup group = new PromotionGroup();
+        group.setGroupName(groupDTO.getGroupName());
+        group.setDescription(groupDTO.getDescription());
+        group.setPromotion(promotion);
+
+        // Lấy danh sách sản phẩm từ database
+        List<Product> products = productRepository.findAllById(groupDTO.getProductIds());
+
+        if (products.isEmpty()) {
+            throw new NotFoundException("No products found with provided IDs");
+        }
+
+        if (products.size() != groupDTO.getProductIds().size()) {
+            // logger.warn("Some product IDs were not found");
+            throw new NotFoundException("Some product IDs were not found");
+        }
+
+        group.setProducts(products);
+
+        return group;
+    }
+
+    private PromotionResponseDTO mapToResponseDTO(Promotion promotion) {
+
+        List<PromotionConditionResponseDTO> conditions = promotion.getPromotionConditions()
+                .stream()
+                .map(condition -> PromotionConditionResponseDTO.builder()
+                        .promotionConditionId(condition.getPromotionConditionId())
+                        .conditionType(condition.getConditionType())
+                        .operator(condition.getOperator())
+                        .value(condition.getValue())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<PromotionActionResponseDTO> actions = promotion.getPromotionActions()
+                .stream()
+                .map(action -> PromotionActionResponseDTO.builder()
+                        .promotionActionId(action.getPromotionActionId())
+                        .actionType(action.getActionType())
+                        .value(action.getValue())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<PromotionGroupResponseDTO> groups = (promotion.getPromotionGroups() != null
+                && !promotion.getPromotionGroups().isEmpty())
+                        ? promotion.getPromotionGroups().stream()
+                                .map(group -> {
+                                    return promotionGroupMapper.toResponseDTO(group);
+                                })
+                                .toList()
+                        : List.of();
+
+        return PromotionResponseDTO.builder()
+                .promotionId(promotion.getPromotionId())
+                .promotionName(promotion.getPromotionName())
+                .description(promotion.getDescription())
+                .promotionType(promotion.getPromotionType())
+                // .priority(promotion.getPriority())
+                .isActive(promotion.getIsActive())
+                .startDate(promotion.getStartDate())
+                .endDate(promotion.getEndDate())
+                .stackable(promotion.getStackable())
+                .couponCode(promotion.getCouponCode())
+                .usageLimit(promotion.getUsageLimit())
+                .promotionScopeType(promotion.getPromotionScopeType())
+                .conditions(conditions)
+                .actions(actions)
+                .promotionGroups(groups)
+                .build();
+    }
+
+}

@@ -7,8 +7,10 @@ import org.springframework.stereotype.Component;
 import com.example.clothingstore.dto.order.OrderPreviewDTO;
 import com.example.clothingstore.dto.orderdetail.OrderDetailPreviewDTO;
 import com.example.clothingstore.enums.PromotionActionTypeEnum;
+import com.example.clothingstore.exception.customer.ConflictException;
 import com.example.clothingstore.exception.customer.NotFoundException;
 import com.example.clothingstore.model.ProductDetail;
+import com.example.clothingstore.model.Promotion;
 import com.example.clothingstore.repository.ProductDetailRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -20,9 +22,14 @@ public class FreeProductStrategy implements PromotionActionStrategy {
     final private ProductDetailRepository productDetailRepository;
 
     @Override
-    public void execute(OrderPreviewDTO orderPreviewDTO, Map<String, Object> value) {
+    public
+    // public void execute(OrderPreviewDTO orderPreviewDTO, Map<String, Object>
+    // value) {
+    void execute(OrderPreviewDTO orderPreviewDTO, Promotion promotionContext, Integer actionIndex) {
 
         // List<Integer> freeProductIds = (List<Integer>) value.get("freeProductIds");
+
+        Map<String, Object> value = promotionContext.getPromotionActions().get(actionIndex).getValue();
 
         Integer freeProductId = (Integer) value.get("freeProductId");
 
@@ -30,6 +37,12 @@ public class FreeProductStrategy implements PromotionActionStrategy {
 
         ProductDetail freeProductDetail = productDetailRepository.findById(freeProductId)
                 .orElseThrow(() -> new NotFoundException("Product not found with id: " + freeProductId));
+
+        // ===================
+        if (freeProductDetail.getQuantity() < quantity) {
+            throw new ConflictException("Not enough stock for free product");
+        }
+        // ===================
 
         OrderDetailPreviewDTO freeOrderDetail = OrderDetailPreviewDTO.builder()
                 .productDetailId(freeProductDetail.getDetailId())

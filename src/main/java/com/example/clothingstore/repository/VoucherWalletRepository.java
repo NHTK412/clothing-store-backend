@@ -2,6 +2,8 @@ package com.example.clothingstore.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -17,4 +19,10 @@ public interface VoucherWalletRepository extends JpaRepository<VoucherWallet, In
     List<VoucherWallet> findByPromotion_PromotionIdInAndCustomer_CustomerId(
             List<Integer> promotionIds,
             Integer customerId);
+
+    Page<VoucherWallet> findByCustomer_CustomerId(Integer customerId, Pageable pageable);
+
+    Boolean existsByPromotion_PromotionIdAndCustomer_CustomerId(Integer promotionId, Integer customerId);
+
+
 }

@@ -1,5 +1,6 @@
 package com.example.clothingstore.dto.order;
 
+import java.util.List;
 import java.util.Set;
 
 import com.example.clothingstore.dto.orderdetail.OrderDetailPreviewDTO;
@@ -11,7 +12,7 @@ import lombok.Data;
 @Builder
 public class OrderPreviewDTO {
 
-    // public static final String OrderDetailPreviewDTO = null; 
+    // public static final String OrderDetailPreviewDTO = null;
 
     private Set<OrderDetailPreviewDTO> orderDetails;
 
@@ -25,6 +26,6 @@ public class OrderPreviewDTO {
 
     private Double finalAmount;
 
-    
-}
+    private List<Integer> appliedPromotions; // Danh sách tên các chiến lược khuyến mãi đã áp dụng
 
+}

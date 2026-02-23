@@ -1,11 +1,6 @@
 package com.example.clothingstore.enums;
 
 public enum PromotionTypeEnum {
-    // DISCOUNT_PERCENTAGE,
-    // DISCOUNT_AMOUNT,
-    // GIFT
-    BUY_X_GET_Y, // Lát bỏ
-    DISCOUNT, // Lát bỏ
 
     // Type chuẩn hóa sau khi xác định các case: Tự động, được phát và phải nhập
 

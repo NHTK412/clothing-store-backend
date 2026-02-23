@@ -2,15 +2,26 @@ package com.example.clothingstore.condition;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
 import com.example.clothingstore.dto.order.OrderPreviewDTO;
 import com.example.clothingstore.enums.PromotionConditionTypeEnum;
+import com.example.clothingstore.model.Product;
+import com.example.clothingstore.model.ProductColor;
+import com.example.clothingstore.model.ProductDetail;
+import com.example.clothingstore.model.PromotionGroup;
+import com.example.clothingstore.repository.PromotionGroupRepository;
+
+import lombok.RequiredArgsConstructor;
 
 // Chiến lược điều kiện khuyến mãi: kiểm tra xem đơn hàng có đủ số lượng sản phẩm để áp dụng khuyến mãi hay không
 @Component
+@RequiredArgsConstructor
 public class MinQuantityConditionStrategy implements PromotionConditionStrategy {
+
+    final private PromotionGroupRepository promotionGroupRepository;
 
     @Override
     public boolean isSatisfied(OrderPreviewDTO orderPreviewDTO, Map<String, Object> value) {
@@ -18,10 +29,40 @@ public class MinQuantityConditionStrategy implements PromotionConditionStrategy 
         // Value sẽ chứa số lượng tối thiểu cần thiết để áp dụng khuyến mãi, ví dụ:
         // value.get("minQuantity") sẽ trả về số lượng tối thiểu
 
-        List<Integer> productDetailIds = (List<Integer>) value.get("productDetailIds");
+        // List<Integer> productDetailIds = (List<Integer>)
+        // value.get("productDetailIds");
 
-        if (productDetailIds == null || productDetailIds.isEmpty()) {
-            return false; // Không có danh sách productDetailIds được cung cấp
+        Integer promotionGroupId = (Integer) value.get("promotionGroupId");
+
+        // if (productDetailIds == null || productDetailIds.isEmpty()) {
+        // return false; // Không có danh sách productDetailIds được cung cấp
+        // }
+
+        if (promotionGroupId == null) {
+            return false; // Không có promotionGroupId được cung cấp
+        }
+
+        Optional<PromotionGroup> promotionGroupOpt = promotionGroupRepository.findById(promotionGroupId);
+
+        if (promotionGroupOpt.isEmpty()) {
+            return false; // Không tìm thấy PromotionGroup với ID đã cho
+        }
+
+        PromotionGroup promotionGroup = promotionGroupOpt.get();
+
+        // List<Integer> products = promotionGroup.getProducts().stream()
+        // .map(product -> product.getProductId())
+        // .toList();
+
+        List<Integer> productIds = List.of();
+
+        for (Product product : promotionGroup.getProducts()) {
+            for (ProductColor productColor : product.getProductColors()) {
+                for (ProductDetail productDetail : productColor.getProductDetails()) {
+                    productIds.add(productDetail.getDetailId());
+                }
+
+            }
         }
 
         Integer minQuantity = (Integer) value.get("minQuantity");
@@ -34,7 +75,7 @@ public class MinQuantityConditionStrategy implements PromotionConditionStrategy 
         // trong danh sách
         int totalQuantity = orderPreviewDTO.getOrderDetails().stream()
                 // Lọc các orderDetail có productDetailId nằm trong danh sách productDetailIds
-                .filter(orderDetail -> productDetailIds.contains(orderDetail.getProductDetailId()))
+                .filter(orderDetail -> productIds.contains(orderDetail.getProductDetailId()))
                 // Lấy số lượng của từng orderDetail
                 .mapToInt(orderDetail -> orderDetail.getQuantity())
                 // Tính tổng số lượng

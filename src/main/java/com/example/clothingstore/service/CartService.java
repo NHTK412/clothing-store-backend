@@ -1,5 +1,6 @@
 package com.example.clothingstore.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -193,7 +194,11 @@ public class CartService {
         Set<OrderDetailPreviewDTO> orderDetails = cartItems.stream()
                 .map(cartItem -> {
 
-                    final Double discountAmount = 0.0;
+                    // final Double discountAmount = 0.0;
+                    final Double discountAmount = cartItem.getProductDetail().getProductColor().getProduct()
+                            .getDiscount() != null
+                                    ? cartItem.getProductDetail().getProductColor().getProduct().getDiscount()
+                                    : 0.0; // Lấy giá trị giảm giá từ sản phẩm, nếu không có thì mặc định là 0
 
                     final Double price = cartItem.getProductDetail().getProductColor().getProduct().getUnitPrice();
 
@@ -218,7 +223,7 @@ public class CartService {
                 .collect(Collectors.toSet());
 
         Double totalAmount = orderDetails.stream()
-                .mapToDouble(orderDetail -> orderDetail.getPrice() * orderDetail.getQuantity())
+                .mapToDouble(orderDetail -> orderDetail.getFinalPrice() * orderDetail.getQuantity())
                 .sum();
 
         Double discountAmount = 0.0; // Tính tổng số tiền giảm giá từ các chiến lược khuyến mãi áp dụng
@@ -237,6 +242,7 @@ public class CartService {
                 .shippingFee(shippingFee)
                 .discountShippingFee(discountShippingFee)
                 .finalAmount(finalAmount)
+                .appliedPromotions(new ArrayList<>())
                 .build();
 
         // Áp dụng khuyến mãi tự động không cần nhập mã khuyến mãi
@@ -251,6 +257,15 @@ public class CartService {
                     promotion.getStartDate().isAfter(java.time.LocalDateTime.now()) ||
                     promotion.getEndDate().isBefore(java.time.LocalDateTime.now())) {
                 throw new NotFoundException("Promotion is not active");
+            }
+
+            boolean checkCondtion = promotion.getPromotionConditions().stream()
+                    .allMatch((promotionCondition) -> promotionCondition
+                            .getConditionType() == PromotionConditionTypeEnum.PRODUCT_SPECIFIC);
+
+            if (checkCondtion) {
+                continue; // Nếu tất cả điều kiện đều là PRODUCT_SPECIFIC thì bỏ qua vì không thể áp dụng
+                          // nếu không nhập mã khuyến mãi
             }
 
             List<PromotionCondition> conditions = promotion.getPromotionConditions();
@@ -280,14 +295,15 @@ public class CartService {
 
                     PromotionActionTypeEnum actionType = action.getActionType();
 
-                    Map<String, Object> actionValue = action.getValue();
+                    // Map<String, Object> actionValue = action.getValue();
 
                     PromotionActionStrategy actionFactory = promotionActionFactory
                             .getPromotionActionStrategy(actionType);
 
-                    actionFactory.execute(orderPreviewDTO, actionValue);
+                    actionFactory.execute(orderPreviewDTO, promotion, promotion.getPromotionActions().indexOf(action));
 
                 }
+                orderPreviewDTO.getAppliedPromotions().add(promotion.getPromotionId());
 
             }
 
@@ -310,6 +326,10 @@ public class CartService {
 
         if (voucherWallets.size() != promotionIds.size()) {
             throw new NotFoundException("Some promotions not found in customer's voucher wallet");
+        }
+
+        if (!hasAllStackable(promotions)) {
+            throw new ConflictException("Some promotions cannot be stacked together");
         }
 
         for (Promotion promotion : promotions) {
@@ -350,19 +370,29 @@ public class CartService {
 
                     PromotionActionTypeEnum actionType = action.getActionType();
 
-                    Map<String, Object> actionValue = action.getValue();
+                    // Map<String, Object> actionValue = action.getValue();
 
                     PromotionActionStrategy actionFactory = promotionActionFactory
                             .getPromotionActionStrategy(actionType);
 
-                    actionFactory.execute(orderPreviewDTO, actionValue);
+                    actionFactory.execute(orderPreviewDTO, promotion, promotion.getPromotionActions().indexOf(action));
 
                 }
+                orderPreviewDTO.getAppliedPromotions().add(promotion.getPromotionId());
 
             }
 
         }
 
         return orderPreviewDTO;
+    }
+
+    private boolean hasAllStackable(List<Promotion> promotions) {
+        if (promotions.size() <= 1) {
+            return true; // Nếu chỉ có một khuyến mãi hoặc không có khuyến mãi nào, thì mặc định là có
+                         // thể xếp chồng
+        }
+        return promotions.stream().allMatch(
+                (promotion) -> promotion.getStackable() == true);
     }
 }

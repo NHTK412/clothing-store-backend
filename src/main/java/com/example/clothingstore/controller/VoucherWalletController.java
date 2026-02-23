@@ -1,0 +1,61 @@
+package com.example.clothingstore.controller;
+
+import java.util.List;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.clothingstore.dto.promotion.PromotionSummaryDTO;
+import com.example.clothingstore.security.CustomerUserDetails;
+import com.example.clothingstore.service.VoucherWalletService;
+import com.example.clothingstore.util.ApiResponse;
+
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/voucher-wallet")
+@RequiredArgsConstructor
+public class VoucherWalletController {
+
+    final private VoucherWalletService voucherWalletService;
+
+    // Xem các voucher trong ví của khách hàng
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<PromotionSummaryDTO>>> getVouchersForCustomer(
+            @AuthenticationPrincipal CustomerUserDetails customerUserDetails,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Integer customerId = customerUserDetails.getUserId();
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        List<PromotionSummaryDTO> promotionSummaryDTOs = voucherWalletService.getVouchersForCustomer(customerId,
+                pageable);
+
+        return ResponseEntity.ok(new ApiResponse<List<PromotionSummaryDTO>>(true, "Success", promotionSummaryDTOs));
+    }
+
+    // Thêm voucher vào ví của khách hàng
+    @PostMapping
+    public ResponseEntity<ApiResponse<PromotionSummaryDTO>> addPromotionToWallet(
+            @AuthenticationPrincipal CustomerUserDetails customerUserDetails,
+            @RequestParam String couponCode) {
+
+        Integer customerId = customerUserDetails.getUserId();
+
+        PromotionSummaryDTO promotionSummaryDTO = voucherWalletService.addPromotionToWallet(customerId, couponCode);
+
+        return ResponseEntity.ok(new ApiResponse<PromotionSummaryDTO>(true, "Promotion added to wallet successfully",
+                promotionSummaryDTO));
+    }
+
+}

@@ -70,6 +70,7 @@ package com.example.clothingstore.model;
 
 import java.time.LocalDateTime;
 
+import com.example.clothingstore.enums.PromotionApplicationTypeEnum;
 import com.example.clothingstore.enums.PromotionScopeTypeEnum;
 import com.example.clothingstore.enums.PromotionTypeEnum;
 
@@ -107,12 +108,8 @@ public class Promotion extends Base {
     @Column(name = "Description")
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "PromotionType")
-    private PromotionTypeEnum promotionType;
-
-    @Column(name = "Priority")
-    private Integer priority;
+    // @Column(name = "Priority")
+    // private Integer priority;
 
     @Column(name = "IsActive")
     private Boolean isActive;
@@ -124,7 +121,12 @@ public class Promotion extends Base {
     private LocalDateTime endDate;
 
     @Column(name = "Stackable")
-    private Boolean stackable;
+    private Boolean stackable; // Có cho phép xếp chồng với các khuyến mãi khác hay không  --> chỉ có hiệu lực khi promotionType là CONDITIONAL hoặc COUPON_CODE
+
+    // Vì ở đây có 3 loại khuyến mãi: tự động áp dụng, được phát và phải nhập nên sẽ có 3 cột tương ứng để lưu thông tin
+    // Việc sử dụng stackable là để xử lý 2 role như sau:
+    // - Case1: Luôn sử lý logic nếu k cho nạp chồng và cho nạp chồng ở các class triển khai interface. Vì khuyến mãi loại autowire sẽ luôn được áp dụng trước rồi mới tới khuyến mãi trong ví. 
+    // - Case2: Dùng để xử lý logic khi mà chọn khuyến mãi trong ví. Vì nếu stackable là true thì customer sẽ được chọn nhiều cái để áp dụng ở tầng FE. Còn nếu stackable là false thì customer chỉ được chọn 1 cái để áp dụng ở tầng FE. 
 
     // @Column(name = "IsCoupon")
     // private Boolean isCoupon; // Có cần nhập mã giảm giá hay không
@@ -136,13 +138,40 @@ public class Promotion extends Base {
     private Integer usageLimit; // Giới hạn số lần sử dụng cho mỗi khách hàng
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "PromotionScopeType")
-    private PromotionScopeTypeEnum promotionScopeType; // Mã này áp dụng cho mọi khách hàng hay chỉ áp dụng cho một nhóm
-                                                       // khách hàng cụ thể
+    @Column(name = "PromotionType")
+    private PromotionTypeEnum promotionType; // Tự động áp dụng, được phát và phải nhập
 
-    @OneToMany(mappedBy = "promotion")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ApplicationType")
+    private PromotionApplicationTypeEnum applicationType; // Áp dụng cho sản phẩm cụ thể hay áp dụng cho đơn hàng
+
+    // Mã này áp dụng cho mọi khách hàng hay chỉ áp dụng cho một nhóm khách hàng cụ
+    // thể
+    @Enumerated(EnumType.STRING)
+    @Column(name = "PromotionScopeType")
+    private PromotionScopeTypeEnum promotionScopeType; // Tất cả khách hàng, nhóm khách hàng cụ thể, hạng thành viên cụ
+                                                       // thể
+
+    @OneToMany(mappedBy = "promotion", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     private java.util.List<PromotionCondition> promotionConditions;
 
-    @OneToMany(mappedBy = "promotion")
+    @OneToMany(mappedBy = "promotion", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     private java.util.List<PromotionAction> promotionActions;
+
+    @OneToMany(mappedBy = "promotion", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<PromotionGroup> promotionGroups;
+
+    // SCOPE
+    @OneToMany(mappedBy = "promotion", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<PromotionTargetUser> promotionTargetUsers;
+
+    @OneToMany(mappedBy = "promotion", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<PromotionMemberTier> promotionMemberTiers;
+    // SCOPE
+
+    // Trừ applicationType là PRODUCT_LEVEL
+    // Scope sẽ được sử dụng khi có kiểu promotionType là CONDITIONAL và COUPON_CODE
+
+    // Trước khi phát hoặc nhập mã lưu vào ví sẽ phải check scope
+
 }

@@ -66,349 +66,54 @@ public class OrderService {
 
         @Transactional
         public OrderResponseDTO createOrder(String userName, OrderRequestDTO orderRequestDTO) {
+                // 1. Lấy thông tin customer và địa chỉ giao hàng
+                Customer customer = validateAndGetCustomer(userName);
+                ShippingAddress shippingAddress = validateAndGetShippingAddress(customer,
+                                orderRequestDTO.getAddressShippingId());
 
-                // 1. Lấy thông tin customer
-                Customer customer = customerRepository.findByUserName(userName)
-                                .orElseThrow(() -> new NotFoundException("Customer not found"));
-
-                // 2. Lấy địa chỉ giao hàng
-                ShippingAddress shippingAddress = customer.getShippingAddresses()
-                                .stream()
-                                .filter(addr -> addr.getAddressId().equals(orderRequestDTO.getAddressShippingId()))
-                                .findFirst()
-                                .orElseThrow(() -> new NotFoundException("Address shipping not found"));
-
-                List<Promotion> promotions = promotionRepository.findAllById(orderRequestDTO.getPromotionApplyIds());
-
-                if (promotions.isEmpty() || promotions.size() != orderRequestDTO.getPromotionApplyIds().size()) {
-                        throw new NotFoundException("Some promotion items not found ");
-                }
-
-                for (Promotion promotion : promotions) {
-                        if (promotion.getIsActive() == false) {
-                                throw new ConflictException(
-                                                "Promotion with id " + promotion.getPromotionId() + " is not active");
-                        }
-                }
+                // 2. Lấy và xác thực promotions
+                List<Promotion> promotions = validateAndGetPromotions(orderRequestDTO.getPromotionApplyIds());
 
                 // 3. Khởi tạo order
-                Order order = new Order();
-                order.setCustomer(customer);
-                order.setDeliveryDate(LocalDateTime.now().plusDays(3));
-                order.setStatus(OrderStatusEnum.PLACED);
-                order.setIsReview(false);
+                Order order = initializeOrder(customer);
+                setOrderShippingInfo(order, shippingAddress);
 
-                // 4. Set thông tin giao hàng
-                order.setRecipientName(shippingAddress.getRecipientName());
-                order.setPhoneNumber(shippingAddress.getPhoneNumber());
-                order.setDetailedAddress(shippingAddress.getDetailedAdress());
-                order.setWard(shippingAddress.getWard());
-                order.setProvince(shippingAddress.getProvince());
-
+                // 4. Lấy chi tiết sản phẩm
                 List<OrderDetailRequestDTO> orderDetailRequestDTOs = orderRequestDTO.getOrderDetailRequestDTOs();
+                Map<Integer, OrderDetailRequestDTO> orderDetailRequestMaps = buildOrderDetailRequestMap(
+                                orderDetailRequestDTOs);
+                Map<Integer, ProductDetail> productDetailMaps = getAndValidateProductDetails(orderDetailRequestDTOs);
 
-                Map<Integer, OrderDetailRequestDTO> orderDetailRequestMaps = orderDetailRequestDTOs
-                                .stream()
-                                .collect(Collectors.toMap(
-                                                orderDetailRequestDTO -> orderDetailRequestDTO.getProductDetailId(),
-                                                orderDetailRequestDTO -> orderDetailRequestDTO));
+                // 5. Tạo preview chi tiết đơn hàng
+                List<ProductDetail> productDetails = new ArrayList<>(productDetailMaps.values());
+                Set<OrderDetailPreviewDTO> orderDetailPreviews = createOrderDetailPreviews(productDetails,
+                                orderDetailRequestMaps);
 
-                List<ProductDetail> productDetails = productDetailRepository
-                                .findAllById(orderDetailRequestMaps.keySet());
+                // 6. Tạo preview đơn hàng và áp dụng promotions
+                OrderPreviewDTO orderPreviewDTO = createOrderPreviewDTO(orderDetailPreviews);
+                applyPromotions(orderPreviewDTO, promotions);
 
-                Map<Integer, ProductDetail> productDetailMaps = productDetails
-                                .stream()
-                                .collect(Collectors.toMap(ProductDetail::getDetailId, pd -> pd));
+                // 7. Xác thực giá cả
+                validateOrderPrices(orderPreviewDTO.getOrderDetails(), orderPreviewDTO,
+                                orderRequestDTO, orderDetailRequestMaps);
 
-                if (productDetails.isEmpty() || orderDetailRequestMaps.size() != productDetails.size()) {
-                        throw new NotFoundException("Some product details not found");
-                }
-
-                Set<OrderDetailPreviewDTO> orderDetailPreviews = productDetails
-                                .stream()
-                                .filter((pd) -> orderDetailRequestMaps.get(pd.getDetailId()).getIsFree() == false)
-                                .map(
-                                                (pd) -> {
-                                                        // if (orderDetailRequestMaps.get(pd.getDetailId())
-                                                        // .getIsFree() == true) {
-                                                        // continue;
-                                                        // }
-
-                                                        // final Double discountAmount = 0.0;
-                                                        final Double discountAmount = pd.getProductColor().getProduct()
-                                                                        .getDiscount() != null
-                                                                                        ? pd.getProductColor()
-                                                                                                        .getProduct()
-                                                                                                        .getDiscount()
-                                                                                        : 0.0; // Lấy giá trị giảm giá
-                                                                                               // từ sản phẩm, nếu không
-                                                                                               // có thì mặc định là 0
-
-                                                        final Double price = pd.getProductColor().getProduct()
-                                                                        .getUnitPrice();
-
-                                                        final Double finalPrice = price - discountAmount; // Tính giá
-                                                                                                          // cuối cùng
-                                                                                                          // sau khi áp
-                                                                                                          // dụng giảm
-                                                                                                          // giá
-
-                                                        final Boolean isFree = false;
-
-                                                        OrderDetailPreviewDTO orderDetailPreviewDTO = OrderDetailPreviewDTO
-                                                                        .builder()
-                                                                        .productDetailId(pd.getDetailId())
-                                                                        .productName(pd.getProductColor().getProduct()
-                                                                                        .getProductName())
-                                                                        .productImage(pd.getProductColor().getProduct()
-                                                                                        .getProductImage())
-                                                                        .color(pd.getProductColor().getColor())
-                                                                        .size(pd.getSize())
-                                                                        .quantity(orderDetailRequestMaps
-                                                                                        .get(pd.getDetailId())
-                                                                                        .getQuantity())
-                                                                        .price(price)
-                                                                        .discountAmount(discountAmount)
-                                                                        .finalPrice(finalPrice)
-                                                                        .isFree(isFree)
-                                                                        .build();
-                                                        return orderDetailPreviewDTO;
-                                                })
-
-                                .collect(Collectors.toSet());
-
-                // ====================================================================
-
-                Double totalAmountPreview = orderDetailPreviews.stream()
-                                .mapToDouble(orderDetail -> orderDetail.getFinalPrice() * orderDetail.getQuantity())
-                                .sum();
-
-                Double discountAmountPreview = 0.0;
-
-                Double shippingFeePreview = 30000.0;
-
-                Double discountShippingFeePreview = 0.0;
-
-                Double finalAmount = totalAmountPreview - discountAmountPreview + shippingFeePreview
-                                - discountShippingFeePreview;
-
-                OrderPreviewDTO orderPreviewDTO = OrderPreviewDTO.builder()
-                                .orderDetails(orderDetailPreviews)
-                                .totalAmount(totalAmountPreview)
-                                .discountAmount(discountAmountPreview)
-                                .shippingFee(shippingFeePreview)
-                                .discountShippingFee(discountShippingFeePreview)
-                                .finalAmount(finalAmount)
-                                .appliedPromotions(new ArrayList<>())
-                                .build();
-
-                for (Promotion promotion : promotions) {
-
-                        boolean isApplicable = true;
-
-                        for (PromotionCondition promotionCondition : promotion.getPromotionConditions()) {
-                                PromotionConditionStrategy promotionConditionStrategy = promotionConditionFactory
-                                                .getPromotionConditionStrategy(promotionCondition.getConditionType());
-
-                                Map<String, Object> value = promotionCondition.getValue();
-
-                                if (!promotionConditionStrategy.isSatisfied(orderPreviewDTO, value)) {
-                                        isApplicable = false;
-                                        break;
-                                }
-                        }
-
-                        if (isApplicable) {
-
-                                List<PromotionAction> actions = promotion.getPromotionActions();
-
-                                for (PromotionAction action : actions) {
-
-                                        PromotionActionTypeEnum actionType = action.getActionType();
-
-                                        PromotionActionStrategy actionFactory = promotionActionFactory
-                                                        .getPromotionActionStrategy(actionType);
-
-                                        actionFactory.execute(orderPreviewDTO, promotion,
-                                                        promotion.getPromotionActions().indexOf(action));
-
-                                }
-                                orderPreviewDTO.getAppliedPromotions().add(promotion.getPromotionId());
-
-                        }
-
-                }
-
-                // KHỚP LẠI GIÁ TRỊ
-                // ====================================================================
-
+                // 8. Tạo order details và set thông tin cuối cùng
                 Set<OrderDetailPreviewDTO> orderDetailPreviewDTOCheck = orderPreviewDTO.getOrderDetails();
-
-                // ==== KIỂM TRA GIÁ TRỊ CHI TIẾT ĐƠN HÀNG ====
-                // FIX: Sử dụng Objects.equals() thay vì == để tránh floating-point precision
-                // issues
-                for (OrderDetailPreviewDTO orderDetailPreviewDTO : orderDetailPreviewDTOCheck) {
-                        // LỖIC CŨ (không dùng):
-                        // boolean matchPrice = orderDetailPreviewDTO.getPrice() ==
-                        // orderDetailRequestMaps
-                        // .get(orderDetailPreviewDTO.getProductDetailId()).getPrice();
-                        // boolean matchDiscount = orderDetailPreviewDTO.getDiscountAmount() ==
-                        // orderDetailRequestMaps
-                        // .get(orderDetailPreviewDTO.getProductDetailId()).getDiscount();
-                        // boolean matchFinalPrice = orderDetailPreviewDTO.getFinalPrice() ==
-                        // orderDetailRequestMaps
-                        // .get(orderDetailPreviewDTO.getProductDetailId()).getFinalPrice();
-                        // boolean matchIsFree = orderDetailPreviewDTO.getIsFree() ==
-                        // orderDetailRequestMaps
-                        // .get(orderDetailPreviewDTO.getProductDetailId()).getIsFree();
-
-                        // LỖIC ĐÚNG:
-                        boolean matchPrice = Objects.equals(orderDetailPreviewDTO.getPrice(),
-                                        orderDetailRequestMaps.get(orderDetailPreviewDTO.getProductDetailId())
-                                                        .getPrice());
-                        boolean matchDiscount = Objects.equals(orderDetailPreviewDTO.getDiscountAmount(),
-                                        orderDetailRequestMaps.get(orderDetailPreviewDTO.getProductDetailId())
-                                                        .getDiscount());
-                        boolean matchFinalPrice = Objects.equals(orderDetailPreviewDTO.getFinalPrice(),
-                                        orderDetailRequestMaps.get(orderDetailPreviewDTO.getProductDetailId())
-                                                        .getFinalPrice());
-                        boolean matchIsFree = Objects.equals(orderDetailPreviewDTO.getIsFree(),
-                                        orderDetailRequestMaps.get(orderDetailPreviewDTO.getProductDetailId())
-                                                        .getIsFree());
-
-                        if (!matchPrice || !matchDiscount || !matchFinalPrice || !matchIsFree) {
-                                throw new ConflictException("Price mismatch for product detail id: "
-                                                + orderDetailPreviewDTO.getProductDetailId());
-                        }
-                }
-                // ====
-
-                // ==== KIỂM TRA GIÁ TRỊ TỔNG ĐƠN HÀNG ====
-                // FIX: Sửa logic so sánh - phải so sánh orderRequestDTO với orderPreviewDTO,
-                // không phải với chính nó
-                // LỖIC CŨ (không dùng - so sánh field với chính nó):
-                // if (orderRequestDTO.getTotalAmount() != orderRequestDTO.getTotalAmount()
-                // || orderRequestDTO.getDiscount() != orderRequestDTO.getDiscount()
-                // || orderRequestDTO.getShippingFee() != orderRequestDTO.getShippingFee()
-                // || orderRequestDTO.getDiscountShippingFee() !=
-                // orderRequestDTO.getDiscountShippingFee()
-                // || orderRequestDTO.getFinalAmount() != orderRequestDTO.getFinalAmount()) {
-                // throw new ConflictException("Order summary mismatch");
-                // }
-
-                // LỖIC ĐÚNG:
-                if (!Objects.equals(orderRequestDTO.getTotalAmount(), orderPreviewDTO.getTotalAmount())
-                                || !Objects.equals(orderRequestDTO.getDiscount(), orderPreviewDTO.getDiscountAmount())
-                                || !Objects.equals(orderRequestDTO.getShippingFee(), orderPreviewDTO.getShippingFee())
-                                || !Objects.equals(orderRequestDTO.getDiscountShippingFee(),
-                                                orderPreviewDTO.getDiscountShippingFee())
-                                || !Objects.equals(orderRequestDTO.getFinalAmount(),
-                                                orderPreviewDTO.getFinalAmount())) {
-                        throw new ConflictException("Order summary mismatch");
-                }
-                // ====
-
-                // ====================================================================
-
-                // 7. Tính tổng tiền và set các thông tin khác
-                Double totalAmount = orderDetailPreviewDTOCheck.stream()
-                                .mapToDouble(od -> od.getFinalPrice() * od.getQuantity())
-                                .sum();
-
-                List<OrderDetail> orderDetails = orderDetailPreviewDTOCheck.stream().map((preview) -> {
-                        OrderDetail orderDetail = new OrderDetail();
-
-                        // orderDetail.setDetailId(preview.getProductDetailId());
-                        orderDetail.setQuantity(preview.getQuantity());
-                        orderDetail.setPrice(preview.getPrice());
-                        orderDetail.setDiscount(preview.getDiscountAmount());
-                        orderDetail.setFinalPrice(preview.getFinalPrice());
-                        orderDetail.setProductName(preview.getProductName());
-                        orderDetail.setProductImage(preview.getProductImage());
-                        orderDetail.setColor(preview.getColor());
-                        orderDetail.setSize(preview.getSize());
-
-                        orderDetail.setProductDetail(productDetailMaps.get(preview.getProductDetailId()));
-                        orderDetail.setOrder(order);
-
-                        orderDetail.setIsReview(false);
-                        return orderDetail;
-                }).toList();
-
-                order.setTotalAmount(totalAmount);
+                List<OrderDetail> orderDetails = createOrderDetailEntities(orderDetailPreviewDTOCheck,
+                                productDetailMaps, order);
                 order.setOrderDetails(orderDetails);
-                order.setPaymentMethod(orderRequestDTO.getPaymentMethod());
-                order.setShippingFee(orderPreviewDTO.getShippingFee());
-                // order.setDiscountAmount(0.0);
-                order.setDiscountAmount(orderPreviewDTO.getDiscountAmount());
-                order.setDiscountShippingFee(orderPreviewDTO.getDiscountShippingFee());
-                order.setFinalAmount(orderPreviewDTO.getFinalAmount());
 
-                order.setStatus(OrderStatusEnum.PLACED); // Mặc định khi tạo đơn sẽ có trạng thái là PLACED, không lấy
-                                                         // từ client để tránh lỗi
-                order.setIsReview(false);
+                setOrderFinalInfo(order, orderPreviewDTO, orderRequestDTO);
 
-                // 8. Lưu dữ liệu
+                // 9. Lưu dữ liệu
                 productDetailRepository.saveAll(productDetails);
                 orderRepository.save(order);
 
-                // 9. Tạo response DTO
-                OrderResponseDTO orderResponseDTO = new OrderResponseDTO();
-                orderResponseDTO.setOrderId(order.getOrderId());
-                orderResponseDTO.setTotalAmount(order.getTotalAmount());
-                orderResponseDTO.setDiscountAmount(order.getDiscountAmount());
-                orderResponseDTO.setShippingFee(order.getShippingFee());
-                orderResponseDTO.setDiscountShippingFee(order.getDiscountShippingFee());
-                orderResponseDTO.setFinalAmount(order.getFinalAmount());
-                orderResponseDTO.setDeliveryDate(order.getDeliveryDate());
-                orderResponseDTO.setStatus(order.getStatus());
-                orderResponseDTO.setRecipientName(order.getRecipientName());
-                orderResponseDTO.setPhoneNumber(order.getPhoneNumber());
-                orderResponseDTO.setDetailedAddress(order.getDetailedAddress());
-                orderResponseDTO.setWard(order.getWard());
-                orderResponseDTO.setProvince(order.getProvince());
-                orderResponseDTO.setZaloAppTransId(order.getZaloAppTransId());
-                orderResponseDTO.setIsReview(order.getIsReview());
+                // 10. Tạo response DTO
+                OrderResponseDTO orderResponseDTO = createOrderResponseDTO(order);
 
-                // 10. Map order detail
-                List<OrderDetailResponseDTO> orderDetailResponseDTOs = order.getOrderDetails().stream().map(od -> {
-                        OrderDetailResponseDTO orderDetailResponseDTO = new OrderDetailResponseDTO();
-                        orderDetailResponseDTO.setProductName(od.getProductName());
-                        orderDetailResponseDTO.setProductImage(od.getProductImage());
-                        orderDetailResponseDTO.setColor(od.getColor());
-                        orderDetailResponseDTO.setSize(od.getSize());
-                        orderDetailResponseDTO.setQuantity(od.getQuantity());
-                        orderDetailResponseDTO.setPrice(od.getPrice());
-                        orderDetailResponseDTO.setOrderDetailId(od.getDetailId());
-                        orderDetailResponseDTO.setProductId(
-                                        od.getProductDetail().getProductColor().getProduct().getProductId());
-                        orderDetailResponseDTO.setIsReview(od.getIsReview());
-                        return orderDetailResponseDTO;
-                }).toList();
-                orderResponseDTO.setOrderDetails(orderDetailResponseDTOs);
-
-                // 11. Map order gift
-                // if (order.getOrderGifts() != null) {
-                // List<OrderGiftResponseDTO> orderGiftDTOs =
-                // order.getOrderGifts().stream().map(og -> {
-                // OrderGiftResponseDTO ogDTO = new OrderGiftResponseDTO();
-                // ogDTO.setGiftName(og.getGiftName());
-                // ogDTO.setGiftQuantity(og.getGiftQuantity());
-                // ogDTO.setGiftImage(og.getGiftImage());
-                // ogDTO.setPromotionName(og.getPromotionName());
-                // return ogDTO;
-                // }).toList();
-                // orderResponseDTO.setOrderGifts(orderGiftDTOs);
-                // }
-
-                // 12. Điều chỉnh cart
-                Cart cart = cartRepository.findByCustomer_CustomerId(order.getCustomer().getCustomerId())
-                                .orElseThrow(() -> new NotFoundException("Cart not found"));
-
-                cart.getCartItems().removeIf(
-                                cartItem -> productDetailMaps.containsKey(cartItem.getProductDetail().getDetailId()));
-
-                cartRepository.save(cart);
+                // 11. Cập nhật cart
+                updateCartAfterOrder(customer.getCustomerId(), orderDetailRequestMaps);
 
                 return orderResponseDTO;
         }
@@ -599,6 +304,292 @@ public class OrderService {
                 orderRepository.save(order);
 
                 return getOrderById(order.getOrderId());
+        }
+
+        private Customer validateAndGetCustomer(String userName) {
+                return customerRepository.findByUserName(userName)
+                                .orElseThrow(() -> new NotFoundException("Customer not found"));
+        }
+
+        private ShippingAddress validateAndGetShippingAddress(Customer customer, Integer addressId) {
+                return customer.getShippingAddresses()
+                                .stream()
+                                .filter(addr -> addr.getAddressId().equals(addressId))
+                                .findFirst()
+                                .orElseThrow(() -> new NotFoundException("Address shipping not found"));
+        }
+
+        private List<Promotion> validateAndGetPromotions(List<Integer> promotionIds) {
+                List<Promotion> promotions = promotionRepository.findAllById(promotionIds);
+
+                if (promotions.isEmpty() || promotions.size() != promotionIds.size()) {
+                        throw new NotFoundException("Some promotion items not found");
+                }
+
+                // Kiểm tra tất cả promotions đều active
+                for (Promotion promotion : promotions) {
+                        if (promotion.getIsActive() == false) {
+                                throw new ConflictException(
+                                                "Promotion with id " + promotion.getPromotionId() + " is not active");
+                        }
+                }
+
+                return promotions;
+        }
+
+        private Order initializeOrder(Customer customer) {
+                Order order = new Order();
+                order.setCustomer(customer);
+                order.setDeliveryDate(LocalDateTime.now().plusDays(3));
+                order.setStatus(OrderStatusEnum.PLACED);
+                order.setIsReview(false);
+                return order;
+        }
+
+        private void setOrderShippingInfo(Order order, ShippingAddress shippingAddress) {
+                order.setRecipientName(shippingAddress.getRecipientName());
+                order.setPhoneNumber(shippingAddress.getPhoneNumber());
+                order.setDetailedAddress(shippingAddress.getDetailedAdress());
+                order.setWard(shippingAddress.getWard());
+                order.setProvince(shippingAddress.getProvince());
+        }
+
+        private Map<Integer, OrderDetailRequestDTO> buildOrderDetailRequestMap(
+                        List<OrderDetailRequestDTO> orderDetailRequestDTOs) {
+                return orderDetailRequestDTOs.stream()
+                                .collect(Collectors.toMap(
+                                                OrderDetailRequestDTO::getProductDetailId,
+                                                dto -> dto));
+        }
+
+        private Map<Integer, ProductDetail> getAndValidateProductDetails(
+                        List<OrderDetailRequestDTO> orderDetailRequestDTOs) {
+                Set<Integer> productDetailIds = orderDetailRequestDTOs.stream()
+                                .map(OrderDetailRequestDTO::getProductDetailId)
+                                .collect(Collectors.toSet());
+
+                List<ProductDetail> productDetails = productDetailRepository.findAllById(productDetailIds);
+
+                if (productDetails.isEmpty() || productDetails.size() != productDetailIds.size()) {
+                        throw new NotFoundException("Some product details not found");
+                }
+
+                return productDetails.stream()
+                                .collect(Collectors.toMap(ProductDetail::getDetailId, pd -> pd));
+        }
+
+        private Set<OrderDetailPreviewDTO> createOrderDetailPreviews(List<ProductDetail> productDetails,
+                        Map<Integer, OrderDetailRequestDTO> orderDetailRequestMap) {
+                return productDetails.stream()
+                                .filter(pd -> orderDetailRequestMap.get(pd.getDetailId()).getIsFree() == false)
+                                .map(pd -> buildOrderDetailPreviewDTO(pd,
+                                                orderDetailRequestMap.get(pd.getDetailId())))
+                                .collect(Collectors.toSet());
+        }
+
+        private OrderDetailPreviewDTO buildOrderDetailPreviewDTO(ProductDetail productDetail,
+                        OrderDetailRequestDTO orderDetailRequest) {
+                Double discountAmount = productDetail.getProductColor().getProduct().getDiscount() != null
+                                ? productDetail.getProductColor().getProduct().getDiscount()
+                                : 0.0;
+
+                Double price = productDetail.getProductColor().getProduct().getUnitPrice();
+                Double finalPrice = price - discountAmount;
+
+                return OrderDetailPreviewDTO.builder()
+                                .productDetailId(productDetail.getDetailId())
+                                .productName(productDetail.getProductColor().getProduct().getProductName())
+                                .productImage(productDetail.getProductColor().getProduct().getProductImage())
+                                .color(productDetail.getProductColor().getColor())
+                                .size(productDetail.getSize())
+                                .quantity(orderDetailRequest.getQuantity())
+                                .price(price)
+                                .discountAmount(discountAmount)
+                                .finalPrice(finalPrice)
+                                .isFree(false)
+                                .build();
+        }
+
+        private OrderPreviewDTO createOrderPreviewDTO(Set<OrderDetailPreviewDTO> orderDetailPreviews) {
+                Double totalAmount = orderDetailPreviews.stream()
+                                .mapToDouble(od -> od.getFinalPrice() * od.getQuantity())
+                                .sum();
+
+                Double shippingFee = 30000.0;
+
+                Double finalAmount = totalAmount + shippingFee;
+
+                return OrderPreviewDTO.builder()
+                                .orderDetails(orderDetailPreviews)
+                                .totalAmount(totalAmount)
+                                .discountAmount(0.0)
+                                .shippingFee(shippingFee)
+                                .discountShippingFee(0.0)
+                                .finalAmount(finalAmount)
+                                .appliedPromotions(new ArrayList<>())
+                                .build();
+        }
+
+        private void applyPromotions(OrderPreviewDTO orderPreview, List<Promotion> promotions) {
+                for (Promotion promotion : promotions) {
+                        if (isPromotionApplicable(orderPreview, promotion)) {
+                                executePromotionActions(orderPreview, promotion);
+                                orderPreview.getAppliedPromotions().add(promotion.getPromotionId());
+                        }
+                }
+        }
+
+        private boolean isPromotionApplicable(OrderPreviewDTO orderPreview, Promotion promotion) {
+                for (PromotionCondition promotionCondition : promotion.getPromotionConditions()) {
+                        PromotionConditionStrategy conditionStrategy = promotionConditionFactory
+                                        .getPromotionConditionStrategy(promotionCondition.getConditionType());
+
+                        if (!conditionStrategy.isSatisfied(orderPreview, promotionCondition.getValue())) {
+                                return false;
+                        }
+                }
+                return true;
+        }
+
+        private void executePromotionActions(OrderPreviewDTO orderPreview, Promotion promotion) {
+                List<PromotionAction> actions = promotion.getPromotionActions();
+
+                for (int index = 0; index < actions.size(); index++) {
+                        PromotionAction action = actions.get(index);
+                        PromotionActionStrategy actionStrategy = promotionActionFactory
+                                        .getPromotionActionStrategy(action.getActionType());
+                        actionStrategy.execute(orderPreview, promotion, index);
+                }
+        }
+
+        private void validateOrderPrices(Set<OrderDetailPreviewDTO> orderDetailPreviews,
+                        OrderPreviewDTO orderPreview, OrderRequestDTO orderRequest,
+                        Map<Integer, OrderDetailRequestDTO> orderDetailRequestMap) {
+                // Xác thực chi tiết từng product
+                for (OrderDetailPreviewDTO preview : orderDetailPreviews) {
+                        validateOrderDetailPrice(preview, orderDetailRequestMap);
+                }
+
+                // Xác thực tổng đơn hàng
+                validateOrderSummary(orderRequest, orderPreview);
+        }
+
+        private void validateOrderDetailPrice(OrderDetailPreviewDTO preview,
+                        Map<Integer, OrderDetailRequestDTO> orderDetailRequestMap) {
+                OrderDetailRequestDTO request = orderDetailRequestMap.get(preview.getProductDetailId());
+
+                boolean matchPrice = Objects.equals(preview.getPrice(), request.getPrice());
+                boolean matchDiscount = Objects.equals(preview.getDiscountAmount(), request.getDiscount());
+                boolean matchFinalPrice = Objects.equals(preview.getFinalPrice(), request.getFinalPrice());
+                boolean matchIsFree = Objects.equals(preview.getIsFree(), request.getIsFree());
+
+                if (!matchPrice || !matchDiscount || !matchFinalPrice || !matchIsFree) {
+                        throw new ConflictException(
+                                        "Price mismatch for product detail id: " + preview.getProductDetailId());
+                }
+        }
+
+        private void validateOrderSummary(OrderRequestDTO orderRequest, OrderPreviewDTO orderPreview) {
+                if (!Objects.equals(orderRequest.getTotalAmount(), orderPreview.getTotalAmount())
+                                || !Objects.equals(orderRequest.getDiscount(), orderPreview.getDiscountAmount())
+                                || !Objects.equals(orderRequest.getShippingFee(), orderPreview.getShippingFee())
+                                || !Objects.equals(orderRequest.getDiscountShippingFee(),
+                                                orderPreview.getDiscountShippingFee())
+                                || !Objects.equals(orderRequest.getFinalAmount(),
+                                                orderPreview.getFinalAmount())) {
+                        throw new ConflictException("Order summary mismatch");
+                }
+        }
+
+        private List<OrderDetail> createOrderDetailEntities(Set<OrderDetailPreviewDTO> orderDetailPreviews,
+                        Map<Integer, ProductDetail> productDetailMap, Order order) {
+                return orderDetailPreviews.stream()
+                                .map(preview -> buildOrderDetailEntity(preview, productDetailMap, order))
+                                .toList();
+        }
+
+        private OrderDetail buildOrderDetailEntity(OrderDetailPreviewDTO preview,
+                        Map<Integer, ProductDetail> productDetailMap, Order order) {
+                OrderDetail orderDetail = new OrderDetail();
+                orderDetail.setQuantity(preview.getQuantity());
+                orderDetail.setPrice(preview.getPrice());
+                orderDetail.setDiscount(preview.getDiscountAmount());
+                orderDetail.setFinalPrice(preview.getFinalPrice());
+                orderDetail.setProductName(preview.getProductName());
+                orderDetail.setProductImage(preview.getProductImage());
+                orderDetail.setColor(preview.getColor());
+                orderDetail.setSize(preview.getSize());
+                orderDetail.setProductDetail(productDetailMap.get(preview.getProductDetailId()));
+                orderDetail.setOrder(order);
+                orderDetail.setIsReview(false);
+                return orderDetail;
+        }
+
+        private void setOrderFinalInfo(Order order, OrderPreviewDTO orderPreview,
+                        OrderRequestDTO orderRequest) {
+                order.setPaymentMethod(orderRequest.getPaymentMethod());
+                order.setShippingFee(orderPreview.getShippingFee());
+                order.setDiscountAmount(orderPreview.getDiscountAmount());
+                order.setDiscountShippingFee(orderPreview.getDiscountShippingFee());
+                order.setFinalAmount(orderPreview.getFinalAmount());
+                order.setStatus(OrderStatusEnum.PLACED);
+                order.setIsReview(false);
+        }
+
+        private OrderResponseDTO createOrderResponseDTO(Order order) {
+                OrderResponseDTO responseDTO = new OrderResponseDTO();
+                responseDTO.setOrderId(order.getOrderId());
+                responseDTO.setTotalAmount(order.getTotalAmount());
+                responseDTO.setDiscountAmount(order.getDiscountAmount());
+                responseDTO.setShippingFee(order.getShippingFee());
+                responseDTO.setDiscountShippingFee(order.getDiscountShippingFee());
+                responseDTO.setFinalAmount(order.getFinalAmount());
+                responseDTO.setDeliveryDate(order.getDeliveryDate());
+                responseDTO.setStatus(order.getStatus());
+                responseDTO.setRecipientName(order.getRecipientName());
+                responseDTO.setPhoneNumber(order.getPhoneNumber());
+                responseDTO.setDetailedAddress(order.getDetailedAddress());
+                responseDTO.setWard(order.getWard());
+                responseDTO.setProvince(order.getProvince());
+                responseDTO.setZaloAppTransId(order.getZaloAppTransId());
+                responseDTO.setIsReview(order.getIsReview());
+
+                // Map order details
+                List<OrderDetailResponseDTO> orderDetailDTOs = order.getOrderDetails().stream()
+                                .map(this::buildOrderDetailResponseDTO)
+                                .toList();
+                responseDTO.setOrderDetails(orderDetailDTOs);
+
+                return responseDTO;
+        }
+
+        private OrderDetailResponseDTO buildOrderDetailResponseDTO(OrderDetail orderDetail) {
+                OrderDetailResponseDTO dto = new OrderDetailResponseDTO();
+                dto.setProductName(orderDetail.getProductName());
+                dto.setProductImage(orderDetail.getProductImage());
+                dto.setColor(orderDetail.getColor());
+                dto.setSize(orderDetail.getSize());
+                dto.setQuantity(orderDetail.getQuantity());
+                dto.setPrice(orderDetail.getPrice());
+                dto.setOrderDetailId(orderDetail.getDetailId());
+                dto.setProductId(orderDetail.getProductDetail().getProductColor()
+                                .getProduct().getProductId());
+                dto.setIsReview(orderDetail.getIsReview());
+                return dto;
+        }
+
+        private void updateCartAfterOrder(Integer customerId,
+                        Map<Integer, OrderDetailRequestDTO> orderDetailRequestMap) {
+                Cart cart = cartRepository.findByCustomer_CustomerId(customerId)
+                                .orElseThrow(() -> new NotFoundException("Cart not found"));
+
+                cart.getCartItems().removeIf(cartItem -> {
+                        Integer productDetailId = cartItem.getProductDetail().getDetailId();
+                        return orderDetailRequestMap.containsKey(productDetailId)
+                                        && !orderDetailRequestMap.get(productDetailId).getIsFree();
+                });
+
+                cartRepository.save(cart);
         }
 
 }

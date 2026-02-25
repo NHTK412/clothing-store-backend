@@ -8,7 +8,9 @@ public enum PromotionActionTypeEnum {
     // Giảm giá cho sản phẩm
     PRODUCT_PERCENT_DISCOUNT(true), // nghĩa là: giảm giá cho một sản phẩm cụ thể, ví dụ: giảm 20% cho áo thun nam
     // Số tiền cụ thể
-    PRODUCT_FIXED_DISCOUNT(true);// nghĩa là: giảm giá theo số tiền cố định, ví dụ: giảm 50.000đ cho áo thun nam
+    PRODUCT_FIXED_DISCOUNT(true), // nghĩa là: giảm giá theo số tiền cố định, ví dụ: giảm 50.000đ cho áo thun nam
+
+    FREE_SHIP(false);
 
     private final boolean requiresProductGroup;
 

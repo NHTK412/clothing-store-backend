@@ -18,26 +18,26 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrderRequestDTO {
 
-    // private Double shippingFee;
-
-    // private LocalDateTime deliveryDate; // Ngày giao hàng dự kiến
-
     @NotNull(message = "Address shipping ID is required")
     private Integer addressShippingId;
 
     @NotNull(message = "Payment method is required")
     private PaymentMethodEnum paymentMethod;
 
-    // private String vnpayCode;
-
-    // private Integer customerId;
-
     @Valid
     @NotEmpty(message = "Order details cannot be empty")
     private List<OrderDetailRequestDTO> orderDetailRequestDTOs;
 
-    // private Integer promotionDiscountId; // Mã khuyến mãi giảm giá
+    private List<Integer> promotionApplyIds;
 
-    // danh sách mã quà tặng
-    // private List<Integer> promotionGiftIds;
+    private Double totalAmount;
+
+    private Double discount;
+
+    private Double shippingFee;
+
+    private Double discountShippingFee; // Số tiền giảm giá cho phí vận chuyển
+
+    private Double finalAmount;
+
 }

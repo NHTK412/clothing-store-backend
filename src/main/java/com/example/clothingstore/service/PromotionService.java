@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.method.P;
 import org.springframework.stereotype.Service;
 
 import com.example.clothingstore.dto.promotion.PromotionActionResponseDTO;
@@ -19,18 +20,31 @@ import com.example.clothingstore.dto.promotion.PromotionResponseDTO;
 // import com.example.clothingstore.action.PromotionActionStrategy;
 import com.example.clothingstore.enums.PromotionActionTypeEnum;
 import com.example.clothingstore.enums.PromotionConditionTypeEnum;
+import com.example.clothingstore.enums.PromotionScopeTypeEnum;
 import com.example.clothingstore.enums.PromotionTypeEnum;
 import com.example.clothingstore.exception.customer.BadRequestException;
 import com.example.clothingstore.exception.customer.NotFoundException;
 import com.example.clothingstore.mapper.mapstruct.PromotionGroupMapper;
+import com.example.clothingstore.model.Customer;
+import com.example.clothingstore.model.MembershipTier;
 import com.example.clothingstore.model.Product;
 import com.example.clothingstore.model.Promotion;
 import com.example.clothingstore.model.PromotionAction;
 import com.example.clothingstore.model.PromotionCondition;
 import com.example.clothingstore.model.PromotionGroup;
+import com.example.clothingstore.model.PromotionMemberTier;
+import com.example.clothingstore.model.PromotionTargetUser;
+import com.example.clothingstore.model.VoucherWallet;
+import com.example.clothingstore.repository.CustomerRepository;
+import com.example.clothingstore.repository.MembershipTierRepository;
 import com.example.clothingstore.repository.ProductRepository;
 import com.example.clothingstore.repository.PromotionGroupRepository;
+import com.example.clothingstore.repository.PromotionMemberTierRepository;
 import com.example.clothingstore.repository.PromotionRepository;
+import com.example.clothingstore.repository.PromotionTargetUserRepository;
+import com.example.clothingstore.repository.VoucherWalletRepository;
+import com.example.clothingstore.scope.IPromotionScopeStrategy;
+import com.example.clothingstore.scope.PromotionScopeFactory;
 import com.example.clothingstore.validator.PromotionValidator;
 
 import jakarta.transaction.Transactional;
@@ -49,6 +63,18 @@ public class PromotionService {
     final private PromotionValidator promotionValidator;
 
     final private PromotionGroupMapper promotionGroupMapper;
+
+    final private PromotionScopeFactory promotionScopeFactory;
+
+    final private CustomerRepository customerRepository;
+
+    final private VoucherWalletRepository voucherWalletRepository;
+
+    final private PromotionTargetUserRepository promotionTargetUserRepository;
+
+    final private PromotionMemberTierRepository promotionMemberTierRepository;
+
+    final private MembershipTierRepository membershipTierRepository;
 
     // final private PromotionActionFactory promotionActionFactory;
 
@@ -207,6 +233,68 @@ public class PromotionService {
 
                     }
                 }
+
+                if (promotionType == PromotionTypeEnum.CONDITIONAL) {
+
+                    PromotionScopeTypeEnum promotionScopeType = promotion.getPromotionScopeType();
+
+                    IPromotionScopeStrategy promotionScopeStrategy = promotionScopeFactory
+                            .getPromotionScopeStrategy(promotionScopeType);
+
+                    if (promotionScopeType == PromotionScopeTypeEnum.ALL_USER) {
+                        List<Customer> allCustomers = customerRepository.findAll();
+
+                        for (Customer customer : allCustomers) {
+
+                            VoucherWallet voucherWallet = new VoucherWallet();
+
+                            voucherWallet.setCustomer(customer);
+                            voucherWallet.setPromotion(promotion);
+                            voucherWallet.setUsedCount(0);
+
+                            voucherWalletRepository.save(voucherWallet);
+
+                        }
+                    } else if (promotionScopeType == PromotionScopeTypeEnum.SPECIFIC_USER) {
+                        List<Customer> targetCustomers = promotion.getPromotionTargetUsers().stream()
+                                .map(promotionTargetUser -> promotionTargetUser.getCustomer())
+                                .collect(Collectors.toList());
+
+                        for (Customer customer : targetCustomers) {
+
+                            VoucherWallet voucherWallet = new VoucherWallet();
+
+                            voucherWallet.setCustomer(customer);
+                            voucherWallet.setPromotion(promotion);
+                            voucherWallet.setUsedCount(0);
+
+                            voucherWalletRepository.save(voucherWallet);
+
+                        }
+                    } else if (promotionScopeType == PromotionScopeTypeEnum.MEMBER_RANK) {
+
+                        List<MembershipTier> targetMembershipTiers = promotion.getPromotionMemberTiers().stream()
+                                .map(promotionMemberTier -> promotionMemberTier.getMembershipTier())
+                                .collect(Collectors.toList());
+
+                        List<Customer> eligibleCustomers = customerRepository
+                                .findByMembershipTierIn(targetMembershipTiers);
+
+                        for (Customer customer : eligibleCustomers) {
+
+                            VoucherWallet voucherWallet = new VoucherWallet();
+
+                            voucherWallet.setCustomer(customer);
+                            voucherWallet.setPromotion(promotion);
+                            voucherWallet.setUsedCount(0);
+
+                            voucherWalletRepository.save(voucherWallet);
+
+                        }
+
+                    }
+
+                }
             }
         }
 
@@ -290,6 +378,57 @@ public class PromotionService {
                     })
                     .collect(Collectors.toList());
             promotion.setPromotionActions(actions);
+        }
+
+        if (requestDTO.getPromotionScopeType() == PromotionScopeTypeEnum.SPECIFIC_USER) {
+            List<Integer> targetUserIds = requestDTO.getTargetUserIds();
+
+            List<Customer> targetUsers = customerRepository.findAllById(targetUserIds);
+
+            if (targetUsers.size() != targetUserIds.size()) {
+                throw new NotFoundException("Some target user IDs were not found");
+            }
+
+            List<PromotionTargetUser> promotionTargetUsers = targetUsers.stream()
+                    .map((targetUser) -> {
+                        PromotionTargetUser promotionTargetUser = new PromotionTargetUser();
+                        promotionTargetUser.setCustomer(targetUser);
+                        promotionTargetUser.setPromotion(promotion);
+                        return promotionTargetUser;
+                    }).toList();
+
+            promotionTargetUserRepository.saveAll(promotionTargetUsers);
+            promotion.setPromotionTargetUsers(promotionTargetUsers);
+
+        }
+
+        if (requestDTO.getPromotionScopeType() == PromotionScopeTypeEnum.MEMBER_RANK) {
+
+            List<Integer> targetMembershipRankIds = requestDTO.getTargetMemberTierIds();
+
+            List<MembershipTier> targetMembershipTiers = membershipTierRepository.findAllById(targetMembershipRankIds);
+
+            if (targetMembershipTiers.size() != targetMembershipRankIds.size()) {
+                throw new NotFoundException("Some target membership tier IDs were not found");
+            }
+
+            List<PromotionMemberTier> promotionMemberTiers = targetMembershipTiers.stream()
+                    .map(
+                            (targetMembershipTier) -> {
+                                PromotionMemberTier promotionMemberTier = new PromotionMemberTier();
+
+                                promotionMemberTier.setMembershipTier(targetMembershipTier);
+
+                                promotionMemberTier.setPromotion(promotion);
+
+                                return promotionMemberTier;
+
+                            })
+                    .toList();
+
+            promotionMemberTierRepository.saveAll(promotionMemberTiers);
+            promotion.setPromotionMemberTiers(promotionMemberTiers);
+
         }
 
         Promotion savedPromotion = promotionRepository.save(promotion);

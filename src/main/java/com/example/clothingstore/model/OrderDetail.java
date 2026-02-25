@@ -31,6 +31,12 @@ public class OrderDetail extends Base {
     @Column(name = "Price")
     private Double price;
 
+    @Column(name = "Discount")
+    private Double discount;
+
+    @Column(name = "FinalPrice")
+    private Double finalPrice;
+
     // Lưu thông tin sản phẩm tại thời điểm mua (de-normalize)
     @Column(name = "ProductName")
     private String productName;

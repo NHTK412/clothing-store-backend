@@ -46,6 +46,12 @@ public class Order extends Base {
     @Column(name = "ShippingFee")
     private Double shippingFee;
 
+    @Column(name = "DiscountShippingFee")
+    private Double discountShippingFee;
+
+    @Column(name = "FinalAmount")
+    private Double finalAmount;
+
     @Column(name = "DeliveryDate")
     private LocalDateTime deliveryDate;
 
@@ -76,15 +82,14 @@ public class Order extends Base {
     @Column(name = "PaymentMethod")
     private PaymentMethodEnum paymentMethod;
 
-    @Column(name = "ZaloAppTransId") 
+    @Column(name = "ZaloAppTransId")
     private String zaloAppTransId;
-
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderGift> orderGifts;
+    // @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    // private List<OrderGift> orderGifts;
 
     @ManyToOne
     @JoinColumn(name = "CustomerId")

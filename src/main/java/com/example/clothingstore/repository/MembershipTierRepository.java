@@ -12,4 +12,5 @@ public interface MembershipTierRepository extends JpaRepository<MembershipTier, 
 
     Optional<MembershipTier> findByTierName(String tierName);
 
+
 }

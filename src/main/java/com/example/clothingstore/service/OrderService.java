@@ -1,8 +1,11 @@
 package com.example.clothingstore.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,14 +13,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.example.clothingstore.action.PromotionActionFactory;
+import com.example.clothingstore.action.PromotionActionStrategy;
+import com.example.clothingstore.condition.PromotionConditionFactory;
+import com.example.clothingstore.condition.PromotionConditionStrategy;
+import com.example.clothingstore.dto.order.OrderPreviewDTO;
 import com.example.clothingstore.dto.order.OrderRequestDTO;
 import com.example.clothingstore.dto.order.OrderResponseDTO;
 import com.example.clothingstore.dto.order.OrderSummaryDTO;
+import com.example.clothingstore.dto.orderdetail.OrderDetailPreviewDTO;
+import com.example.clothingstore.dto.orderdetail.OrderDetailRequestDTO;
 import com.example.clothingstore.dto.orderdetail.OrderDetailResponseDTO;
 import com.example.clothingstore.dto.ordergift.OrderGiftResponseDTO;
 import com.example.clothingstore.enums.OrderPaymentStatusEnum;
 import com.example.clothingstore.enums.OrderStatusEnum;
 import com.example.clothingstore.enums.PaymentMethodEnum;
+import com.example.clothingstore.enums.PromotionActionTypeEnum;
 import com.example.clothingstore.enums.PromotionTypeEnum;
 import com.example.clothingstore.exception.customer.ConflictException;
 import com.example.clothingstore.exception.customer.NotFoundException;
@@ -28,6 +39,8 @@ import com.example.clothingstore.model.OrderDetail;
 import com.example.clothingstore.model.OrderGift;
 import com.example.clothingstore.model.ProductDetail;
 import com.example.clothingstore.model.Promotion;
+import com.example.clothingstore.model.PromotionAction;
+import com.example.clothingstore.model.PromotionCondition;
 import com.example.clothingstore.model.ShippingAddress;
 import com.example.clothingstore.repository.CartRepository;
 import com.example.clothingstore.repository.CustomerRepository;
@@ -42,201 +55,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class OrderService {
 
-        // @Autowired
-        // private OrderRepository orderRepository;
-
-        // @Autowired
-        // private ProductDetailRepository productDetailRepository;
-
-        // @Autowired
-        // private PromotionRepository promotionRepository;
-
-        // @Autowired
-        // private CustomerRepository customerRepository;
-
-        // @Autowired
-        // private CartRepository cartRepository;
-
         private final OrderRepository orderRepository;
         private final ProductDetailRepository productDetailRepository;
         private final PromotionRepository promotionRepository;
         private final CustomerRepository customerRepository;
         private final CartRepository cartRepository;
 
-        // @Transactional
-        // public OrderResponseDTO createOrder(String userName, OrderRequestDTO
-        // orderRequestDTO) {
-
-        // Order order = new Order();
-
-        // order.setDeliveryDate(LocalDateTime.now().plusDays(3));
-
-        // order.setStatus(OrderStatusEnum.PLACED);
-
-        // Customer customer = customerRepository.findByUserName(userName)
-        // .orElseThrow(() -> new NotFoundException("Customer not found"));
-
-        // order.setCustomer(customer);
-
-        // ShippingAddress shippingAddress = customer.getShippingAddresses()
-        // .stream()
-        // .filter(addr ->
-        // addr.getAddressId().equals(orderRequestDTO.getAddressShippingId()))
-        // .findFirst()
-        // .orElseThrow(() -> new NotFoundException("Address shipping not found"));
-
-        // order.setRecipientName(shippingAddress.getRecipientName());
-
-        // order.setPhoneNumber(shippingAddress.getPhoneNumber());
-
-        // order.setDetailedAddress(shippingAddress.getDetailedAdress());
-
-        // order.setWard(shippingAddress.getWard());
-
-        // order.setProvince(shippingAddress.getProvince());
-
-        // Map<Integer, Integer> productDetailMaps =
-        // orderRequestDTO.getOrderDetailRequestDTOs()
-        // .stream()
-        // .collect(Collectors.toMap(odr -> odr.getProductDetailId(), odr ->
-        // odr.getQuantity()));
-
-        // List<ProductDetail> productDetails =
-        // productDetailRepository.findAllById(productDetailMaps.keySet());
-
-        // List<OrderDetail> orderDetails = productDetails
-        // .stream()
-        // .map(pd -> {
-        // if (pd.getQuantity() < productDetailMaps.get(pd.getDetailId())) {
-        // throw new NotFoundException("Product detail with id " + pd.getDetailId()
-        // + " is out of stock");
-        // }
-        // OrderDetail od = new OrderDetail();
-        // od.setProductName(pd.getProductColor().getProduct().getProductName());
-        // od.setProductImage(pd.getProductColor().getProductImage());
-        // od.setColor(pd.getProductColor().getColor());
-        // od.setSize(pd.getSize());
-        // od.setPrice(pd.getProductColor().getProduct().getUnitPrice()
-        // * (1 - pd.getProductColor().getProduct().getDiscount() / 100));
-        // od.setQuantity(productDetailMaps.get(pd.getDetailId())); // Giả sử mỗi sản
-        // phẩm
-        // // đặt 1 cái, có thể mở
-        // // rộng sau
-        // od.setOrder(order);
-
-        // od.setProductDetail(pd);
-
-        // pd.setQuantity(pd.getQuantity() - productDetailMaps.get(pd.getDetailId()));
-
-        // return od;
-        // })
-        // .toList();
-
-        // Double totalAmount = orderDetails
-        // .stream()
-        // .mapToDouble(od -> od.getPrice() * od.getQuantity())
-        // .sum();
-
-        // order.setTotalAmount(totalAmount);
-
-        // order.setOrderDetails(orderDetails);
-
-        // order.setPaymentMethod(orderRequestDTO.getPaymentMethod());
-
-        // order.setShippingFee((order.getTotalAmount() >= 1000000.0) ? 0.0 : 30000.0);
-
-        // order.setDiscountAmount(0.0);
-
-        // productDetailRepository.saveAll(productDetails);
-
-        // orderRepository.save(order);
-
-        // OrderResponseDTO orderResponseDTO = new OrderResponseDTO();
-
-        // orderResponseDTO.setOrderId(order.getOrderId());
-
-        // orderResponseDTO.setTotalAmount(order.getTotalAmount());
-
-        // orderResponseDTO.setDiscountAmount(order.getDiscountAmount());
-
-        // orderResponseDTO.setShippingFee(order.getShippingFee());
-
-        // orderResponseDTO.setDeliveryDate(order.getDeliveryDate());
-
-        // orderResponseDTO.setStatus(order.getStatus());
-
-        // orderResponseDTO.setRecipientName(order.getRecipientName());
-
-        // orderResponseDTO.setPhoneNumber(order.getPhoneNumber());
-
-        // orderResponseDTO.setDetailedAddress(order.getDetailedAddress());
-
-        // orderResponseDTO.setWard(order.getWard());
-
-        // orderResponseDTO.setProvince(order.getProvince());
-
-        // orderResponseDTO.setZaloAppTransId(order.getZaloAppTransId());
-
-        // // Map order detail
-        // List<OrderDetailResponseDTO> orderDetailResponseDTOs =
-        // order.getOrderDetails()
-        // .stream()
-        // .map(od -> {
-        // OrderDetailResponseDTO orderDetailResponseDTO = new OrderDetailResponseDTO();
-
-        // orderDetailResponseDTO.setProductName(od.getProductName());
-
-        // orderDetailResponseDTO.setProductImage(od.getProductImage());
-
-        // orderDetailResponseDTO.setColor(od.getColor());
-
-        // orderDetailResponseDTO.setSize(od.getSize());
-
-        // orderDetailResponseDTO.setQuantity(od.getQuantity());
-
-        // orderDetailResponseDTO.setPrice(od.getPrice());
-
-        // return orderDetailResponseDTO;
-        // })
-        // .toList();
-
-        // orderResponseDTO.setOrderDetails(orderDetailResponseDTOs);
-
-        // // Map order gift
-        // if (order.getOrderGifts() != null) {
-        // List<OrderGiftResponseDTO> orderGiftDTOs = order.getOrderGifts()
-        // .stream()
-        // .map(og -> {
-        // OrderGiftResponseDTO ogDTO = new OrderGiftResponseDTO();
-
-        // ogDTO.setGiftName(og.getGiftName());
-
-        // ogDTO.setGiftQuantity(og.getGiftQuantity());
-
-        // ogDTO.setGiftImage(og.getGiftImage());
-
-        // ogDTO.setPromotionName(og.getPromotionName());
-
-        // return ogDTO;
-        // })
-        // .toList();
-        // orderResponseDTO.setOrderGifts(orderGiftDTOs);
-
-        // }
-
-        // // Điều chỉnh cart
-        // Cart cart =
-        // cartRepository.findByCustomer_CustomerId(order.getCustomer().getCustomerId())
-        // .orElseThrow(() -> new NotFoundException("Cart not found"));
-
-        // cart.getCartItems().removeIf(
-        // cartItem ->
-        // productDetailMaps.containsKey(cartItem.getProductDetail().getDetailId()));
-
-        // cartRepository.save(cart);
-
-        // return orderResponseDTO;
-        // }
+        private final PromotionConditionFactory promotionConditionFactory;
+        private final PromotionActionFactory promotionActionFactory;
 
         @Transactional
         public OrderResponseDTO createOrder(String userName, OrderRequestDTO orderRequestDTO) {
@@ -252,6 +78,19 @@ public class OrderService {
                                 .findFirst()
                                 .orElseThrow(() -> new NotFoundException("Address shipping not found"));
 
+                List<Promotion> promotions = promotionRepository.findAllById(orderRequestDTO.getPromotionApplyIds());
+
+                if (promotions.isEmpty() || promotions.size() != orderRequestDTO.getPromotionApplyIds().size()) {
+                        throw new NotFoundException("Some promotion items not found ");
+                }
+
+                for (Promotion promotion : promotions) {
+                        if (promotion.getIsActive() == false) {
+                                throw new ConflictException(
+                                                "Promotion with id " + promotion.getPromotionId() + " is not active");
+                        }
+                }
+
                 // 3. Khởi tạo order
                 Order order = new Order();
                 order.setCustomer(customer);
@@ -266,46 +105,248 @@ public class OrderService {
                 order.setWard(shippingAddress.getWard());
                 order.setProvince(shippingAddress.getProvince());
 
-                // 5. Chuẩn bị dữ liệu sản phẩm
-                Map<Integer, Integer> productDetailMaps = orderRequestDTO.getOrderDetailRequestDTOs()
+                List<OrderDetailRequestDTO> orderDetailRequestDTOs = orderRequestDTO.getOrderDetailRequestDTOs();
+
+                Map<Integer, OrderDetailRequestDTO> orderDetailRequestMaps = orderDetailRequestDTOs
                                 .stream()
-                                .collect(Collectors.toMap(odr -> odr.getProductDetailId(), odr -> odr.getQuantity()));
+                                .collect(Collectors.toMap(
+                                                orderDetailRequestDTO -> orderDetailRequestDTO.getProductDetailId(),
+                                                orderDetailRequestDTO -> orderDetailRequestDTO));
 
-                List<ProductDetail> productDetails = productDetailRepository.findAllById(productDetailMaps.keySet());
+                List<ProductDetail> productDetails = productDetailRepository
+                                .findAllById(orderDetailRequestMaps.keySet());
 
-                // 6. Tạo orderDetails và trừ tồn kho
-                List<OrderDetail> orderDetails = productDetails.stream().map(pd -> {
-                        if (pd.getQuantity() < productDetailMaps.get(pd.getDetailId())) {
-                                throw new NotFoundException(
-                                                "Product detail with id " + pd.getDetailId() + " is out of stock");
+                Map<Integer, ProductDetail> productDetailMaps = productDetails
+                                .stream()
+                                .collect(Collectors.toMap(ProductDetail::getDetailId, pd -> pd));
+
+                if (productDetails.isEmpty() || orderDetailRequestMaps.size() != productDetails.size()) {
+                        throw new NotFoundException("Some product details not found");
+                }
+
+                Set<OrderDetailPreviewDTO> orderDetailPreviews = productDetails
+                                .stream()
+                                .filter((pd) -> orderDetailRequestMaps.get(pd.getDetailId()).getIsFree() == false)
+                                .map(
+                                                (pd) -> {
+                                                        // if (orderDetailRequestMaps.get(pd.getDetailId())
+                                                        // .getIsFree() == true) {
+                                                        // continue;
+                                                        // }
+
+                                                        // final Double discountAmount = 0.0;
+                                                        final Double discountAmount = pd.getProductColor().getProduct()
+                                                                        .getDiscount() != null
+                                                                                        ? pd.getProductColor()
+                                                                                                        .getProduct()
+                                                                                                        .getDiscount()
+                                                                                        : 0.0; // Lấy giá trị giảm giá
+                                                                                               // từ sản phẩm, nếu không
+                                                                                               // có thì mặc định là 0
+
+                                                        final Double price = pd.getProductColor().getProduct()
+                                                                        .getUnitPrice();
+
+                                                        final Double finalPrice = price - discountAmount; // Tính giá
+                                                                                                          // cuối cùng
+                                                                                                          // sau khi áp
+                                                                                                          // dụng giảm
+                                                                                                          // giá
+
+                                                        final Boolean isFree = false;
+
+                                                        OrderDetailPreviewDTO orderDetailPreviewDTO = OrderDetailPreviewDTO
+                                                                        .builder()
+                                                                        .productDetailId(pd.getDetailId())
+                                                                        .productName(pd.getProductColor().getProduct()
+                                                                                        .getProductName())
+                                                                        .productImage(pd.getProductColor().getProduct()
+                                                                                        .getProductImage())
+                                                                        .color(pd.getProductColor().getColor())
+                                                                        .size(pd.getSize())
+                                                                        .quantity(orderDetailRequestMaps
+                                                                                        .get(pd.getDetailId())
+                                                                                        .getQuantity())
+                                                                        .price(price)
+                                                                        .discountAmount(discountAmount)
+                                                                        .finalPrice(finalPrice)
+                                                                        .isFree(isFree)
+                                                                        .build();
+                                                        return orderDetailPreviewDTO;
+                                                })
+
+                                .collect(Collectors.toSet());
+
+                // ====================================================================
+
+                Double totalAmountPreview = orderDetailPreviews.stream()
+                                .mapToDouble(orderDetail -> orderDetail.getFinalPrice() * orderDetail.getQuantity())
+                                .sum();
+
+                Double discountAmountPreview = 0.0;
+
+                Double shippingFeePreview = 30000.0;
+
+                Double discountShippingFeePreview = 0.0;
+
+                Double finalAmount = totalAmountPreview - discountAmountPreview + shippingFeePreview
+                                - discountShippingFeePreview;
+
+                OrderPreviewDTO orderPreviewDTO = OrderPreviewDTO.builder()
+                                .orderDetails(orderDetailPreviews)
+                                .totalAmount(totalAmountPreview)
+                                .discountAmount(discountAmountPreview)
+                                .shippingFee(shippingFeePreview)
+                                .discountShippingFee(discountShippingFeePreview)
+                                .finalAmount(finalAmount)
+                                .appliedPromotions(new ArrayList<>())
+                                .build();
+
+                for (Promotion promotion : promotions) {
+
+                        boolean isApplicable = true;
+
+                        for (PromotionCondition promotionCondition : promotion.getPromotionConditions()) {
+                                PromotionConditionStrategy promotionConditionStrategy = promotionConditionFactory
+                                                .getPromotionConditionStrategy(promotionCondition.getConditionType());
+
+                                Map<String, Object> value = promotionCondition.getValue();
+
+                                if (!promotionConditionStrategy.isSatisfied(orderPreviewDTO, value)) {
+                                        isApplicable = false;
+                                        break;
+                                }
                         }
-                        OrderDetail od = new OrderDetail();
-                        od.setProductName(pd.getProductColor().getProduct().getProductName());
-                        od.setProductImage(pd.getProductColor().getProductImage());
-                        od.setColor(pd.getProductColor().getColor());
-                        od.setSize(pd.getSize());
-                        od.setPrice(pd.getProductColor().getProduct().getUnitPrice()
-                                        * (1 - pd.getProductColor().getProduct().getDiscount() / 100));
-                        od.setQuantity(productDetailMaps.get(pd.getDetailId()));
-                        od.setOrder(order);
-                        od.setProductDetail(pd);
 
-                        // Trừ số lượng tồn kho
-                        pd.setQuantity(pd.getQuantity() - productDetailMaps.get(pd.getDetailId()));
+                        if (isApplicable) {
 
-                        return od;
-                }).toList();
+                                List<PromotionAction> actions = promotion.getPromotionActions();
+
+                                for (PromotionAction action : actions) {
+
+                                        PromotionActionTypeEnum actionType = action.getActionType();
+
+                                        PromotionActionStrategy actionFactory = promotionActionFactory
+                                                        .getPromotionActionStrategy(actionType);
+
+                                        actionFactory.execute(orderPreviewDTO, promotion,
+                                                        promotion.getPromotionActions().indexOf(action));
+
+                                }
+                                orderPreviewDTO.getAppliedPromotions().add(promotion.getPromotionId());
+
+                        }
+
+                }
+
+                // KHỚP LẠI GIÁ TRỊ
+                // ====================================================================
+
+                Set<OrderDetailPreviewDTO> orderDetailPreviewDTOCheck = orderPreviewDTO.getOrderDetails();
+
+                // ==== KIỂM TRA GIÁ TRỊ CHI TIẾT ĐƠN HÀNG ====
+                // FIX: Sử dụng Objects.equals() thay vì == để tránh floating-point precision
+                // issues
+                for (OrderDetailPreviewDTO orderDetailPreviewDTO : orderDetailPreviewDTOCheck) {
+                        // LỖIC CŨ (không dùng):
+                        // boolean matchPrice = orderDetailPreviewDTO.getPrice() ==
+                        // orderDetailRequestMaps
+                        // .get(orderDetailPreviewDTO.getProductDetailId()).getPrice();
+                        // boolean matchDiscount = orderDetailPreviewDTO.getDiscountAmount() ==
+                        // orderDetailRequestMaps
+                        // .get(orderDetailPreviewDTO.getProductDetailId()).getDiscount();
+                        // boolean matchFinalPrice = orderDetailPreviewDTO.getFinalPrice() ==
+                        // orderDetailRequestMaps
+                        // .get(orderDetailPreviewDTO.getProductDetailId()).getFinalPrice();
+                        // boolean matchIsFree = orderDetailPreviewDTO.getIsFree() ==
+                        // orderDetailRequestMaps
+                        // .get(orderDetailPreviewDTO.getProductDetailId()).getIsFree();
+
+                        // LỖIC ĐÚNG:
+                        boolean matchPrice = Objects.equals(orderDetailPreviewDTO.getPrice(),
+                                        orderDetailRequestMaps.get(orderDetailPreviewDTO.getProductDetailId())
+                                                        .getPrice());
+                        boolean matchDiscount = Objects.equals(orderDetailPreviewDTO.getDiscountAmount(),
+                                        orderDetailRequestMaps.get(orderDetailPreviewDTO.getProductDetailId())
+                                                        .getDiscount());
+                        boolean matchFinalPrice = Objects.equals(orderDetailPreviewDTO.getFinalPrice(),
+                                        orderDetailRequestMaps.get(orderDetailPreviewDTO.getProductDetailId())
+                                                        .getFinalPrice());
+                        boolean matchIsFree = Objects.equals(orderDetailPreviewDTO.getIsFree(),
+                                        orderDetailRequestMaps.get(orderDetailPreviewDTO.getProductDetailId())
+                                                        .getIsFree());
+
+                        if (!matchPrice || !matchDiscount || !matchFinalPrice || !matchIsFree) {
+                                throw new ConflictException("Price mismatch for product detail id: "
+                                                + orderDetailPreviewDTO.getProductDetailId());
+                        }
+                }
+                // ====
+
+                // ==== KIỂM TRA GIÁ TRỊ TỔNG ĐƠN HÀNG ====
+                // FIX: Sửa logic so sánh - phải so sánh orderRequestDTO với orderPreviewDTO,
+                // không phải với chính nó
+                // LỖIC CŨ (không dùng - so sánh field với chính nó):
+                // if (orderRequestDTO.getTotalAmount() != orderRequestDTO.getTotalAmount()
+                // || orderRequestDTO.getDiscount() != orderRequestDTO.getDiscount()
+                // || orderRequestDTO.getShippingFee() != orderRequestDTO.getShippingFee()
+                // || orderRequestDTO.getDiscountShippingFee() !=
+                // orderRequestDTO.getDiscountShippingFee()
+                // || orderRequestDTO.getFinalAmount() != orderRequestDTO.getFinalAmount()) {
+                // throw new ConflictException("Order summary mismatch");
+                // }
+
+                // LỖIC ĐÚNG:
+                if (!Objects.equals(orderRequestDTO.getTotalAmount(), orderPreviewDTO.getTotalAmount())
+                                || !Objects.equals(orderRequestDTO.getDiscount(), orderPreviewDTO.getDiscountAmount())
+                                || !Objects.equals(orderRequestDTO.getShippingFee(), orderPreviewDTO.getShippingFee())
+                                || !Objects.equals(orderRequestDTO.getDiscountShippingFee(),
+                                                orderPreviewDTO.getDiscountShippingFee())
+                                || !Objects.equals(orderRequestDTO.getFinalAmount(),
+                                                orderPreviewDTO.getFinalAmount())) {
+                        throw new ConflictException("Order summary mismatch");
+                }
+                // ====
+
+                // ====================================================================
 
                 // 7. Tính tổng tiền và set các thông tin khác
-                Double totalAmount = orderDetails.stream()
-                                .mapToDouble(od -> od.getPrice() * od.getQuantity())
+                Double totalAmount = orderDetailPreviewDTOCheck.stream()
+                                .mapToDouble(od -> od.getFinalPrice() * od.getQuantity())
                                 .sum();
+
+                List<OrderDetail> orderDetails = orderDetailPreviewDTOCheck.stream().map((preview) -> {
+                        OrderDetail orderDetail = new OrderDetail();
+
+                        // orderDetail.setDetailId(preview.getProductDetailId());
+                        orderDetail.setQuantity(preview.getQuantity());
+                        orderDetail.setPrice(preview.getPrice());
+                        orderDetail.setDiscount(preview.getDiscountAmount());
+                        orderDetail.setFinalPrice(preview.getFinalPrice());
+                        orderDetail.setProductName(preview.getProductName());
+                        orderDetail.setProductImage(preview.getProductImage());
+                        orderDetail.setColor(preview.getColor());
+                        orderDetail.setSize(preview.getSize());
+
+                        orderDetail.setProductDetail(productDetailMaps.get(preview.getProductDetailId()));
+                        orderDetail.setOrder(order);
+
+                        orderDetail.setIsReview(false);
+                        return orderDetail;
+                }).toList();
 
                 order.setTotalAmount(totalAmount);
                 order.setOrderDetails(orderDetails);
                 order.setPaymentMethod(orderRequestDTO.getPaymentMethod());
-                order.setShippingFee((order.getTotalAmount() >= 1000000.0) ? 0.0 : 30000.0);
-                order.setDiscountAmount(0.0);
+                order.setShippingFee(orderPreviewDTO.getShippingFee());
+                // order.setDiscountAmount(0.0);
+                order.setDiscountAmount(orderPreviewDTO.getDiscountAmount());
+                order.setDiscountShippingFee(orderPreviewDTO.getDiscountShippingFee());
+                order.setFinalAmount(orderPreviewDTO.getFinalAmount());
+
+                order.setStatus(OrderStatusEnum.PLACED); // Mặc định khi tạo đơn sẽ có trạng thái là PLACED, không lấy
+                                                         // từ client để tránh lỗi
+                order.setIsReview(false);
 
                 // 8. Lưu dữ liệu
                 productDetailRepository.saveAll(productDetails);
@@ -317,6 +358,8 @@ public class OrderService {
                 orderResponseDTO.setTotalAmount(order.getTotalAmount());
                 orderResponseDTO.setDiscountAmount(order.getDiscountAmount());
                 orderResponseDTO.setShippingFee(order.getShippingFee());
+                orderResponseDTO.setDiscountShippingFee(order.getDiscountShippingFee());
+                orderResponseDTO.setFinalAmount(order.getFinalAmount());
                 orderResponseDTO.setDeliveryDate(order.getDeliveryDate());
                 orderResponseDTO.setStatus(order.getStatus());
                 orderResponseDTO.setRecipientName(order.getRecipientName());
@@ -325,6 +368,7 @@ public class OrderService {
                 orderResponseDTO.setWard(order.getWard());
                 orderResponseDTO.setProvince(order.getProvince());
                 orderResponseDTO.setZaloAppTransId(order.getZaloAppTransId());
+                orderResponseDTO.setIsReview(order.getIsReview());
 
                 // 10. Map order detail
                 List<OrderDetailResponseDTO> orderDetailResponseDTOs = order.getOrderDetails().stream().map(od -> {
@@ -338,22 +382,24 @@ public class OrderService {
                         orderDetailResponseDTO.setOrderDetailId(od.getDetailId());
                         orderDetailResponseDTO.setProductId(
                                         od.getProductDetail().getProductColor().getProduct().getProductId());
+                        orderDetailResponseDTO.setIsReview(od.getIsReview());
                         return orderDetailResponseDTO;
                 }).toList();
                 orderResponseDTO.setOrderDetails(orderDetailResponseDTOs);
 
                 // 11. Map order gift
-                if (order.getOrderGifts() != null) {
-                        List<OrderGiftResponseDTO> orderGiftDTOs = order.getOrderGifts().stream().map(og -> {
-                                OrderGiftResponseDTO ogDTO = new OrderGiftResponseDTO();
-                                ogDTO.setGiftName(og.getGiftName());
-                                ogDTO.setGiftQuantity(og.getGiftQuantity());
-                                ogDTO.setGiftImage(og.getGiftImage());
-                                ogDTO.setPromotionName(og.getPromotionName());
-                                return ogDTO;
-                        }).toList();
-                        orderResponseDTO.setOrderGifts(orderGiftDTOs);
-                }
+                // if (order.getOrderGifts() != null) {
+                // List<OrderGiftResponseDTO> orderGiftDTOs =
+                // order.getOrderGifts().stream().map(og -> {
+                // OrderGiftResponseDTO ogDTO = new OrderGiftResponseDTO();
+                // ogDTO.setGiftName(og.getGiftName());
+                // ogDTO.setGiftQuantity(og.getGiftQuantity());
+                // ogDTO.setGiftImage(og.getGiftImage());
+                // ogDTO.setPromotionName(og.getPromotionName());
+                // return ogDTO;
+                // }).toList();
+                // orderResponseDTO.setOrderGifts(orderGiftDTOs);
+                // }
 
                 // 12. Điều chỉnh cart
                 Cart cart = cartRepository.findByCustomer_CustomerId(order.getCustomer().getCustomerId())
@@ -433,23 +479,23 @@ public class OrderService {
                 orderResponseDTO.setOrderDetails(orderDetailResponseDTOs);
 
                 // Map order gift
-                List<OrderGiftResponseDTO> orderGiftDTOs = order.getOrderGifts()
-                                .stream()
-                                .map(og -> {
-                                        OrderGiftResponseDTO ogDTO = new OrderGiftResponseDTO();
+                // List<OrderGiftResponseDTO> orderGiftDTOs = order.getOrderGifts()
+                // .stream()
+                // .map(og -> {
+                // OrderGiftResponseDTO ogDTO = new OrderGiftResponseDTO();
 
-                                        ogDTO.setGiftName(og.getGiftName());
+                // ogDTO.setGiftName(og.getGiftName());
 
-                                        ogDTO.setGiftQuantity(og.getGiftQuantity());
+                // ogDTO.setGiftQuantity(og.getGiftQuantity());
 
-                                        ogDTO.setGiftImage(og.getGiftImage());
+                // ogDTO.setGiftImage(og.getGiftImage());
 
-                                        ogDTO.setPromotionName(og.getPromotionName());
+                // ogDTO.setPromotionName(og.getPromotionName());
 
-                                        return ogDTO;
-                                })
-                                .toList();
-                orderResponseDTO.setOrderGifts(orderGiftDTOs);
+                // return ogDTO;
+                // })
+                // .toList();
+                // orderResponseDTO.setOrderGifts(orderGiftDTOs);
 
                 return orderResponseDTO;
         }

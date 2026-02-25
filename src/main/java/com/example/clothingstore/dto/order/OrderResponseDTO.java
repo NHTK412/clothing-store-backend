@@ -25,6 +25,10 @@ public class OrderResponseDTO {
 
     private Double shippingFee;
 
+    private Double discountShippingFee;
+
+    private Double finalAmount;
+
     private LocalDateTime deliveryDate;
 
     private OrderStatusEnum status;
@@ -49,6 +53,5 @@ public class OrderResponseDTO {
     private List<OrderGiftResponseDTO> orderGifts;
 
     private Boolean isReview;
-
 
 }

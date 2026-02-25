@@ -83,7 +83,7 @@ public class Customer extends Base {
     private MembershipTier membershipTier;
 
     @OneToMany(mappedBy = "customer")
-    private List<ShippingAddress> shippingAddresses;
+    private List<Address> shippingAddresses;
 
     @Column(name = "Image")
     private String image;

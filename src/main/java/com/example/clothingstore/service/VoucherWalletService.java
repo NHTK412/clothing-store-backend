@@ -17,8 +17,8 @@ import com.example.clothingstore.model.VoucherWallet;
 import com.example.clothingstore.repository.CustomerRepository;
 import com.example.clothingstore.repository.PromotionRepository;
 import com.example.clothingstore.repository.VoucherWalletRepository;
-import com.example.clothingstore.scope.IPromotionScopeStrategy;
-import com.example.clothingstore.scope.PromotionScopeFactory;
+import com.example.clothingstore.strategy.scope.PromotionScopeStrategy;
+import com.example.clothingstore.strategy.scope.PromotionScopeFactory;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -93,7 +93,7 @@ public class VoucherWalletService {
             throw new ConflictException("Promotion is not a coupon code");
         }
 
-        IPromotionScopeStrategy promotionScopeStrategy = promotionScopeFactory
+        PromotionScopeStrategy promotionScopeStrategy = promotionScopeFactory
                 .getPromotionScopeStrategy(promotion.getPromotionScopeType());
 
         Customer customer = customerRepository.findById(customerId)

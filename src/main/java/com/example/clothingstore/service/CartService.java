@@ -11,10 +11,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.example.clothingstore.action.PromotionActionFactory;
-import com.example.clothingstore.action.PromotionActionStrategy;
-import com.example.clothingstore.condition.PromotionConditionFactory;
-import com.example.clothingstore.condition.PromotionConditionStrategy;
 // import com.example.clothingstore.dto.cart.CartRequestDTO;
 import com.example.clothingstore.dto.cart.CartResponseDTO;
 import com.example.clothingstore.dto.cartdetail.CartItemRequestDTO;
@@ -41,6 +37,10 @@ import com.example.clothingstore.repository.CartRepository;
 import com.example.clothingstore.repository.ProductDetailRepository;
 import com.example.clothingstore.repository.PromotionRepository;
 import com.example.clothingstore.repository.VoucherWalletRepository;
+import com.example.clothingstore.strategy.action.PromotionActionFactory;
+import com.example.clothingstore.strategy.action.PromotionActionStrategy;
+import com.example.clothingstore.strategy.condition.PromotionConditionFactory;
+import com.example.clothingstore.strategy.condition.PromotionConditionStrategy;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

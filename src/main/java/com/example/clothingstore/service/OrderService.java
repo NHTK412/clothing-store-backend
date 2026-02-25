@@ -13,10 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.example.clothingstore.action.PromotionActionFactory;
-import com.example.clothingstore.action.PromotionActionStrategy;
-import com.example.clothingstore.condition.PromotionConditionFactory;
-import com.example.clothingstore.condition.PromotionConditionStrategy;
 import com.example.clothingstore.dto.order.OrderPreviewDTO;
 import com.example.clothingstore.dto.order.OrderRequestDTO;
 import com.example.clothingstore.dto.order.OrderResponseDTO;
@@ -41,12 +37,16 @@ import com.example.clothingstore.model.ProductDetail;
 import com.example.clothingstore.model.Promotion;
 import com.example.clothingstore.model.PromotionAction;
 import com.example.clothingstore.model.PromotionCondition;
-import com.example.clothingstore.model.ShippingAddress;
+import com.example.clothingstore.model.Address;
 import com.example.clothingstore.repository.CartRepository;
 import com.example.clothingstore.repository.CustomerRepository;
 import com.example.clothingstore.repository.OrderRepository;
 import com.example.clothingstore.repository.ProductDetailRepository;
 import com.example.clothingstore.repository.PromotionRepository;
+import com.example.clothingstore.strategy.action.PromotionActionFactory;
+import com.example.clothingstore.strategy.action.PromotionActionStrategy;
+import com.example.clothingstore.strategy.condition.PromotionConditionFactory;
+import com.example.clothingstore.strategy.condition.PromotionConditionStrategy;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -68,7 +68,7 @@ public class OrderService {
         public OrderResponseDTO createOrder(String userName, OrderRequestDTO orderRequestDTO) {
                 // 1. Lấy thông tin customer và địa chỉ giao hàng
                 Customer customer = validateAndGetCustomer(userName);
-                ShippingAddress shippingAddress = validateAndGetShippingAddress(customer,
+                Address shippingAddress = validateAndGetShippingAddress(customer,
                                 orderRequestDTO.getAddressShippingId());
 
                 // 2. Lấy và xác thực promotions
@@ -311,7 +311,7 @@ public class OrderService {
                                 .orElseThrow(() -> new NotFoundException("Customer not found"));
         }
 
-        private ShippingAddress validateAndGetShippingAddress(Customer customer, Integer addressId) {
+        private Address validateAndGetShippingAddress(Customer customer, Integer addressId) {
                 return customer.getShippingAddresses()
                                 .stream()
                                 .filter(addr -> addr.getAddressId().equals(addressId))
@@ -346,7 +346,7 @@ public class OrderService {
                 return order;
         }
 
-        private void setOrderShippingInfo(Order order, ShippingAddress shippingAddress) {
+        private void setOrderShippingInfo(Order order, Address shippingAddress) {
                 order.setRecipientName(shippingAddress.getRecipientName());
                 order.setPhoneNumber(shippingAddress.getPhoneNumber());
                 order.setDetailedAddress(shippingAddress.getDetailedAdress());

@@ -43,8 +43,8 @@ import com.example.clothingstore.repository.PromotionMemberTierRepository;
 import com.example.clothingstore.repository.PromotionRepository;
 import com.example.clothingstore.repository.PromotionTargetUserRepository;
 import com.example.clothingstore.repository.VoucherWalletRepository;
-import com.example.clothingstore.scope.IPromotionScopeStrategy;
-import com.example.clothingstore.scope.PromotionScopeFactory;
+import com.example.clothingstore.strategy.scope.PromotionScopeStrategy;
+import com.example.clothingstore.strategy.scope.PromotionScopeFactory;
 import com.example.clothingstore.validator.PromotionValidator;
 
 import jakarta.transaction.Transactional;
@@ -238,7 +238,7 @@ public class PromotionService {
 
                     PromotionScopeTypeEnum promotionScopeType = promotion.getPromotionScopeType();
 
-                    IPromotionScopeStrategy promotionScopeStrategy = promotionScopeFactory
+                    PromotionScopeStrategy promotionScopeStrategy = promotionScopeFactory
                             .getPromotionScopeStrategy(promotionScopeType);
 
                     if (promotionScopeType == PromotionScopeTypeEnum.ALL_USER) {

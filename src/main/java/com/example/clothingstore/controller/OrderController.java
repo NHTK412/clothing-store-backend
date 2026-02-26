@@ -53,9 +53,13 @@ public class OrderController {
 
         OrderResponseDTO createdOrder = orderService.createOrder(userName, orderRequestDTO);
 
-        ApiResponse<OrderResponseDTO> response = new ApiResponse<OrderResponseDTO>(true, null, createdOrder);
+        // ApiResponse<OrderResponseDTO> response = new
+        // ApiResponse<OrderResponseDTO>(true, null, createdOrder);
 
-        return ResponseEntity.ok(response);
+        // return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(
+                ApiResponse.created("Successfully created order", createdOrder));
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
@@ -64,9 +68,13 @@ public class OrderController {
 
         OrderResponseDTO orderResponseDTO = orderService.getOrderById(orderId);
 
-        ApiResponse<OrderResponseDTO> response = new ApiResponse<>(true, null, orderResponseDTO);
+        // ApiResponse<OrderResponseDTO> response = new ApiResponse<>(true, null,
+        // orderResponseDTO);
 
-        return ResponseEntity.ok(response);
+        // return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Successfully retrieved order", orderResponseDTO));
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -75,21 +83,15 @@ public class OrderController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @AuthenticationPrincipal CustomerUserDetails userDetails) {
-        // return new String();
 
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        Integer customerId = userDetails.getUserId(); // Temporary hardcoded customer ID for testing
-        // String userName = userDetails.getUsername();
+        Integer customerId = userDetails.getUserId();
 
-        List<OrderSummaryDTO> orderSummaries = orderService.getAllOrdersByCustomer(customerId, pageable); // Temporary
-                                                                                                          // hardcoded
-                                                                                                          // customer ID
-                                                                                                          // for testing
+        List<OrderSummaryDTO> orderSummaries = orderService.getAllOrdersByCustomer(customerId, pageable);
 
-        ApiResponse<List<OrderSummaryDTO>> response = new ApiResponse<>(true, null, orderSummaries);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                ApiResponse.success("Successfully retrieved orders", orderSummaries));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -101,14 +103,9 @@ public class OrderController {
 
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        List<OrderSummaryDTO> orderSummaries = orderService.getAllOrders(pageable); // Temporary
-                                                                                    // hardcoded
-                                                                                    // customer ID
-                                                                                    // for testing
-
-        ApiResponse<List<OrderSummaryDTO>> response = new ApiResponse<>(true, null, orderSummaries);
-
-        return ResponseEntity.ok(response);
+        List<OrderSummaryDTO> orderSummaries = orderService.getAllOrders(pageable);
+        return ResponseEntity.ok(
+                ApiResponse.success("Successfully retrieved orders", orderSummaries));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -118,9 +115,8 @@ public class OrderController {
 
         OrderResponseDTO updatedOrder = orderService.updateStatus(orderId, status);
 
-        ApiResponse<OrderResponseDTO> response = new ApiResponse<>(true, null, updatedOrder);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                ApiResponse.success("Successfully updated order status", updatedOrder));
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -129,9 +125,9 @@ public class OrderController {
 
         OrderResponseDTO updatedOrder = orderService.updateStatus(orderId, OrderStatusEnum.CANCELED);
 
-        ApiResponse<OrderResponseDTO> response = new ApiResponse<>(true, null, updatedOrder);
+        return ResponseEntity.ok(
+                ApiResponse.success("Successfully canceled order", updatedOrder));
 
-        return ResponseEntity.ok(response);
     }
 
 }

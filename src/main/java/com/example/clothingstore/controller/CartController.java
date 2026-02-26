@@ -48,7 +48,10 @@ public class CartController {
 
         CartResponseDTO cartResponseDTO = cartService.getCartByCustomer(customerId);
 
-        return ResponseEntity.ok(new ApiResponse<CartResponseDTO>(true, null, cartResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CartResponseDTO>(true, null, cartResponseDTO));
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully retrieved cart", cartResponseDTO)
+        );
 
     }
 
@@ -61,7 +64,10 @@ public class CartController {
 
         CartItemResponseDTO cartItemResponseDTO = cartService.addCartItemByCart(customerId, cartDetailRequestDTO);
 
-        return ResponseEntity.ok(new ApiResponse<CartItemResponseDTO>(true, null, cartItemResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CartItemResponseDTO>(true, null, cartItemResponseDTO));
+        return ResponseEntity.ok(
+            ApiResponse.created("Successfully added item to cart", cartItemResponseDTO)
+        );
 
     }
 
@@ -75,7 +81,10 @@ public class CartController {
 
         CartItemResponseDTO cartItemResponseDTO = cartService.updateCartItem(customerId, cartDetailId, quantity);
 
-        return ResponseEntity.ok(new ApiResponse<CartItemResponseDTO>(true, null, cartItemResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CartItemResponseDTO>(true, null, cartItemResponseDTO));
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully updated cart item", cartItemResponseDTO)
+        );
 
     }
 
@@ -87,7 +96,10 @@ public class CartController {
 
         CartItemResponseDTO cartItemResponseDTO = cartService.deleteCartItem(customerId, cartDetailId);
 
-        return ResponseEntity.ok(new ApiResponse<CartItemResponseDTO>(true, null, cartItemResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CartItemResponseDTO>(true, null, cartItemResponseDTO));
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully deleted cart item", cartItemResponseDTO)
+        );
 
     }
 
@@ -101,7 +113,10 @@ public class CartController {
 
         OrderPreviewDTO orderPreviewDTO = cartService.previewOrder(customerId, cartItemIds, promotionIds);
 
-        return ResponseEntity.ok(new ApiResponse<OrderPreviewDTO>(true, null, orderPreviewDTO));
+        // return ResponseEntity.ok(new ApiResponse<OrderPreviewDTO>(true, null, orderPreviewDTO));
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully previewed order", orderPreviewDTO)
+        );
     }
 
 }

@@ -41,7 +41,10 @@ public class VoucherWalletController {
         List<PromotionSummaryDTO> promotionSummaryDTOs = voucherWalletService.getVouchersForCustomer(customerId,
                 pageable);
 
-        return ResponseEntity.ok(new ApiResponse<List<PromotionSummaryDTO>>(true, "Success", promotionSummaryDTOs));
+        // return ResponseEntity.ok(new ApiResponse<List<PromotionSummaryDTO>>(true, "Success", promotionSummaryDTOs));
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully retrieved vouchers in wallet", promotionSummaryDTOs)
+        );
     }
 
     // Thêm voucher vào ví của khách hàng
@@ -54,8 +57,12 @@ public class VoucherWalletController {
 
         PromotionSummaryDTO promotionSummaryDTO = voucherWalletService.addPromotionToWallet(customerId, couponCode);
 
-        return ResponseEntity.ok(new ApiResponse<PromotionSummaryDTO>(true, "Promotion added to wallet successfully",
-                promotionSummaryDTO));
+        // return ResponseEntity.ok(new ApiResponse<PromotionSummaryDTO>(true, "Promotion added to wallet successfully",
+        //         promotionSummaryDTO));
+
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully added promotion to wallet", promotionSummaryDTO)
+        );
     }
 
 }

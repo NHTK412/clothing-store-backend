@@ -46,7 +46,10 @@ public class CategoryController {
 
         List<CategorySummaryDTO> categorySummaryDTOs = categoryService.getAllCategory(pageable);
 
-        return ResponseEntity.ok(new ApiResponse<List<CategorySummaryDTO>>(true, null, categorySummaryDTOs));
+        // return ResponseEntity.ok(new ApiResponse<List<CategorySummaryDTO>>(true, null, categorySummaryDTOs));
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully retrieved categories", categorySummaryDTOs)
+        );
     }
 
     @GetMapping("/{categoryId}")
@@ -54,7 +57,10 @@ public class CategoryController {
 
         CategoryResponseDTO categoryResponseDTO = categoryService.getCategoryById(categoryId);
 
-        return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully retrieved category", categoryResponseDTO)
+        );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -64,7 +70,10 @@ public class CategoryController {
 
         CategoryResponseDTO categoryResponseDTO = categoryService.createCategory(categoryRequestDTO);
 
-        return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
+        return ResponseEntity.ok(
+            ApiResponse.created("Successfully created category", categoryResponseDTO)
+        );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -74,7 +83,10 @@ public class CategoryController {
 
         CategoryResponseDTO categoryResponseDTO = categoryService.updateCategory(categoryId, categoryRequestDTO);
 
-        return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully updated category", categoryResponseDTO)
+        );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -83,7 +95,10 @@ public class CategoryController {
 
         CategoryResponseDTO categoryResponseDTO = categoryService.deleteCategory(categoryId);
 
-        return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully deleted category", categoryResponseDTO)
+        );
     }
 
     // endpoint này dùng cho bên admin hiển thị danh sách các danh mục
@@ -95,7 +110,10 @@ public class CategoryController {
 
         List<CategoryResponseDTO> categorySummaryDTOs = categoryService.getAllCategoriesDetailed(pageable);
 
-        return ResponseEntity.ok(new ApiResponse<List<CategoryResponseDTO>>(true, null, categorySummaryDTOs));
+        // return ResponseEntity.ok(new ApiResponse<List<CategoryResponseDTO>>(true, null, categorySummaryDTOs));
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully retrieved categories with details", categorySummaryDTOs)
+        );
     }
 
 }

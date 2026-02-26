@@ -46,7 +46,10 @@ public class ReviewController {
         Pageable pageable = PageRequest.of(page - 1, size);
         List<ReviewResponseDTO> reviewResponseDTOs = reviewService.getALLReviewByProductId(productId, pageable);
 
-        return ResponseEntity.ok(new ApiResponse<List<ReviewResponseDTO>>(true, null, reviewResponseDTOs));
+        // return ResponseEntity.ok(new ApiResponse<List<ReviewResponseDTO>>(true, null,
+        // reviewResponseDTOs));
+        return ResponseEntity.ok(
+                ApiResponse.success("Successfully retrieved reviews for the product", reviewResponseDTOs));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
@@ -59,7 +62,9 @@ public class ReviewController {
                 userDetails.getUserId(), productId,
                 reviewRequestDTO);
 
-        return ResponseEntity.ok(new ApiResponse<ReviewResponseDTO>(true, null, reviewResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<ReviewResponseDTO>(true, null,
+        // reviewResponseDTO));
+        return ResponseEntity.ok(ApiResponse.created("Successfully created review", reviewResponseDTO));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
@@ -70,7 +75,9 @@ public class ReviewController {
 
         ReviewResponseDTO reviewResponseDTO = reviewService.updateReview(productId, reviewId, reviewRequestDTO);
 
-        return ResponseEntity.ok(new ApiResponse<ReviewResponseDTO>(true, null, reviewResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<ReviewResponseDTO>(true, null,
+        // reviewResponseDTO));
+        return ResponseEntity.ok(ApiResponse.success("Successfully updated review", reviewResponseDTO));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
@@ -80,7 +87,9 @@ public class ReviewController {
 
         ReviewResponseDTO reviewResponseDTO = reviewService.deleteReview(productId, reviewId);
 
-        return ResponseEntity.ok(new ApiResponse<ReviewResponseDTO>(true, null, reviewResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<ReviewResponseDTO>(true, null,
+        // reviewResponseDTO));
+        return ResponseEntity.ok(ApiResponse.success("Successfully deleted review", reviewResponseDTO));
     }
 
 }

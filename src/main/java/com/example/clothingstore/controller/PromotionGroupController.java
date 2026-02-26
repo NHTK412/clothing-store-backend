@@ -32,10 +32,14 @@ public class PromotionGroupController {
                 PromotionGroupResponseDTO createdPromotionGroup = promotionGroupService
                                 .createPromotionGroup(promotionGroupRequest);
 
-                ApiResponse<PromotionGroupResponseDTO> response = new ApiResponse<>(true,
-                                "Promotion group created successfully", createdPromotionGroup);
+                // ApiResponse<PromotionGroupResponseDTO> response = new ApiResponse<>(true,
+                //                 "Promotion group created successfully", createdPromotionGroup);
 
-                return ResponseEntity.ok(response);
+                // return ResponseEntity.ok(response);
+
+                return ResponseEntity.ok(
+                                ApiResponse.created("Successfully created promotion group", createdPromotionGroup)
+                );
 
         }
 
@@ -47,10 +51,14 @@ public class PromotionGroupController {
                 PromotionGroupResponseDTO promotionGroupResponseDTO = promotionGroupService
                                 .getPromotionGroupById(id);
 
-                ApiResponse<PromotionGroupResponseDTO> response = new ApiResponse<>(true,
-                                "Promotion group retrieved successfully", promotionGroupResponseDTO);
+                // ApiResponse<PromotionGroupResponseDTO> response = new ApiResponse<>(true,
+                //                 "Promotion group retrieved successfully", promotionGroupResponseDTO);
 
-                return ResponseEntity.ok(response);
+                // return ResponseEntity.ok(response);
+
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully retrieved promotion group", promotionGroupResponseDTO)
+                );
 
         }
 

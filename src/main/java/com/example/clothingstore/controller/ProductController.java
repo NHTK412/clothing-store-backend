@@ -40,20 +40,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 public class ProductController {
 
-        // @Autowired
-        // ProductService productService;
-
         private final ProductService productService;
 
-        // @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
         @GetMapping("/{productId}")
         public ResponseEntity<ApiResponse<ProductResponseDTO>> getProductDetailById(@PathVariable Integer productId) {
                 ProductResponseDTO productResponseDTO = productService.getProductDetailById(productId);
 
-                return ResponseEntity.ok(new ApiResponse<ProductResponseDTO>(true, null, productResponseDTO));
+                return ResponseEntity
+                                .ok(ApiResponse.success("Successfully get the product detail", productResponseDTO));
         }
 
-        // @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
         @GetMapping
         public ResponseEntity<ApiResponse<List<ProductSummaryDTO>>> getAllProduct(
                         @RequestParam(defaultValue = "1") Integer page,
@@ -64,7 +60,7 @@ public class ProductController {
 
                 List<ProductSummaryDTO> productSummaryDTOs = productService.getAllProduct(categoryId, pageable);
 
-                return ResponseEntity.ok(new ApiResponse<List<ProductSummaryDTO>>(true, null, productSummaryDTOs));
+                return ResponseEntity.ok(ApiResponse.success("Successfully get the product list", productSummaryDTOs));
         }
 
         @PreAuthorize("hasRole('ADMIN')")
@@ -72,7 +68,7 @@ public class ProductController {
         public ResponseEntity<ApiResponse<ProductSummaryDTO>> createProduct(
                         @Valid @RequestBody ProductRequestDTO productRequest) {
                 return ResponseEntity
-                                .ok(new ApiResponse<ProductSummaryDTO>(true, null,
+                                .ok(ApiResponse.success("Successfully created the product",
                                                 productService.createProduct(productRequest)));
         }
 
@@ -81,25 +77,15 @@ public class ProductController {
         public ResponseEntity<ApiResponse<ProductSummaryDTO>> deleteProduct(@PathVariable Integer productId) {
                 ProductSummaryDTO productSummaryDTO = productService.deleteProduct(productId);
 
-                return ResponseEntity.ok(new ApiResponse<ProductSummaryDTO>(true, null, productSummaryDTO));
+                return ResponseEntity.ok(ApiResponse.success("Successfully deleted the product", productSummaryDTO));
         }
-
-        // @PreAuthorize("hasRole('ADMIN')")
-        // @PutMapping("/{productId}")
-        // public ResponseEntity<ApiResponse<ProductSummaryDTO>>
-        // updateProduct(@PathVariable Integer productId,
-        // @RequestBody ProductRequestDTO productRequest) {
-        // return ResponseEntity
-        // .ok(new ApiResponse<ProductSummaryDTO>(true, null,
-        // productService.updateProduct(productId, productRequest)));
-        // }
 
         @PreAuthorize("hasRole('ADMIN')")
         @PutMapping("/{productId}")
         public ResponseEntity<ApiResponse<ProductSummaryDTO>> updateProduct(@PathVariable Integer productId,
                         @Valid @RequestBody ProductUpdateDTO productUpdate) {
                 return ResponseEntity
-                                .ok(new ApiResponse<ProductSummaryDTO>(true, null,
+                                .ok(ApiResponse.success("Successfully updated the product",
                                                 productService.updateProduct(productId, productUpdate)));
         }
 
@@ -110,7 +96,7 @@ public class ProductController {
                         @RequestBody ProductColorRequestDTO productColorRequest) {
 
                 return ResponseEntity
-                                .ok(new ApiResponse<ProductColorResponseDTO>(true, null,
+                                .ok(ApiResponse.success("Successfully updated the product color",
                                                 productService.updateProductColor(productColorId,
                                                                 productColorRequest)));
 
@@ -122,7 +108,8 @@ public class ProductController {
                         @PathVariable Integer productColorId) {
                 ProductColorResponseDTO productColorResponseDTO = productService.deleteProductColor(productColorId);
 
-                return ResponseEntity.ok(new ApiResponse<ProductColorResponseDTO>(true, null, productColorResponseDTO));
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully deleted the product color", productColorResponseDTO));
         }
 
         @PreAuthorize("hasRole('ADMIN')")
@@ -131,7 +118,7 @@ public class ProductController {
                         @RequestBody ProductColorRequestDTO productColorRequest) {
 
                 return ResponseEntity
-                                .ok(new ApiResponse<ProductColorResponseDTO>(true, null,
+                                .ok(ApiResponse.created("Successfully created the product color",
                                                 productService.createProductColor(productColorRequest)));
 
         }
@@ -143,7 +130,7 @@ public class ProductController {
                         @PathVariable Integer productColorId) {
 
                 return ResponseEntity
-                                .ok(new ApiResponse<ProductDetailResponseDTO>(true, null,
+                                .ok(ApiResponse.created("Successfully created the product detail",
                                                 productService.createProductDetail(productColorId,
                                                                 productDetailRequest)));
 
@@ -157,7 +144,7 @@ public class ProductController {
                         @RequestBody ProductDetailRequestDTO productDetailRequest) {
 
                 return ResponseEntity
-                                .ok(new ApiResponse<ProductDetailResponseDTO>(true, null,
+                                .ok(ApiResponse.success("Successfully updated the product detail",
                                                 productService.updateProductDetail(productColorId, productDetailId,
                                                                 productDetailRequest)));
 
@@ -172,8 +159,8 @@ public class ProductController {
                 ProductDetailResponseDTO productDetailResponseDTO = productService.deleteProductDetail(productColorId,
                                 productDetailId);
 
-                return ResponseEntity
-                                .ok(new ApiResponse<ProductDetailResponseDTO>(true, null, productDetailResponseDTO));
+                return ResponseEntity.ok(ApiResponse.success("Successfully deleted the product detail",
+                                productDetailResponseDTO));
         }
 
 }

@@ -41,7 +41,10 @@ public class AuthController {
             @Valid @RequestBody AuthRequestDTO authRequestDTO) {
         AuthResponseDTO authResponseDTO = authService.login(authRequestDTO.getUsername(), authRequestDTO.getPassword(),
                 admin);
-        return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null, authResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null, authResponseDTO));
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully logged in", authResponseDTO)
+        );
     }
 
     // Đăng ký tài khoản
@@ -50,14 +53,19 @@ public class AuthController {
 
         AuthResponseDTO authResponseDTO = authService.register(authRequestDTO.getUsername(),
                 authRequestDTO.getPassword());
-        return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null, authResponseDTO));
+        return ResponseEntity.ok(ApiResponse.created("Successfully registered", authResponseDTO));
+
+
     }
 
     @PostMapping("/login-admin")
     public ResponseEntity<ApiResponse<AuthResponseDTO>> loginAdmin(@Valid @RequestBody AuthRequestDTO authRequestDTO) {
         AuthResponseDTO authResponseDTO = authService.loginAdmin(authRequestDTO.getUsername(),
                 authRequestDTO.getPassword());
-        return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null, authResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null, authResponseDTO));
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully logged in as admin", authResponseDTO)
+        );
     }
     // @PostMapping("/refresh-token")
     // public ResponseEntity<ApiResponse<AuthResponseDTO>>

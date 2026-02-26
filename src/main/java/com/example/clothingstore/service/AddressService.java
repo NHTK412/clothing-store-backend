@@ -36,17 +36,18 @@ public class AddressService {
         private final CustomerRepository customerRepository;
         private final AddressMapper shippingAddressMapper;
 
-        @Transactional
-        public List<AddressResponseDTO> getAllShippingAddresses(Integer customerId, Pageable pageable) {
+        // @Transactional
+        // public List<AddressResponseDTO> getAllShippingAddresses(Integer customerId,
+        // Pageable pageable) {
 
-                Page<Address> shippingAddresses = shippingAddressRepository
-                                .findByCustomer_CustomerId(customerId, pageable);
+        // Page<Address> shippingAddresses = shippingAddressRepository
+        // .findByCustomer_CustomerId(customerId, pageable);
 
-                return shippingAddresses
-                                .map((shippingAddress) -> shippingAddressMapper
-                                                .convertModelToShippingAddressResponseDTO(shippingAddress))
-                                .toList();
-        }
+        // return shippingAddresses
+        // .map((shippingAddress) -> shippingAddressMapper
+        // .convertModelToShippingAddressResponseDTO(shippingAddress))
+        // .toList();
+        // }
 
         @Transactional
         public AddressResponseDTO createShippingAddress(Integer customerId,

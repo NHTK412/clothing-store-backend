@@ -47,8 +47,8 @@ public class MembershipTierController {
                 List<MembershipTierResponseDTO> membershipTierResponseDTOs = membershipTierService
                                 .getAllMembershipTier(pageable);
 
-                return ResponseEntity
-                                .ok(new ApiResponse<List<MembershipTierResponseDTO>>(true, null,
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully retrieved membership tiers",
                                                 membershipTierResponseDTOs));
         }
 
@@ -60,8 +60,12 @@ public class MembershipTierController {
                 MembershipTierResponseDTO membershipTierResponseDTO = membershipTierService
                                 .createMembershipTier(membershipTierRequestDTO);
 
-                return ResponseEntity
-                                .ok(new ApiResponse<MembershipTierResponseDTO>(true, null, membershipTierResponseDTO));
+                // return ResponseEntity
+                // .ok(new ApiResponse<MembershipTierResponseDTO>(true, null,
+                // membershipTierResponseDTO));
+
+                return ResponseEntity.ok(
+                                ApiResponse.created("Successfully created membership tier", membershipTierResponseDTO));
         }
 
         @PreAuthorize("hasRole('ADMIN')")
@@ -72,8 +76,12 @@ public class MembershipTierController {
                 MembershipTierResponseDTO membershipTierResponseDTO = membershipTierService
                                 .deleteMembershipTier(membershipTieId);
 
-                return ResponseEntity
-                                .ok(new ApiResponse<MembershipTierResponseDTO>(true, null, membershipTierResponseDTO));
+                // return ResponseEntity
+                // .ok(new ApiResponse<MembershipTierResponseDTO>(true, null,
+                // membershipTierResponseDTO));
+
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully deleted membership tier", membershipTierResponseDTO));
         }
 
         @PreAuthorize("hasRole('ADMIN')")
@@ -85,8 +93,12 @@ public class MembershipTierController {
                 MembershipTierResponseDTO membershipTierResponseDTO = membershipTierService
                                 .updateMembershipTier(membershipTieId, membershipTierRequestDTO);
 
-                return ResponseEntity
-                                .ok(new ApiResponse<MembershipTierResponseDTO>(true, null, membershipTierResponseDTO));
+                // return ResponseEntity
+                // .ok(new ApiResponse<MembershipTierResponseDTO>(true, null,
+                // membershipTierResponseDTO));
+
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully updated membership tier", membershipTierResponseDTO));
         }
 
 }

@@ -35,34 +35,39 @@ public class FileUploadController {
     @PreAuthorize("hasRole('ADMIN')")
     // Consumer để nói kiểu gửi lên
     @PostMapping(value = "/image", consumes = "multipart/form-data")
-    public ResponseEntity<ApiResponse<FileUploadResponseDTO>> uploadImage(@RequestParam("file") MultipartFile file) {
-        try {
-            FileUploadResponseDTO fileUploadResponseDTO = fileUploadService.uploadImage(file);
-            return ResponseEntity.ok(new ApiResponse<>(true, null, fileUploadResponseDTO));
-        } catch (IOException e) {
-            return ResponseEntity.status(500)
-                    .body(new ApiResponse<>(false, "Unable to save file due to I/O error:" + e.getMessage(), null));
-        }
+    public ResponseEntity<ApiResponse<FileUploadResponseDTO>> uploadImage(@RequestParam("file") MultipartFile file)
+            throws IOException {
+
+        FileUploadResponseDTO fileUploadResponseDTO = fileUploadService.uploadImage(file);
+        // return ResponseEntity.ok(new ApiResponse<>(true, null,
+        // fileUploadResponseDTO));
+        return ResponseEntity.ok(
+                ApiResponse.created("Successfully uploaded image", fileUploadResponseDTO));
+
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value = "/multiple", consumes = "multipart/form-data")
     public ResponseEntity<ApiResponse<List<FileUploadResponseDTO>>> uploadMultipleImage(
-            @RequestParam("files") List<MultipartFile> files) {
-        try {
-            List<FileUploadResponseDTO> fileUploadResponseDTOs = fileUploadService.uploadMultipleImage(files);
-            return ResponseEntity.ok(new ApiResponse<>(true, null, fileUploadResponseDTOs));
-        } catch (IOException e) {
-            return ResponseEntity.status(500)
-                    .body(new ApiResponse<>(false, "Unable to save file due to I/O error:" + e.getMessage(), null));
-        }
+            @RequestParam("files") List<MultipartFile> files) throws IOException {
+
+        List<FileUploadResponseDTO> fileUploadResponseDTOs = fileUploadService.uploadMultipleImage(files);
+        // return ResponseEntity.ok(new ApiResponse<>(true, null,
+        // fileUploadResponseDTOs));
+        return ResponseEntity.ok(ApiResponse.created("Successfully uploaded multiple images", fileUploadResponseDTOs));
+
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{fileName}")
     public ResponseEntity<ApiResponse<FileUploadResponseDTO>> deleteImage(@PathVariable String fileName) {
         FileUploadResponseDTO fileUploadResponseDTO = fileUploadService.deleteImage(fileName);
-        return ResponseEntity.ok(new ApiResponse<>(true, null, fileUploadResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<>(true, null,
+        // fileUploadResponseDTO));
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Successfully deleted image", fileUploadResponseDTO));
+
     }
 
 }

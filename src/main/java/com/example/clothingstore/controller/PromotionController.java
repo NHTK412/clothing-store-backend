@@ -30,11 +30,8 @@ public class PromotionController {
 
         PromotionResponseDTO promotionResponseDTO = promotionService.createPromotion(promotionCreateRequestDTO);
 
-        ApiResponse<PromotionResponseDTO> apiResponse = new ApiResponse<>(
-                true,
-                "Promotion created successfully",
-                promotionResponseDTO);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
+        return ResponseEntity.ok(
+            ApiResponse.created("Successfully created promotion", promotionResponseDTO)
+        );
     }
 }

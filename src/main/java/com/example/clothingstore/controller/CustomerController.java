@@ -52,7 +52,11 @@ public class CustomerController {
 
         CustomerResponseDTO customerResponseDTO = customerService.updateCustomer(customerId, customerRequestDTO);
 
-        return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
+        
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully updated customer", customerResponseDTO)
+        );
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -64,7 +68,11 @@ public class CustomerController {
 
         CustomerResponseDTO customerResponseDTO = customerService.getCustomerById(customerId);
 
-        return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
+
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully retrieved customer information", customerResponseDTO)
+        );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -73,7 +81,11 @@ public class CustomerController {
 
         CustomerResponseDTO customerResponseDTO = customerService.getCustomerById(customerId);
 
-        return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
+
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully retrieved customer information", customerResponseDTO)
+        );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -85,7 +97,9 @@ public class CustomerController {
 
         List<CustomerSummaryDTO> customerSummaryDTO = customerService.getAllCustomer(pageable);
 
-        return ResponseEntity.ok(new ApiResponse<List<CustomerSummaryDTO>>(true, null, customerSummaryDTO));
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully retrieved customers", customerSummaryDTO)
+        );
     }
 
     // Xem lại admin k tự tạo customer
@@ -97,7 +111,10 @@ public class CustomerController {
 
         CustomerResponseDTO customerResponseDTO = customerService.createCustomer(customerRequestDTO);
 
-        return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
+        return ResponseEntity.ok(
+            ApiResponse.created("Successfully created customer",customerResponseDTO)
+        );
     }
     // ======================================================================================================================
 
@@ -110,7 +127,9 @@ public class CustomerController {
 
         CustomerResponseDTO customerResponseDTO = customerService.updateCustomer(customerId, customerRequestDTO);
 
-        return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully updated customer", customerResponseDTO)
+        );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -119,7 +138,11 @@ public class CustomerController {
 
         CustomerResponseDTO customerResponseDTO = customerService.deleteCustomer(customerId);
 
-        return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
+
+        return ResponseEntity.ok(
+            ApiResponse.success("Successfully deleted customer", customerResponseDTO)
+        );
     }
 
 }

@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/shipping-address")
 @RequiredArgsConstructor
-public class Address {
+public class AddressController {
 
         // @Autowired
         // private ShippingAddressService shippingAddressService;
@@ -43,27 +43,29 @@ public class Address {
                 List<AddressResponseDTO> addresses = shippingAddressService
                                 .getAddressesByCustomerId(customerId, pageable);
 
-                return ResponseEntity.ok(new ApiResponse<>(true, null, addresses));
-        }
-
-        @PreAuthorize("hasRole('CUSTOMER')")
-        @GetMapping("/all")
-        public ResponseEntity<ApiResponse<List<AddressResponseDTO>>> getAllShippingAddresses(
-                        @AuthenticationPrincipal CustomerUserDetails userDetails,
-                        @RequestParam(defaultValue = "1") Integer page,
-                        @RequestParam(defaultValue = "10") Integer size) {
-
-                Pageable pageable = PageRequest.of(page - 1, size);
-
-                Integer customerId = userDetails.getUserId();
-
-                List<AddressResponseDTO> shippingAddressResponseDTOs = shippingAddressService
-                                .getAllShippingAddresses(customerId, pageable);
-
+                // return ResponseEntity.ok(new ApiResponse<>(true, null, addresses));
                 return ResponseEntity.ok(
-                                new ApiResponse<List<AddressResponseDTO>>(true, null,
-                                                shippingAddressResponseDTOs));
+                                ApiResponse.success("Successfully get the customer's address list", addresses));
         }
+
+        // @PreAuthorize("hasRole('CUSTOMER')")
+        // @GetMapping("/all")
+        // public ResponseEntity<ApiResponse<List<AddressResponseDTO>>> getAllShippingAddresses(
+        //                 @AuthenticationPrincipal CustomerUserDetails userDetails,
+        //                 @RequestParam(defaultValue = "1") Integer page,
+        //                 @RequestParam(defaultValue = "10") Integer size) {
+
+        //         Pageable pageable = PageRequest.of(page - 1, size);
+
+        //         Integer customerId = userDetails.getUserId();
+
+        //         List<AddressResponseDTO> shippingAddressResponseDTOs = shippingAddressService
+        //                         .getAllShippingAddresses(customerId, pageable);
+
+        //         return ResponseEntity.ok(
+        //                         ApiResponse.success("Successfully get all shipping addresses",
+        //                                         shippingAddressResponseDTOs));
+        // }
 
         @PreAuthorize("hasRole('CUSTOMER')")
         @PostMapping
@@ -78,8 +80,8 @@ public class Address {
                 AddressResponseDTO shippingAddressResponseDTO = shippingAddressService
                                 .createShippingAddress(customerId, shippingAddressRequestDTO);
 
-                return ResponseEntity.ok(
-                                new ApiResponse<AddressResponseDTO>(true, null, shippingAddressResponseDTO));
+                return ResponseEntity.ok(ApiResponse.success("Successfully created shipping address",
+                                shippingAddressResponseDTO));
         }
 
         @PreAuthorize("hasRole('CUSTOMER')")
@@ -95,7 +97,7 @@ public class Address {
                                 .deleteShippingAddress(customerId, shippingAddressId);
 
                 return ResponseEntity.ok(
-                                new ApiResponse<AddressResponseDTO>(true, null, shippingAddressResponseDTO));
+                                ApiResponse.success("Successfully deleted shipping address", shippingAddressResponseDTO));
         }
 
         @PreAuthorize("hasRole('CUSTOMER')")
@@ -110,6 +112,6 @@ public class Address {
                                 .updateShippingAddress(customerId, shippingAddressId, shippingAddressRequestDTO);
 
                 return ResponseEntity.ok(
-                                new ApiResponse<AddressResponseDTO>(true, null, shippingAddressResponseDTO));
+                                ApiResponse.success("Successfully updated shipping address", shippingAddressResponseDTO));
         }
 }

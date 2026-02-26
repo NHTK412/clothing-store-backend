@@ -54,7 +54,11 @@ public class ZaloPayController {
 
         ZaloPayResponseDTO res = zaloPayService.createOrder(userId, req);
 
-        return ResponseEntity.ok(new ApiResponse<>(true, "Create ZaloPay order successfully", res));
+        // return ResponseEntity.ok(new ApiResponse<>(true, "Create ZaloPay order successfully", res));
+
+        return ResponseEntity.ok(
+            ApiResponse.created("Successfully created ZaloPay order", res)
+        );
     }
 
     // @PostMapping("/create-order") // Mapping cho HTTP POST request

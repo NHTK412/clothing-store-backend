@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.clothingstore.dto.promotion.PromotionSummaryDTO;
-import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.VoucherWalletService;
 import com.example.clothingstore.util.ApiResponse;
+import com.example.clothingstore.util.CustomerUserDetails;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

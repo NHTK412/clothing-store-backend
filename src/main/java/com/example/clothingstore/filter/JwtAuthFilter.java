@@ -21,7 +21,7 @@ import com.example.clothingstore.model.Customer;
 import com.example.clothingstore.model.Admin;
 import com.example.clothingstore.repository.AdminRepository;
 import com.example.clothingstore.repository.CustomerRepository;
-import com.example.clothingstore.security.CustomerUserDetails;
+import com.example.clothingstore.util.CustomerUserDetails;
 import com.example.clothingstore.util.JwtUtil;
 
 import jakarta.servlet.FilterChain;

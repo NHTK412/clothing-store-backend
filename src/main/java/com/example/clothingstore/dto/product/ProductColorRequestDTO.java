@@ -1,8 +1,6 @@
-package com.example.clothingstore.dto.productcolor;
+package com.example.clothingstore.dto.product;
 
 import java.util.List;
-
-import com.example.clothingstore.dto.productdetail.ProductDetailRequestDTO;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;

@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.*;
 
 import com.example.clothingstore.dto.address.AddressRequestDTO;
 import com.example.clothingstore.dto.address.AddressResponseDTO;
-import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.AddressService;
 import com.example.clothingstore.util.ApiResponse;
+import com.example.clothingstore.util.CustomerUserDetails;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

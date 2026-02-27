@@ -1,6 +1,6 @@
 package com.example.clothingstore.dto.gift;
 
-import com.example.clothingstore.dto.productdetail.ProductDetailPromotionDTO;
+import com.example.clothingstore.dto.product.ProductDetailPromotionDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

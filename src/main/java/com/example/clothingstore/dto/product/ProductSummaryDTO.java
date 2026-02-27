@@ -2,7 +2,6 @@ package com.example.clothingstore.dto.product;
 
 import java.util.List;
 
-import com.example.clothingstore.dto.productcolor.ProductColorResponseDTO;
 import com.example.clothingstore.model.Product;
 
 import lombok.AllArgsConstructor;

@@ -3,7 +3,7 @@ package com.example.clothingstore.dto.auth;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-public class AuthRequestDTO {
+public class AuthRegisterDTO {
 
     @NotNull(message = "Username cannot be null")
     // @Size(min = 3, message = "Username must be at least 3 characters long")

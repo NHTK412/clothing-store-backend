@@ -1,4 +1,4 @@
-package com.example.clothingstore.security;
+package com.example.clothingstore.util;
 
 import java.util.Collection;
 import java.util.List;

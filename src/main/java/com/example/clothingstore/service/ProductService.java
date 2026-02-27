@@ -13,16 +13,16 @@ import org.springframework.data.domain.Page;
 
 import org.springframework.stereotype.Service;
 
+import com.example.clothingstore.dto.product.ProductColorRequestDTO;
+import com.example.clothingstore.dto.product.ProductColorResponseDTO;
+import com.example.clothingstore.dto.product.ProductColorUpdateDTO;
+import com.example.clothingstore.dto.product.ProductDetailRequestDTO;
+import com.example.clothingstore.dto.product.ProductDetailResponseDTO;
+import com.example.clothingstore.dto.product.ProductDetailUpdateDTO;
 import com.example.clothingstore.dto.product.ProductRequestDTO;
 import com.example.clothingstore.dto.product.ProductResponseDTO;
 import com.example.clothingstore.dto.product.ProductSummaryDTO;
 import com.example.clothingstore.dto.product.ProductUpdateDTO;
-import com.example.clothingstore.dto.productcolor.ProductColorRequestDTO;
-import com.example.clothingstore.dto.productcolor.ProductColorResponseDTO;
-import com.example.clothingstore.dto.productcolor.ProductColorUpdateDTO;
-import com.example.clothingstore.dto.productdetail.ProductDetailRequestDTO;
-import com.example.clothingstore.dto.productdetail.ProductDetailResponseDTO;
-import com.example.clothingstore.dto.productdetail.ProductDetailUpdateDTO;
 import com.example.clothingstore.enums.StatusEnum;
 import com.example.clothingstore.exception.customer.NotFoundException;
 import com.example.clothingstore.mapper.mapstruct.ProductColorMapper;

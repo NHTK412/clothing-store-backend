@@ -23,9 +23,9 @@ import com.example.clothingstore.dto.order.OrderResponseDTO;
 import com.example.clothingstore.dto.order.OrderSummaryDTO;
 import com.example.clothingstore.enums.OrderStatusEnum;
 import com.example.clothingstore.model.Order;
-import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.OrderService;
 import com.example.clothingstore.util.ApiResponse;
+import com.example.clothingstore.util.CustomerUserDetails;
 
 import jakarta.validation.Valid;
 import jakarta.servlet.http.HttpServletRequest;

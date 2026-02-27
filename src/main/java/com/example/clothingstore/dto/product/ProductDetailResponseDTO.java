@@ -1,4 +1,4 @@
-package com.example.clothingstore.dto.productdetail;
+package com.example.clothingstore.dto.product;
 
 import java.io.ObjectInputFilter.Status;
 

@@ -1,9 +1,6 @@
-package com.example.clothingstore.dto.productcolor;
+package com.example.clothingstore.dto.product;
 
 import java.util.List;
-
-import com.example.clothingstore.dto.productdetail.ProductDetailRequestDTO;
-import com.example.clothingstore.dto.productdetail.ProductDetailUpdateDTO;
 
 import io.micrometer.common.lang.NonNull;
 import jakarta.validation.Valid;

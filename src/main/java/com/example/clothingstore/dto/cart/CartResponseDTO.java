@@ -3,8 +3,6 @@ package com.example.clothingstore.dto.cart;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.clothingstore.dto.cartdetail.CartItemResponseDTO;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

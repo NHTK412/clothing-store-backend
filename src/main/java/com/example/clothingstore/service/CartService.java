@@ -11,10 +11,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.example.clothingstore.dto.cart.CartItemRequestDTO;
+import com.example.clothingstore.dto.cart.CartItemResponseDTO;
 // import com.example.clothingstore.dto.cart.CartRequestDTO;
 import com.example.clothingstore.dto.cart.CartResponseDTO;
-import com.example.clothingstore.dto.cartdetail.CartItemRequestDTO;
-import com.example.clothingstore.dto.cartdetail.CartItemResponseDTO;
 import com.example.clothingstore.dto.order.OrderPreviewDTO;
 import com.example.clothingstore.dto.orderdetail.OrderDetailPreviewDTO;
 import com.example.clothingstore.enums.PromotionActionTypeEnum;

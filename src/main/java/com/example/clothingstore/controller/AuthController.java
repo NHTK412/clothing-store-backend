@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.clothingstore.dto.auth.AuthRequestDTO;
+import com.example.clothingstore.dto.auth.AuthRegisterDTO;
 import com.example.clothingstore.dto.auth.AuthResponseDTO;
 import com.example.clothingstore.service.AuthService;
 import com.example.clothingstore.util.ApiResponse;
@@ -26,7 +26,7 @@ public class AuthController {
 
         @PostMapping("/login")
         public ResponseEntity<ApiResponse<AuthResponseDTO>> login(
-                        @Valid @RequestBody AuthRequestDTO authRequestDTO,
+                        @Valid @RequestBody AuthRegisterDTO authRequestDTO,
                         HttpServletRequest request) {
                 AuthResponseDTO authResponseDTO = authService.login(authRequestDTO.getUsername(),
                                 authRequestDTO.getPassword(),
@@ -39,7 +39,7 @@ public class AuthController {
 
         @PostMapping("/admin/login")
         public ResponseEntity<ApiResponse<AuthResponseDTO>> loginAdmin(
-                        @Valid @RequestBody AuthRequestDTO authRequestDTO,
+                        @Valid @RequestBody AuthRegisterDTO authRequestDTO,
                         HttpServletRequest request) {
                 AuthResponseDTO authResponseDTO = authService.login(authRequestDTO.getUsername(),
                                 authRequestDTO.getPassword(),
@@ -53,7 +53,7 @@ public class AuthController {
         // Đăng ký tài khoản
         @PostMapping("/register")
         public ResponseEntity<ApiResponse<AuthResponseDTO>> register(
-                        @Valid @RequestBody AuthRequestDTO authRequestDTO,
+                        @Valid @RequestBody AuthRegisterDTO authRequestDTO,
                         HttpServletRequest request) {
 
                 AuthResponseDTO authResponseDTO = authService.register(authRequestDTO.getUsername(),

@@ -6,8 +6,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.springframework.context.annotation.Bean;
 
-import com.example.clothingstore.dto.productdetail.ProductDetailRequestDTO;
-import com.example.clothingstore.dto.productdetail.ProductDetailResponseDTO;
+import com.example.clothingstore.dto.product.ProductDetailRequestDTO;
+import com.example.clothingstore.dto.product.ProductDetailResponseDTO;
 import com.example.clothingstore.model.ProductDetail;
 
 @Mapper(componentModel = "spring")

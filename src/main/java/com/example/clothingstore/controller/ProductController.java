@@ -2,14 +2,14 @@ package com.example.clothingstore.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.clothingstore.dto.product.ProductColorRequestDTO;
+import com.example.clothingstore.dto.product.ProductColorResponseDTO;
+import com.example.clothingstore.dto.product.ProductDetailRequestDTO;
+import com.example.clothingstore.dto.product.ProductDetailResponseDTO;
 import com.example.clothingstore.dto.product.ProductRequestDTO;
 import com.example.clothingstore.dto.product.ProductResponseDTO;
 import com.example.clothingstore.dto.product.ProductSummaryDTO;
 import com.example.clothingstore.dto.product.ProductUpdateDTO;
-import com.example.clothingstore.dto.productcolor.ProductColorRequestDTO;
-import com.example.clothingstore.dto.productcolor.ProductColorResponseDTO;
-import com.example.clothingstore.dto.productdetail.ProductDetailRequestDTO;
-import com.example.clothingstore.dto.productdetail.ProductDetailResponseDTO;
 import com.example.clothingstore.model.Product;
 import com.example.clothingstore.service.ProductService;
 import com.example.clothingstore.util.ApiResponse;

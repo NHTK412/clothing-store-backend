@@ -6,8 +6,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-import com.example.clothingstore.dto.productcolor.ProductColorRequestDTO;
-import com.example.clothingstore.dto.productcolor.ProductColorResponseDTO;
+import com.example.clothingstore.dto.product.ProductColorRequestDTO;
+import com.example.clothingstore.dto.product.ProductColorResponseDTO;
 import com.example.clothingstore.model.ProductColor;
 import com.example.clothingstore.model.ProductDetail;
 

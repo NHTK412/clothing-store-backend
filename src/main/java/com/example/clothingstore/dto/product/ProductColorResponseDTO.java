@@ -1,8 +1,7 @@
-package com.example.clothingstore.dto.productcolor;
+package com.example.clothingstore.dto.product;
 
 import java.util.List;
 
-import com.example.clothingstore.dto.productdetail.ProductDetailResponseDTO;
 import com.example.clothingstore.enums.StatusEnum;
 import com.example.clothingstore.model.ProductColor;
 

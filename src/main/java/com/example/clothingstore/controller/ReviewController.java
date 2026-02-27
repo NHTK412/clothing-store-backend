@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.clothingstore.dto.review.ReviewRequestDTO;
 import com.example.clothingstore.dto.review.ReviewResponseDTO;
-import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.ReviewService;
 import com.example.clothingstore.util.ApiResponse;
+import com.example.clothingstore.util.CustomerUserDetails;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

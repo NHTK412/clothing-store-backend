@@ -1,4 +1,4 @@
-package com.example.clothingstore.dto.productdetail;
+package com.example.clothingstore.dto.product;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -6,19 +6,18 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Data
-public class ProductDetailRequestDTO {
+@AllArgsConstructor
+@NoArgsConstructor
+public class ProductDetailUpdateDTO {
 
-    // private String color; --> Bỏ vì bên ProductColor có rồi
+    @NotNull(message = "Detail ID is required")
+    private Integer detailId;
 
     private String size;
 
     @NotNull(message = "Quantity is required")
     @Positive(message = "Quantity must be a positive number")
     private Integer quantity;
-
-    // private String productImage;
 
 }

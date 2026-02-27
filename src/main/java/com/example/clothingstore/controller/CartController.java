@@ -4,13 +4,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.clothingstore.dto.cart.CartItemRequestDTO;
+import com.example.clothingstore.dto.cart.CartItemResponseDTO;
 import com.example.clothingstore.dto.cart.CartResponseDTO;
-import com.example.clothingstore.dto.cartdetail.CartItemRequestDTO;
-import com.example.clothingstore.dto.cartdetail.CartItemResponseDTO;
 import com.example.clothingstore.dto.order.OrderPreviewDTO;
-import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.CartService;
 import com.example.clothingstore.util.ApiResponse;
+import com.example.clothingstore.util.CustomerUserDetails;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;

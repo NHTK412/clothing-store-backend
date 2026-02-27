@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.*;
 
 import com.example.clothingstore.dto.zalopay.CreateOrderRequest;
 import com.example.clothingstore.dto.zalopay.ZaloPayResponseDTO;
-import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.ZaloPayService;
 import com.example.clothingstore.util.ApiResponse;
+import com.example.clothingstore.util.CustomerUserDetails;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

@@ -14,6 +14,7 @@ import com.example.clothingstore.util.ApiResponse;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -42,32 +43,34 @@ public class CartController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<CartResponseDTO>> getCartByCustomer(
-            @AuthenticationPrincipal CustomerUserDetails userDetails) {
+            @AuthenticationPrincipal CustomerUserDetails userDetails,
+            HttpServletRequest request) {
         // return new String();
         Integer customerId = userDetails.getUserId();
 
         CartResponseDTO cartResponseDTO = cartService.getCartByCustomer(customerId);
 
-        // return ResponseEntity.ok(new ApiResponse<CartResponseDTO>(true, null, cartResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CartResponseDTO>(true, null,
+        // cartResponseDTO));
         return ResponseEntity.ok(
-            ApiResponse.success("Successfully retrieved cart", cartResponseDTO)
-        );
+                ApiResponse.success("Successfully retrieved cart", cartResponseDTO, request.getRequestURI()));
 
     }
 
     @PostMapping("items")
     public ResponseEntity<ApiResponse<CartItemResponseDTO>> addCartItemByCart(
             @Valid @RequestBody CartItemRequestDTO cartDetailRequestDTO,
-            @AuthenticationPrincipal CustomerUserDetails userDetails) {
+            @AuthenticationPrincipal CustomerUserDetails userDetails,
+            HttpServletRequest request) {
 
         Integer customerId = userDetails.getUserId();
 
         CartItemResponseDTO cartItemResponseDTO = cartService.addCartItemByCart(customerId, cartDetailRequestDTO);
 
-        // return ResponseEntity.ok(new ApiResponse<CartItemResponseDTO>(true, null, cartItemResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CartItemResponseDTO>(true, null,
+        // cartItemResponseDTO));
         return ResponseEntity.ok(
-            ApiResponse.created("Successfully added item to cart", cartItemResponseDTO)
-        );
+                ApiResponse.created("Successfully added item to cart", cartItemResponseDTO, request.getRequestURI()));
 
     }
 
@@ -75,31 +78,33 @@ public class CartController {
     public ResponseEntity<ApiResponse<CartItemResponseDTO>> updateCartItem(
             @PathVariable Integer cartDetailId,
             @RequestParam(required = false) Integer quantity,
-            @AuthenticationPrincipal CustomerUserDetails userDetails) {
+            @AuthenticationPrincipal CustomerUserDetails userDetails,
+            HttpServletRequest request) {
 
         Integer customerId = userDetails.getUserId();
 
         CartItemResponseDTO cartItemResponseDTO = cartService.updateCartItem(customerId, cartDetailId, quantity);
 
-        // return ResponseEntity.ok(new ApiResponse<CartItemResponseDTO>(true, null, cartItemResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CartItemResponseDTO>(true, null,
+        // cartItemResponseDTO));
         return ResponseEntity.ok(
-            ApiResponse.success("Successfully updated cart item", cartItemResponseDTO)
-        );
+                ApiResponse.success("Successfully updated cart item", cartItemResponseDTO, request.getRequestURI()));
 
     }
 
     @DeleteMapping("items/{cartDetailId}")
     public ResponseEntity<ApiResponse<CartItemResponseDTO>> deleteCartItem(
-            @PathVariable Integer cartDetailId, @AuthenticationPrincipal CustomerUserDetails userDetails) {
+            @PathVariable Integer cartDetailId, @AuthenticationPrincipal CustomerUserDetails userDetails,
+            HttpServletRequest request) {
 
         Integer customerId = userDetails.getUserId();
 
         CartItemResponseDTO cartItemResponseDTO = cartService.deleteCartItem(customerId, cartDetailId);
 
-        // return ResponseEntity.ok(new ApiResponse<CartItemResponseDTO>(true, null, cartItemResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CartItemResponseDTO>(true, null,
+        // cartItemResponseDTO));
         return ResponseEntity.ok(
-            ApiResponse.success("Successfully deleted cart item", cartItemResponseDTO)
-        );
+                ApiResponse.success("Successfully deleted cart item", cartItemResponseDTO, request.getRequestURI()));
 
     }
 
@@ -108,15 +113,16 @@ public class CartController {
     public ResponseEntity<ApiResponse<OrderPreviewDTO>> previewOrder(
             @AuthenticationPrincipal CustomerUserDetails userDetails,
             @RequestParam List<Integer> cartItemIds,
-            @RequestParam(required = false) List<Integer> promotionIds) {
+            @RequestParam(required = false) List<Integer> promotionIds,
+            HttpServletRequest request) {
         Integer customerId = userDetails.getUserId();
 
         OrderPreviewDTO orderPreviewDTO = cartService.previewOrder(customerId, cartItemIds, promotionIds);
 
-        // return ResponseEntity.ok(new ApiResponse<OrderPreviewDTO>(true, null, orderPreviewDTO));
+        // return ResponseEntity.ok(new ApiResponse<OrderPreviewDTO>(true, null,
+        // orderPreviewDTO));
         return ResponseEntity.ok(
-            ApiResponse.success("Successfully previewed order", orderPreviewDTO)
-        );
+                ApiResponse.success("Successfully previewed order", orderPreviewDTO, request.getRequestURI()));
     }
 
 }

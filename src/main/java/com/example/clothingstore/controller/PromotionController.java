@@ -8,6 +8,7 @@ import com.example.clothingstore.dto.promotion.PromotionResponseDTO;
 import com.example.clothingstore.service.PromotionService;
 import com.example.clothingstore.util.ApiResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,12 +27,12 @@ public class PromotionController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<PromotionResponseDTO>> createPromotion(
-            @Valid @RequestBody PromotionCreateRequestDTO promotionCreateRequestDTO) {
+            @Valid @RequestBody PromotionCreateRequestDTO promotionCreateRequestDTO,
+            HttpServletRequest request) {
 
         PromotionResponseDTO promotionResponseDTO = promotionService.createPromotion(promotionCreateRequestDTO);
 
         return ResponseEntity.ok(
-            ApiResponse.created("Successfully created promotion", promotionResponseDTO)
-        );
+                ApiResponse.created("Successfully created promotion", promotionResponseDTO, request.getRequestURI()));
     }
 }

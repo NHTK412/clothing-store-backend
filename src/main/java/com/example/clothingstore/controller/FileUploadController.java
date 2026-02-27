@@ -9,6 +9,7 @@ import com.example.clothingstore.dto.fileupload.FileUploadResponseDTO;
 import com.example.clothingstore.service.FileUploadService;
 import com.example.clothingstore.util.ApiResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
@@ -35,38 +36,42 @@ public class FileUploadController {
     @PreAuthorize("hasRole('ADMIN')")
     // Consumer để nói kiểu gửi lên
     @PostMapping(value = "/image", consumes = "multipart/form-data")
-    public ResponseEntity<ApiResponse<FileUploadResponseDTO>> uploadImage(@RequestParam("file") MultipartFile file)
+    public ResponseEntity<ApiResponse<FileUploadResponseDTO>> uploadImage(@RequestParam("file") MultipartFile file,
+            HttpServletRequest request)
             throws IOException {
 
         FileUploadResponseDTO fileUploadResponseDTO = fileUploadService.uploadImage(file);
         // return ResponseEntity.ok(new ApiResponse<>(true, null,
         // fileUploadResponseDTO));
         return ResponseEntity.ok(
-                ApiResponse.created("Successfully uploaded image", fileUploadResponseDTO));
+                ApiResponse.created("Successfully uploaded image", fileUploadResponseDTO, request.getRequestURI()));
 
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value = "/multiple", consumes = "multipart/form-data")
     public ResponseEntity<ApiResponse<List<FileUploadResponseDTO>>> uploadMultipleImage(
-            @RequestParam("files") List<MultipartFile> files) throws IOException {
+            @RequestParam("files") List<MultipartFile> files,
+            HttpServletRequest request) throws IOException {
 
         List<FileUploadResponseDTO> fileUploadResponseDTOs = fileUploadService.uploadMultipleImage(files);
         // return ResponseEntity.ok(new ApiResponse<>(true, null,
         // fileUploadResponseDTOs));
-        return ResponseEntity.ok(ApiResponse.created("Successfully uploaded multiple images", fileUploadResponseDTOs));
+        return ResponseEntity.ok(ApiResponse.created("Successfully uploaded multiple images", fileUploadResponseDTOs,
+                request.getRequestURI()));
 
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{fileName}")
-    public ResponseEntity<ApiResponse<FileUploadResponseDTO>> deleteImage(@PathVariable String fileName) {
+    public ResponseEntity<ApiResponse<FileUploadResponseDTO>> deleteImage(@PathVariable String fileName,
+            HttpServletRequest request) {
         FileUploadResponseDTO fileUploadResponseDTO = fileUploadService.deleteImage(fileName);
         // return ResponseEntity.ok(new ApiResponse<>(true, null,
         // fileUploadResponseDTO));
 
         return ResponseEntity.ok(
-                ApiResponse.success("Successfully deleted image", fileUploadResponseDTO));
+                ApiResponse.success("Successfully deleted image", fileUploadResponseDTO, request.getRequestURI()));
 
     }
 

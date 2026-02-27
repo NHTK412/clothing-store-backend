@@ -8,6 +8,7 @@ import com.example.clothingstore.dto.promotion.PromotionGroupResponseDTO;
 import com.example.clothingstore.service.PromotionGroupService;
 import com.example.clothingstore.util.ApiResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
@@ -27,38 +28,40 @@ public class PromotionGroupController {
         @PostMapping
         @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<ApiResponse<PromotionGroupResponseDTO>> createPromotionGroup(
-                        @RequestBody PromotionGroupRequestDTO promotionGroupRequest) {
+                        @RequestBody PromotionGroupRequestDTO promotionGroupRequest,
+                        HttpServletRequest request) {
 
                 PromotionGroupResponseDTO createdPromotionGroup = promotionGroupService
                                 .createPromotionGroup(promotionGroupRequest);
 
                 // ApiResponse<PromotionGroupResponseDTO> response = new ApiResponse<>(true,
-                //                 "Promotion group created successfully", createdPromotionGroup);
+                // "Promotion group created successfully", createdPromotionGroup);
 
                 // return ResponseEntity.ok(response);
 
                 return ResponseEntity.ok(
-                                ApiResponse.created("Successfully created promotion group", createdPromotionGroup)
-                );
+                                ApiResponse.created("Successfully created promotion group", createdPromotionGroup,
+                                                request.getRequestURI()));
 
         }
 
         @GetMapping
         @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<ApiResponse<PromotionGroupResponseDTO>> getPromotionGroupById(
-                        @RequestParam Integer id) {
+                        @RequestParam Integer id,
+                        HttpServletRequest request) {
 
                 PromotionGroupResponseDTO promotionGroupResponseDTO = promotionGroupService
                                 .getPromotionGroupById(id);
 
                 // ApiResponse<PromotionGroupResponseDTO> response = new ApiResponse<>(true,
-                //                 "Promotion group retrieved successfully", promotionGroupResponseDTO);
+                // "Promotion group retrieved successfully", promotionGroupResponseDTO);
 
                 // return ResponseEntity.ok(response);
 
                 return ResponseEntity.ok(
-                                ApiResponse.success("Successfully retrieved promotion group", promotionGroupResponseDTO)
-                );
+                                ApiResponse.success("Successfully retrieved promotion group", promotionGroupResponseDTO,
+                                                request.getRequestURI()));
 
         }
 

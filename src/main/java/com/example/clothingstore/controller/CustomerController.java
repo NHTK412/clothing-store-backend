@@ -15,6 +15,7 @@ import com.example.clothingstore.service.OrderService;
 import com.example.clothingstore.util.ApiResponse;
 
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -49,7 +50,8 @@ public class CustomerController {
         @PutMapping("/me")
         public ResponseEntity<ApiResponse<CustomerResponseDTO>> updateMe(
                         @AuthenticationPrincipal CustomerUserDetails userDetails,
-                        @Valid @RequestBody CustomerRequestDTO customerRequestDTO) {
+                        @Valid @RequestBody CustomerRequestDTO customerRequestDTO,
+                        HttpServletRequest request) {
 
                 // BCryptPasswordEncoder bCryptPasswordEncoder = BCryptPasswordEncoder();
 
@@ -62,13 +64,15 @@ public class CustomerController {
                 // customerResponseDTO));
 
                 return ResponseEntity.ok(
-                                ApiResponse.success("Successfully updated customer", customerResponseDTO));
+                                ApiResponse.success("Successfully updated customer", customerResponseDTO,
+                                                request.getRequestURI()));
         }
 
         @PreAuthorize("hasRole('CUSTOMER')")
         @GetMapping("/me")
         public ResponseEntity<ApiResponse<CustomerResponseDTO>> getMe(
-                        @AuthenticationPrincipal CustomerUserDetails userDetails) {
+                        @AuthenticationPrincipal CustomerUserDetails userDetails,
+                        HttpServletRequest request) {
 
                 Integer customerId = userDetails.getUserId();
 
@@ -79,12 +83,13 @@ public class CustomerController {
 
                 return ResponseEntity.ok(
                                 ApiResponse.success("Successfully retrieved customer information",
-                                                customerResponseDTO));
+                                                customerResponseDTO, request.getRequestURI()));
         }
 
         @PreAuthorize("hasRole('ADMIN')")
         @GetMapping("/{customerId}")
-        public ResponseEntity<ApiResponse<CustomerResponseDTO>> getCustomerByID(@PathVariable Integer customerId) {
+        public ResponseEntity<ApiResponse<CustomerResponseDTO>> getCustomerByID(@PathVariable Integer customerId,
+                        HttpServletRequest request) {
 
                 CustomerResponseDTO customerResponseDTO = customerService.getCustomerById(customerId);
 
@@ -93,20 +98,22 @@ public class CustomerController {
 
                 return ResponseEntity.ok(
                                 ApiResponse.success("Successfully retrieved customer information",
-                                                customerResponseDTO));
+                                                customerResponseDTO, request.getRequestURI()));
         }
 
         @PreAuthorize("hasRole('ADMIN')")
         @GetMapping
         public ResponseEntity<ApiResponse<Page<CustomerSummaryDTO>>> getAllCustomer(
                         @RequestParam(defaultValue = "1") Integer page,
-                        @RequestParam(defaultValue = "10") Integer size) {
+                        @RequestParam(defaultValue = "10") Integer size,
+                        HttpServletRequest request) {
                 Pageable pageable = PageRequest.of(page - 1, size);
 
                 Page<CustomerSummaryDTO> customerSummaryDTO = customerService.getAllCustomer(pageable);
 
                 return ResponseEntity.ok(
-                                ApiResponse.success("Successfully retrieved customers", customerSummaryDTO));
+                                ApiResponse.success("Successfully retrieved customers", customerSummaryDTO,
+                                                request.getRequestURI()));
         }
 
         // Xem lại admin k tự tạo customer

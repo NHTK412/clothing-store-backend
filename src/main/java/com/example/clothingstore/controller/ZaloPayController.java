@@ -14,6 +14,7 @@ import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.ZaloPayService;
 import com.example.clothingstore.util.ApiResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -43,7 +44,8 @@ public class ZaloPayController {
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/create") // Mapping cho HTTP POST request
     public ResponseEntity<ApiResponse<ZaloPayResponseDTO>> createOrder(
-            @AuthenticationPrincipal CustomerUserDetails userDetails, @RequestBody CreateOrderRequest req)
+            @AuthenticationPrincipal CustomerUserDetails userDetails, @RequestBody CreateOrderRequest req,
+            HttpServletRequest request)
             throws Exception {
         // Gọi service để tạo đơn hàng trên ZaloPay
         // JSONObject res = zaloPayService.createOrder(req);
@@ -54,11 +56,11 @@ public class ZaloPayController {
 
         ZaloPayResponseDTO res = zaloPayService.createOrder(userId, req);
 
-        // return ResponseEntity.ok(new ApiResponse<>(true, "Create ZaloPay order successfully", res));
+        // return ResponseEntity.ok(new ApiResponse<>(true, "Create ZaloPay order
+        // successfully", res));
 
         return ResponseEntity.ok(
-            ApiResponse.created("Successfully created ZaloPay order", res)
-        );
+                ApiResponse.created("Successfully created ZaloPay order", res, request.getRequestURI()));
     }
 
     // @PostMapping("/create-order") // Mapping cho HTTP POST request

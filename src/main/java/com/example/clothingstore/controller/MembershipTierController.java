@@ -17,6 +17,7 @@ import com.example.clothingstore.service.MembershipTierService;
 import com.example.clothingstore.util.ApiResponse;
 
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -41,7 +42,8 @@ public class MembershipTierController {
         @GetMapping
         public ResponseEntity<ApiResponse<Page<MembershipTierResponseDTO>>> getAllMembershipTier(
                         @RequestParam(defaultValue = "1") Integer page,
-                        @RequestParam(defaultValue = "10") Integer size) {
+                        @RequestParam(defaultValue = "10") Integer size,
+                        HttpServletRequest request) {
 
                 Pageable pageable = PageRequest.of(page - 1, size);
 
@@ -50,13 +52,14 @@ public class MembershipTierController {
 
                 return ResponseEntity.ok(
                                 ApiResponse.success("Successfully retrieved membership tiers",
-                                                membershipTierResponseDTOs));
+                                                membershipTierResponseDTOs, request.getRequestURI()));
         }
 
         @PreAuthorize("hasRole('ADMIN')")
         @PostMapping
         public ResponseEntity<ApiResponse<MembershipTierResponseDTO>> createMembershipTier(
-                        @Valid @RequestBody MembershipTierRequestDTO membershipTierRequestDTO) {
+                        @Valid @RequestBody MembershipTierRequestDTO membershipTierRequestDTO,
+                        HttpServletRequest request) {
 
                 MembershipTierResponseDTO membershipTierResponseDTO = membershipTierService
                                 .createMembershipTier(membershipTierRequestDTO);
@@ -66,13 +69,15 @@ public class MembershipTierController {
                 // membershipTierResponseDTO));
 
                 return ResponseEntity.ok(
-                                ApiResponse.created("Successfully created membership tier", membershipTierResponseDTO));
+                                ApiResponse.created("Successfully created membership tier", membershipTierResponseDTO,
+                                                request.getRequestURI()));
         }
 
         @PreAuthorize("hasRole('ADMIN')")
         @DeleteMapping("/{membershipTieId}")
         public ResponseEntity<ApiResponse<MembershipTierResponseDTO>> deleteMembershipTier(
-                        @PathVariable Integer membershipTieId) {
+                        @PathVariable Integer membershipTieId,
+                        HttpServletRequest request) {
 
                 MembershipTierResponseDTO membershipTierResponseDTO = membershipTierService
                                 .deleteMembershipTier(membershipTieId);
@@ -82,14 +87,16 @@ public class MembershipTierController {
                 // membershipTierResponseDTO));
 
                 return ResponseEntity.ok(
-                                ApiResponse.success("Successfully deleted membership tier", membershipTierResponseDTO));
+                                ApiResponse.success("Successfully deleted membership tier", membershipTierResponseDTO,
+                                                request.getRequestURI()));
         }
 
         @PreAuthorize("hasRole('ADMIN')")
         @PutMapping("/{membershipTieId}")
         public ResponseEntity<ApiResponse<MembershipTierResponseDTO>> updateMembershipTier(
                         @PathVariable Integer membershipTieId,
-                        @Valid @RequestBody MembershipTierRequestDTO membershipTierRequestDTO) {
+                        @Valid @RequestBody MembershipTierRequestDTO membershipTierRequestDTO,
+                        HttpServletRequest request) {
 
                 MembershipTierResponseDTO membershipTierResponseDTO = membershipTierService
                                 .updateMembershipTier(membershipTieId, membershipTierRequestDTO);
@@ -99,7 +106,8 @@ public class MembershipTierController {
                 // membershipTierResponseDTO));
 
                 return ResponseEntity.ok(
-                                ApiResponse.success("Successfully updated membership tier", membershipTierResponseDTO));
+                                ApiResponse.success("Successfully updated membership tier", membershipTierResponseDTO,
+                                                request.getRequestURI()));
         }
 
 }

@@ -76,7 +76,8 @@ public class AddressController {
         @PostMapping
         public ResponseEntity<ApiResponse<AddressResponseDTO>> createShippingAddress(
                         @AuthenticationPrincipal CustomerUserDetails userDetails,
-                        @RequestBody AddressRequestDTO shippingAddressRequestDTO) {
+                        @RequestBody AddressRequestDTO shippingAddressRequestDTO,
+                        HttpServletRequest request) {
 
                 // Integer customerId = 1;
 
@@ -85,15 +86,16 @@ public class AddressController {
                 AddressResponseDTO shippingAddressResponseDTO = shippingAddressService
                                 .createShippingAddress(customerId, shippingAddressRequestDTO);
 
-                return ResponseEntity.ok(ApiResponse.success("Successfully created shipping address",
-                                shippingAddressResponseDTO));
+                return ResponseEntity.ok(ApiResponse.created("Successfully created shipping address",
+                                shippingAddressResponseDTO, request.getRequestURI()));
         }
 
         @PreAuthorize("hasRole('CUSTOMER')")
         @DeleteMapping("/{shippingAddressId}")
         public ResponseEntity<ApiResponse<AddressResponseDTO>> deleteShippingAddress(
                         @AuthenticationPrincipal CustomerUserDetails userDetails,
-                        @PathVariable Integer shippingAddressId) {
+                        @PathVariable Integer shippingAddressId,
+                        HttpServletRequest request) {
                 // Integer customerId = 1;
 
                 Integer customerId = userDetails.getUserId();
@@ -103,7 +105,7 @@ public class AddressController {
 
                 return ResponseEntity.ok(
                                 ApiResponse.success("Successfully deleted shipping address",
-                                                shippingAddressResponseDTO));
+                                                shippingAddressResponseDTO, request.getRequestURI()));
         }
 
         @PreAuthorize("hasRole('CUSTOMER')")
@@ -111,7 +113,8 @@ public class AddressController {
         public ResponseEntity<ApiResponse<AddressResponseDTO>> updateShippingAddress(
                         @AuthenticationPrincipal CustomerUserDetails userDetails,
                         @PathVariable Integer shippingAddressId,
-                        @RequestBody AddressRequestDTO shippingAddressRequestDTO) {
+                        @RequestBody AddressRequestDTO shippingAddressRequestDTO,
+                        HttpServletRequest request) {
                 Integer customerId = userDetails.getUserId();
 
                 AddressResponseDTO shippingAddressResponseDTO = shippingAddressService
@@ -119,6 +122,6 @@ public class AddressController {
 
                 return ResponseEntity.ok(
                                 ApiResponse.success("Successfully updated shipping address",
-                                                shippingAddressResponseDTO));
+                                                shippingAddressResponseDTO, request.getRequestURI()));
         }
 }

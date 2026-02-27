@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
  * Đây là lớp điều khiển REST API để tương tác với hệ thống thanh toán ZaloPay
  */
 @RestController // Đánh dấu đây là REST Controller, tự động chuyển đổi response thành JSON
-@RequestMapping("/zalopay") // Định nghĩa base URL cho tất cả API trong controller này
+@RequestMapping("v1/payments/zalopay") // Định nghĩa base URL cho tất cả API trong controller này
 @RequiredArgsConstructor
 
 public class ZaloPayController {
@@ -41,7 +41,7 @@ public class ZaloPayController {
      * @throws Exception nếu có lỗi trong quá trình tạo đơn hàng
      */
     @PreAuthorize("hasRole('CUSTOMER')")
-    @PostMapping("/create-order") // Mapping cho HTTP POST request
+    @PostMapping("/create") // Mapping cho HTTP POST request
     public ResponseEntity<ApiResponse<ZaloPayResponseDTO>> createOrder(
             @AuthenticationPrincipal CustomerUserDetails userDetails, @RequestBody CreateOrderRequest req)
             throws Exception {

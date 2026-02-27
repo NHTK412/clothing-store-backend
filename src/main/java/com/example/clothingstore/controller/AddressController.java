@@ -3,6 +3,7 @@ package com.example.clothingstore.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +17,12 @@ import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.AddressService;
 import com.example.clothingstore.util.ApiResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 // @PreAuthorize("hasRole('CUSTOMER')")
 @RestController
-@RequestMapping("/shipping-address")
+@RequestMapping("/address")
 @RequiredArgsConstructor
 public class AddressController {
 
@@ -31,40 +33,43 @@ public class AddressController {
 
         @PreAuthorize("hasRole('CUSTOMER')")
         @GetMapping
-        public ResponseEntity<ApiResponse<List<AddressResponseDTO>>> getAddressesByCustomerId(
+        public ResponseEntity<ApiResponse<Page<AddressResponseDTO>>> getAddressesByCustomerId(
                         @AuthenticationPrincipal CustomerUserDetails userDetails,
                         @RequestParam(defaultValue = "1") Integer page,
-                        @RequestParam(defaultValue = "10") Integer size) {
+                        @RequestParam(defaultValue = "10") Integer size,
+                        HttpServletRequest request) {
 
                 Integer customerId = userDetails.getUserId();
 
                 Pageable pageable = PageRequest.of(page - 1, size);
 
-                List<AddressResponseDTO> addresses = shippingAddressService
+                Page<AddressResponseDTO> addresses = shippingAddressService
                                 .getAddressesByCustomerId(customerId, pageable);
 
                 // return ResponseEntity.ok(new ApiResponse<>(true, null, addresses));
                 return ResponseEntity.ok(
-                                ApiResponse.success("Successfully get the customer's address list", addresses));
+                                ApiResponse.success("Successfully get the customer's address list", addresses,
+                                                request.getRequestURI()));
         }
 
         // @PreAuthorize("hasRole('CUSTOMER')")
         // @GetMapping("/all")
-        // public ResponseEntity<ApiResponse<List<AddressResponseDTO>>> getAllShippingAddresses(
-        //                 @AuthenticationPrincipal CustomerUserDetails userDetails,
-        //                 @RequestParam(defaultValue = "1") Integer page,
-        //                 @RequestParam(defaultValue = "10") Integer size) {
+        // public ResponseEntity<ApiResponse<List<AddressResponseDTO>>>
+        // getAllShippingAddresses(
+        // @AuthenticationPrincipal CustomerUserDetails userDetails,
+        // @RequestParam(defaultValue = "1") Integer page,
+        // @RequestParam(defaultValue = "10") Integer size) {
 
-        //         Pageable pageable = PageRequest.of(page - 1, size);
+        // Pageable pageable = PageRequest.of(page - 1, size);
 
-        //         Integer customerId = userDetails.getUserId();
+        // Integer customerId = userDetails.getUserId();
 
-        //         List<AddressResponseDTO> shippingAddressResponseDTOs = shippingAddressService
-        //                         .getAllShippingAddresses(customerId, pageable);
+        // List<AddressResponseDTO> shippingAddressResponseDTOs = shippingAddressService
+        // .getAllShippingAddresses(customerId, pageable);
 
-        //         return ResponseEntity.ok(
-        //                         ApiResponse.success("Successfully get all shipping addresses",
-        //                                         shippingAddressResponseDTOs));
+        // return ResponseEntity.ok(
+        // ApiResponse.success("Successfully get all shipping addresses",
+        // shippingAddressResponseDTOs));
         // }
 
         @PreAuthorize("hasRole('CUSTOMER')")
@@ -97,7 +102,8 @@ public class AddressController {
                                 .deleteShippingAddress(customerId, shippingAddressId);
 
                 return ResponseEntity.ok(
-                                ApiResponse.success("Successfully deleted shipping address", shippingAddressResponseDTO));
+                                ApiResponse.success("Successfully deleted shipping address",
+                                                shippingAddressResponseDTO));
         }
 
         @PreAuthorize("hasRole('CUSTOMER')")
@@ -112,6 +118,7 @@ public class AddressController {
                                 .updateShippingAddress(customerId, shippingAddressId, shippingAddressRequestDTO);
 
                 return ResponseEntity.ok(
-                                ApiResponse.success("Successfully updated shipping address", shippingAddressResponseDTO));
+                                ApiResponse.success("Successfully updated shipping address",
+                                                shippingAddressResponseDTO));
         }
 }

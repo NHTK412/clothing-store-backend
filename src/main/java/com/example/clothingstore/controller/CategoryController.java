@@ -3,6 +3,7 @@ package com.example.clothingstore.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
-@RequestMapping("/category")
+@RequestMapping("v1/categories")
 @RequiredArgsConstructor
 public class CategoryController {
 
@@ -39,17 +40,19 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CategorySummaryDTO>>> getAllCategory(
+    // public ResponseEntity<ApiResponse<List<CategorySummaryDTO>>> getAllCategory(
+    public ResponseEntity<ApiResponse<Page<CategorySummaryDTO>>> getAllCategory(
+
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        List<CategorySummaryDTO> categorySummaryDTOs = categoryService.getAllCategory(pageable);
+        Page<CategorySummaryDTO> categorySummaryDTOs = categoryService.getAllCategory(pageable);
 
-        // return ResponseEntity.ok(new ApiResponse<List<CategorySummaryDTO>>(true, null, categorySummaryDTOs));
+        // return ResponseEntity.ok(new ApiResponse<List<CategorySummaryDTO>>(true,
+        // null, categorySummaryDTOs));
         return ResponseEntity.ok(
-            ApiResponse.success("Successfully retrieved categories", categorySummaryDTOs)
-        );
+                ApiResponse.success("Successfully retrieved categories", categorySummaryDTOs));
     }
 
     @GetMapping("/{categoryId}")
@@ -57,10 +60,10 @@ public class CategoryController {
 
         CategoryResponseDTO categoryResponseDTO = categoryService.getCategoryById(categoryId);
 
-        // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null,
+        // categoryResponseDTO));
         return ResponseEntity.ok(
-            ApiResponse.success("Successfully retrieved category", categoryResponseDTO)
-        );
+                ApiResponse.success("Successfully retrieved category", categoryResponseDTO));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -70,10 +73,10 @@ public class CategoryController {
 
         CategoryResponseDTO categoryResponseDTO = categoryService.createCategory(categoryRequestDTO);
 
-        // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null,
+        // categoryResponseDTO));
         return ResponseEntity.ok(
-            ApiResponse.created("Successfully created category", categoryResponseDTO)
-        );
+                ApiResponse.created("Successfully created category", categoryResponseDTO));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -83,10 +86,10 @@ public class CategoryController {
 
         CategoryResponseDTO categoryResponseDTO = categoryService.updateCategory(categoryId, categoryRequestDTO);
 
-        // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null,
+        // categoryResponseDTO));
         return ResponseEntity.ok(
-            ApiResponse.success("Successfully updated category", categoryResponseDTO)
-        );
+                ApiResponse.success("Successfully updated category", categoryResponseDTO));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -95,25 +98,29 @@ public class CategoryController {
 
         CategoryResponseDTO categoryResponseDTO = categoryService.deleteCategory(categoryId);
 
-        // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null,
+        // categoryResponseDTO));
         return ResponseEntity.ok(
-            ApiResponse.success("Successfully deleted category", categoryResponseDTO)
-        );
+                ApiResponse.success("Successfully deleted category", categoryResponseDTO));
     }
 
     // endpoint này dùng cho bên admin hiển thị danh sách các danh mục
-    @GetMapping("/details")
-    public ResponseEntity<ApiResponse<List<CategoryResponseDTO>>> getAllCategoriesDetailed(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        Pageable pageable = PageRequest.of(page - 1, size);
+    // @GetMapping("/details")
+    // public ResponseEntity<ApiResponse<List<CategoryResponseDTO>>>
+    // getAllCategoriesDetailed(
+    // @RequestParam(defaultValue = "1") Integer page,
+    // @RequestParam(defaultValue = "10") Integer size) {
+    // Pageable pageable = PageRequest.of(page - 1, size);
 
-        List<CategoryResponseDTO> categorySummaryDTOs = categoryService.getAllCategoriesDetailed(pageable);
+    // List<CategoryResponseDTO> categorySummaryDTOs =
+    // categoryService.getAllCategoriesDetailed(pageable);
 
-        // return ResponseEntity.ok(new ApiResponse<List<CategoryResponseDTO>>(true, null, categorySummaryDTOs));
-        return ResponseEntity.ok(
-            ApiResponse.success("Successfully retrieved categories with details", categorySummaryDTOs)
-        );
-    }
+    // // return ResponseEntity.ok(new ApiResponse<List<CategoryResponseDTO>>(true,
+    // null, categorySummaryDTOs));
+    // return ResponseEntity.ok(
+    // ApiResponse.success("Successfully retrieved categories with details",
+    // categorySummaryDTOs)
+    // );
+    // }
 
 }

@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service;
 import com.example.clothingstore.dto.membershiptier.MembershipTierRequestDTO;
 import com.example.clothingstore.dto.membershiptier.MembershipTierResponseDTO;
 import com.example.clothingstore.exception.customer.NotFoundException;
+// import com.example.clothingstore.mapper.mapstruct.MembershipTierMapper;
 import com.example.clothingstore.mapper.MembershipTierMapper;
+
 import com.example.clothingstore.model.MembershipTier;
 import com.example.clothingstore.repository.MembershipTierRepository;
 
@@ -31,13 +33,17 @@ public class MembershipTierService {
         private final MembershipTierRepository membershipTierRepository;
 
         @Transactional
-        public List<MembershipTierResponseDTO> getAllMembershipTier(Pageable pageable) {
+        public Page<MembershipTierResponseDTO> getAllMembershipTier(Pageable pageable) {
                 Page<MembershipTier> membershipTiers = membershipTierRepository.findAll(pageable);
 
-                return membershipTiers
-                                .map((membershipTier) -> membershipTierMapper
-                                                .convertModelToMembershipTierResponseDTO(membershipTier))
-                                .toList();
+                // return membershipTiers
+                // .map((membershipTier) -> membershipTierMapper
+                // .convertModelToMembershipTierResponseDTO(membershipTier))
+                // .toList();
+
+                // return membershipTiers.map(membershipTierMapper::toResponseDTO);
+
+                return membershipTiers.map(membershipTierMapper::convertModelToMembershipTierResponseDTO);
         }
 
         @Transactional

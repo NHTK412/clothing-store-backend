@@ -206,13 +206,42 @@ public class OrderService {
         }
 
         @Transactional
-        public List<OrderSummaryDTO> getAllOrdersByCustomer(Integer customerId, Pageable pageable) {
+        public Page<OrderSummaryDTO> getAllOrdersByCustomer(Integer customerId, Pageable pageable) {
 
                 Page<Order> orders = orderRepository.findAllByCustomerId(customerId, pageable);
 
-                List<OrderSummaryDTO> orderSummaries = orders
-                                .stream()
-                                .map(order -> {
+                // List<OrderSummaryDTO> orderSummaries = orders
+                // .stream()
+                // .map(order -> {
+
+                // OrderSummaryDTO orderSummaryDTO = new OrderSummaryDTO();
+
+                // orderSummaryDTO.setOrderId(order.getOrderId());
+
+                // orderSummaryDTO.setTotalAmount(order.getTotalAmount());
+
+                // orderSummaryDTO.setShippingFee(order.getShippingFee());
+
+                // orderSummaryDTO.setDeliveryDate(order.getDeliveryDate());
+
+                // orderSummaryDTO.setStatus(order.getStatus());
+
+                // orderSummaryDTO.setOrderFirstName(
+                // order.getOrderDetails().get(0).getProductName());
+
+                // orderSummaryDTO.setOrderFirstImage(
+                // order.getOrderDetails().get(0).getProductImage());
+
+                // orderSummaryDTO.setOrderQuantity(order.getOrderDetails().size());
+
+                // // orderSummaryDTO.setPaymentStatus(order.getPaymentStatus());
+
+                // return orderSummaryDTO;
+                // })
+                // .toList();
+
+                return orders.map(
+                                order -> {
 
                                         OrderSummaryDTO orderSummaryDTO = new OrderSummaryDTO();
 
@@ -237,48 +266,61 @@ public class OrderService {
                                         // orderSummaryDTO.setPaymentStatus(order.getPaymentStatus());
 
                                         return orderSummaryDTO;
-                                })
-                                .toList();
+                                });
 
-                return orderSummaries;
+                // return orderSummaries;
         }
 
         @Transactional
-        public List<OrderSummaryDTO> getAllOrders(Pageable pageable) {
+        public Page<OrderSummaryDTO> getAllOrders(Pageable pageable) {
 
                 Page<Order> orders = orderRepository.findAll(pageable);
 
-                List<OrderSummaryDTO> orderSummaries = orders
-                                .stream()
-                                .map(order -> {
+                // List<OrderSummaryDTO> orderSummaries = orders
+                // .stream()
+                // .map(order -> {
 
+                // OrderSummaryDTO orderSummaryDTO = new OrderSummaryDTO();
+
+                // orderSummaryDTO.setOrderId(order.getOrderId());
+
+                // orderSummaryDTO.setTotalAmount(order.getTotalAmount());
+
+                // orderSummaryDTO.setShippingFee(order.getShippingFee());
+
+                // orderSummaryDTO.setDeliveryDate(order.getDeliveryDate());
+
+                // orderSummaryDTO.setStatus(order.getStatus());
+
+                // orderSummaryDTO.setOrderFirstName(
+                // order.getOrderDetails().get(0).getProductName());
+
+                // orderSummaryDTO.setOrderFirstImage(
+                // order.getOrderDetails().get(0).getProductImage());
+
+                // orderSummaryDTO.setOrderQuantity(order.getOrderDetails().size());
+
+                // // orderSummaryDTO.setPaymentStatus(order.getPaymentStatus());
+
+                // return orderSummaryDTO;
+                // })
+                // .toList();
+
+                return orders.map(
+                                order -> {
                                         OrderSummaryDTO orderSummaryDTO = new OrderSummaryDTO();
-
                                         orderSummaryDTO.setOrderId(order.getOrderId());
-
                                         orderSummaryDTO.setTotalAmount(order.getTotalAmount());
-
                                         orderSummaryDTO.setShippingFee(order.getShippingFee());
-
                                         orderSummaryDTO.setDeliveryDate(order.getDeliveryDate());
-
                                         orderSummaryDTO.setStatus(order.getStatus());
-
                                         orderSummaryDTO.setOrderFirstName(
                                                         order.getOrderDetails().get(0).getProductName());
-
                                         orderSummaryDTO.setOrderFirstImage(
                                                         order.getOrderDetails().get(0).getProductImage());
-
                                         orderSummaryDTO.setOrderQuantity(order.getOrderDetails().size());
-
-                                        // orderSummaryDTO.setPaymentStatus(order.getPaymentStatus());
-
                                         return orderSummaryDTO;
-                                })
-                                .toList();
-
-                return orderSummaries;
+                                });
         }
 
         @Transactional

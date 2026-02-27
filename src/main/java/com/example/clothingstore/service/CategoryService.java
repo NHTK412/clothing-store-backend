@@ -34,7 +34,7 @@ public class CategoryService {
     private final CategoryMapper categoryMapper;
 
     @Transactional
-    public List<CategorySummaryDTO> getAllCategory(Pageable pageable) {
+    public Page<CategorySummaryDTO> getAllCategory(Pageable pageable) {
         // Page<Category> categories = categoryRepository.findAll(pageable);
         Page<Category> categories = categoryRepository.findByStatus(CategoryStatusEnum.ACTIVE, pageable);
 
@@ -42,9 +42,11 @@ public class CategoryService {
         // .map((category) ->
         // categoryMapper.convertCategoryToCategorySummaryDTO(category))
         // .toList();
-        return categories.stream()
-                .map(categoryMapper::toSummaryDTO)
-                .toList();
+        // return categories.stream()
+        // .map(categoryMapper::toSummaryDTO)
+        // .toList();
+
+        return categories.map(categoryMapper::toSummaryDTO);
     }
 
     @Transactional

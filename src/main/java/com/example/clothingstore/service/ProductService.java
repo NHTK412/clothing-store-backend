@@ -77,20 +77,29 @@ public class ProductService {
     }
 
     @Transactional
-    public List<ProductSummaryDTO> getAllProduct(Integer categoryId, Pageable pageable) {
+    // public List<ProductSummaryDTO> getAllProduct(Integer categoryId, Pageable pageable) {
+    public Page<ProductSummaryDTO> getAllProduct(Integer categoryId, Pageable pageable) {
+
 
         Page<Product> products = (categoryId == null) ? productRepository.findAll(pageable)
                 : productRepository.findByCategories_CategoryId(categoryId, pageable);
 
-        List<ProductSummaryDTO> productSummaryDTOs = products.toList()
-                .stream()
-                .map((product) -> {
-                    // return new ProductSummaryDTO(product);
-                    return productMapper.toSummaryDTO(product);
-                })
-                .toList();
+        // List<ProductSummaryDTO> productSummaryDTOs = products.toList()
+        //         .stream()
+        //         .map((product) -> {
+        //             // return new ProductSummaryDTO(product);
+        //             return productMapper.toSummaryDTO(product);
+        //         })
+        //         .toList();
 
-        return productSummaryDTOs;
+
+
+        return products.map(productMapper::toSummaryDTO);
+        
+
+        
+
+        // return productSummaryDTOs;
     }
 
     @Transactional

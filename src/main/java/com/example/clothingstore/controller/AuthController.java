@@ -17,65 +17,46 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("auth")
+@RequestMapping("v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    // @Autowired
-    // AuthService authService;
+        private final AuthService authService;
 
-    private final AuthService authService;
+        @PostMapping("/login")
+        public ResponseEntity<ApiResponse<AuthResponseDTO>> login(
+                        @Valid @RequestBody AuthRequestDTO authRequestDTO) {
+                AuthResponseDTO authResponseDTO = authService.login(authRequestDTO.getUsername(),
+                                authRequestDTO.getPassword(),
+                                false);
 
-    // @PostMapping("/login")
-    // public ResponseEntity<ApiResponse<AuthResponseDTO>> login(@RequestBody
-    // AuthRequestDTO authRequestDTO) {
-    // AuthResponseDTO authResponseDTO =
-    // authService.login(authRequestDTO.getUsername(),
-    // authRequestDTO.getPassword());
-    // return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null,
-    // authResponseDTO));
-    // }
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully logged in", authResponseDTO));
+        }
 
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponseDTO>> login(@RequestParam(defaultValue = "false") Boolean admin,
-            @Valid @RequestBody AuthRequestDTO authRequestDTO) {
-        AuthResponseDTO authResponseDTO = authService.login(authRequestDTO.getUsername(), authRequestDTO.getPassword(),
-                admin);
-        // return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null, authResponseDTO));
-        return ResponseEntity.ok(
-            ApiResponse.success("Successfully logged in", authResponseDTO)
-        );
-    }
+        @PostMapping("/admin/login")
+        public ResponseEntity<ApiResponse<AuthResponseDTO>> loginAdmin(
+                        @Valid @RequestBody AuthRequestDTO authRequestDTO) {
+                AuthResponseDTO authResponseDTO = authService.login(authRequestDTO.getUsername(),
+                                authRequestDTO.getPassword(),
+                                true);
 
-    // Đăng ký tài khoản
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthResponseDTO>> register(@Valid @RequestBody AuthRequestDTO authRequestDTO) {
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully logged in as admin", authResponseDTO));
+        }
 
-        AuthResponseDTO authResponseDTO = authService.register(authRequestDTO.getUsername(),
-                authRequestDTO.getPassword());
-        return ResponseEntity.ok(ApiResponse.created("Successfully registered", authResponseDTO));
+        // Đăng ký tài khoản
+        @PostMapping("/register")
+        public ResponseEntity<ApiResponse<AuthResponseDTO>> register(
+                        @Valid @RequestBody AuthRequestDTO authRequestDTO) {
 
+                AuthResponseDTO authResponseDTO = authService.register(authRequestDTO.getUsername(),
+                                authRequestDTO.getPassword());
+                return ResponseEntity.ok(ApiResponse.created("Successfully registered", authResponseDTO));
 
-    }
+        }
 
-    @PostMapping("/login-admin")
-    public ResponseEntity<ApiResponse<AuthResponseDTO>> loginAdmin(@Valid @RequestBody AuthRequestDTO authRequestDTO) {
-        AuthResponseDTO authResponseDTO = authService.loginAdmin(authRequestDTO.getUsername(),
-                authRequestDTO.getPassword());
-        // return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null, authResponseDTO));
-        return ResponseEntity.ok(
-            ApiResponse.success("Successfully logged in as admin", authResponseDTO)
-        );
-    }
-    // @PostMapping("/refresh-token")
-    // public ResponseEntity<ApiResponse<AuthResponseDTO>>
-    // getAccessTokenWithRefreshToken(@RequestParam String refreshToken) {
-
-    // AuthResponseDTO authResponseDTO =
-    // authService.getAccessTokenWithRefreshToken(refreshToken);
-
-    // return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null,
-    // authResponseDTO));
-    // }
-
+        // Đăng xuất
+        // Refresh token cấp lại access token mới
+        
 }

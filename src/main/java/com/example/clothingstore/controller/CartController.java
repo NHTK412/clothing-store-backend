@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @PreAuthorize("hasRole('CUSTOMER')")
 @RestController
-@RequestMapping("customer/cart")
+@RequestMapping("v1/customers/me/cart")
 @RequiredArgsConstructor
 public class CartController {
 

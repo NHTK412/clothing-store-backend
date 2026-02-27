@@ -55,16 +55,18 @@ public class CustomerService {
 
     
     @Transactional
-    public List<CustomerSummaryDTO> getAllCustomer(Pageable pageable) {
+    public Page<CustomerSummaryDTO> getAllCustomer(Pageable pageable) {
 
         // Page<Customer> customers =
         // customerRepository.findAllWithAccountAndMembershipTier(pageable);
 
         Page<Customer> customers = customerRepository.findAll(pageable);
 
-        return customers.stream()
-                .map((customer) -> customerMapper.toSummaryDTO(customer))
-                .toList();
+        return customers.map(customerMapper::toSummaryDTO);
+
+        // return customers.stream()
+        //         .map((customer) -> customerMapper.toSummaryDTO(customer))
+        //         .toList();
 
         // List<CustomerSummaryDTO> customerSummaryDTOs =
         // customer.stream().map(customer)

@@ -78,12 +78,12 @@ public class SecurityConfig {
 
                 httpSecurity.authorizeHttpRequests(auth -> auth
                                 // .requestMatchers("/api/**").permitAll() //
-                                .requestMatchers("/auth/**",
+                                .requestMatchers("/v1/auth/**",
                                                 "/swagger-ui/**",
                                                 "/v3/api-docs/**",
                                                 "/image/**",
-                                                "/category/**",
-                                                "/product/**")
+                                                "v1/categories/**",
+                                                "/v1/products/**")
                                 .permitAll()
                                 .anyRequest().authenticated());
 

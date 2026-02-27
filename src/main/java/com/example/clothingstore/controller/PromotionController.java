@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
-@RequestMapping("/admin/promotion")
+@RequestMapping("v1/promotions")
 @RequiredArgsConstructor
 public class PromotionController {
 

@@ -31,6 +31,10 @@ public class ApiResponse<T> {
         return new ApiResponse<>(true, 200, message, data, LocalDateTime.now(), null);
     }
 
+    public static <T> ApiResponse<T> success(String message, T data, String path) {
+        return new ApiResponse<>(true, 200, message, data, LocalDateTime.now(), path);
+    }
+
     public static <T> ApiResponse<T> created(T data) {
         return new ApiResponse<>(true, 201, "Created", data,
                 LocalDateTime.now(), null);
@@ -39,6 +43,12 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> created(String message, T data) {
         return new ApiResponse<>(true, 201, message, data,
                 LocalDateTime.now(), null);
+    }
+
+    public static <T> ApiResponse<T> created(String message, T data, String path) {
+        return new ApiResponse<>(true, 201, message, data,
+                LocalDateTime.now(), path);
+
     }
 
     public static <T> ApiResponse<T> error(HttpStatus status, String message,

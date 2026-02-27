@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
-@RequestMapping("file-upload")
+@RequestMapping("v1/file-upload")
 @RequiredArgsConstructor
 
 public class FileUploadController {

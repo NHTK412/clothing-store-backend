@@ -36,6 +36,8 @@ public class AddressService {
         private final CustomerRepository customerRepository;
         private final AddressMapper shippingAddressMapper;
 
+        private final com.example.clothingstore.mapper.mapstruct.AddressMapper addressMapper;
+
         // @Transactional
         // public List<AddressResponseDTO> getAllShippingAddresses(Integer customerId,
         // Pageable pageable) {
@@ -98,13 +100,17 @@ public class AddressService {
         }
 
         @Transactional
-        public List<AddressResponseDTO> getAddressesByCustomerId(Integer customerId, Pageable pageable) {
+        public Page<AddressResponseDTO> getAddressesByCustomerId(Integer customerId, Pageable pageable) {
                 Page<Address> shippingAddresses = shippingAddressRepository
                                 .findByCustomer_CustomerId(customerId, pageable);
 
-                return shippingAddresses
-                                .map((shippingAddress) -> shippingAddressMapper
-                                                .convertModelToShippingAddressResponseDTO(shippingAddress))
-                                .toList();
+                return shippingAddresses.map(addressMapper::toResponseDTO);
+
+                // return shippingAddresses
+                //                 .map((shippingAddress) -> shippingAddressMapper
+                //                                 .convertModelToShippingAddressResponseDTO(shippingAddress))
+                //                 .toList();
+
+
         }
 }

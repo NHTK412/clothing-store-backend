@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
-@RequestMapping("/product/{productId}/reviews")
+@RequestMapping("v1/product/{productId}/reviews")
 @RequiredArgsConstructor
 
 public class ReviewController {
@@ -39,12 +40,12 @@ public class ReviewController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ReviewResponseDTO>>> getALLReviewByProductId(
+    public ResponseEntity<ApiResponse<Page<ReviewResponseDTO>>> getALLReviewByProductId(
             @PathVariable Integer productId, @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "5") Integer size) {
 
         Pageable pageable = PageRequest.of(page - 1, size);
-        List<ReviewResponseDTO> reviewResponseDTOs = reviewService.getALLReviewByProductId(productId, pageable);
+        Page<ReviewResponseDTO> reviewResponseDTOs = reviewService.getALLReviewByProductId(productId, pageable);
 
         // return ResponseEntity.ok(new ApiResponse<List<ReviewResponseDTO>>(true, null,
         // reviewResponseDTOs));
@@ -53,13 +54,13 @@ public class ReviewController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
-    @PostMapping("/{orderdetailId}")
-    public ResponseEntity<ApiResponse<ReviewResponseDTO>> createReviewByProductId(@PathVariable Integer orderdetailId,
-            @PathVariable Integer productId,
+    // @PostMapping("/{orderdetailId}")
+    @PostMapping
+    public ResponseEntity<ApiResponse<ReviewResponseDTO>> createReviewByProductId(
             ReviewRequestDTO reviewRequestDTO, @AuthenticationPrincipal CustomerUserDetails userDetails) {
 
-        ReviewResponseDTO reviewResponseDTO = reviewService.createReviewByProductId(orderdetailId,
-                userDetails.getUserId(), productId,
+        ReviewResponseDTO reviewResponseDTO = reviewService.createReviewByProductId(reviewRequestDTO.getProductId(),
+                userDetails.getUserId(), reviewRequestDTO.getOrderdetailId(),
                 reviewRequestDTO);
 
         // return ResponseEntity.ok(new ApiResponse<ReviewResponseDTO>(true, null,

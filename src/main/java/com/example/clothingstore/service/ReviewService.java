@@ -48,13 +48,20 @@ public class ReviewService {
     private final OrderDetailRepository orderDetailRepository;
     private final ReviewMapper reviewMapper;
 
+    private final com.example.clothingstore.mapper.mapstruct.ReviewMapper reviewMapper2;
+
     @Transactional
-    public List<ReviewResponseDTO> getALLReviewByProductId(Integer productId, Pageable pageable) {
+    public Page<ReviewResponseDTO> getALLReviewByProductId(Integer productId, Pageable pageable) {
         Page<Review> reviews = reviewRepository.findByProduct_ProductId(productId, pageable);
 
-        return reviews
-                .map((review) -> reviewMapper.convertModelToReviewResponseDTO(review))
-                .toList();
+        // return reviews
+        // .map((review) -> reviewMapper.convertModelToReviewResponseDTO(review))
+        // .toList();
+
+        return reviews.map(reviewMapper::convertModelToReviewResponseDTO);
+
+        // return reviews.map(reviewMapper2::toResponseDTO);
+
     }
 
     @Transactional
@@ -133,8 +140,6 @@ public class ReviewService {
         return reviewResponseDTO;
     }
 
+    // New
 
-
-    // New 
-    
 }

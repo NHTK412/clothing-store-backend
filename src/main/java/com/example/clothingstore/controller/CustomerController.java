@@ -7,9 +7,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.clothingstore.dto.customer.CustomerRequestDTO;
 import com.example.clothingstore.dto.customer.CustomerResponseDTO;
 import com.example.clothingstore.dto.customer.CustomerSummaryDTO;
+import com.example.clothingstore.dto.order.OrderSummaryDTO;
 import com.example.clothingstore.model.Customer;
 import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.CustomerService;
+import com.example.clothingstore.service.OrderService;
 import com.example.clothingstore.util.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -31,118 +34,143 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
-@RequestMapping("/customer")
+@RequestMapping("v1/customers")
 @RequiredArgsConstructor
 public class CustomerController {
 
-    // @Autowired
-    // private CustomerService customerService;
+        // @Autowired
+        // private CustomerService customerService;
 
-    private final CustomerService customerService;
+        private final CustomerService customerService;
 
-    @PreAuthorize("hasRole('CUSTOMER')")
-    @PutMapping("/me")
-    public ResponseEntity<ApiResponse<CustomerResponseDTO>> updateMe(
-            @AuthenticationPrincipal CustomerUserDetails userDetails,
-            @Valid @RequestBody CustomerRequestDTO customerRequestDTO) {
+        // private final OrderService orderService;
 
-        // BCryptPasswordEncoder bCryptPasswordEncoder = BCryptPasswordEncoder();
+        @PreAuthorize("hasRole('CUSTOMER')")
+        @PutMapping("/me")
+        public ResponseEntity<ApiResponse<CustomerResponseDTO>> updateMe(
+                        @AuthenticationPrincipal CustomerUserDetails userDetails,
+                        @Valid @RequestBody CustomerRequestDTO customerRequestDTO) {
 
-        Integer customerId = userDetails.getUserId();
+                // BCryptPasswordEncoder bCryptPasswordEncoder = BCryptPasswordEncoder();
 
-        CustomerResponseDTO customerResponseDTO = customerService.updateCustomer(customerId, customerRequestDTO);
+                Integer customerId = userDetails.getUserId();
 
-        // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
-        
-        return ResponseEntity.ok(
-            ApiResponse.success("Successfully updated customer", customerResponseDTO)
-        );
-    }
+                CustomerResponseDTO customerResponseDTO = customerService.updateCustomer(customerId,
+                                customerRequestDTO);
 
-    @PreAuthorize("hasRole('CUSTOMER')")
-    @GetMapping("/me")
-    public ResponseEntity<ApiResponse<CustomerResponseDTO>> getMe(
-            @AuthenticationPrincipal CustomerUserDetails userDetails) {
+                // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null,
+                // customerResponseDTO));
 
-        Integer customerId = userDetails.getUserId();
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully updated customer", customerResponseDTO));
+        }
 
-        CustomerResponseDTO customerResponseDTO = customerService.getCustomerById(customerId);
+        @PreAuthorize("hasRole('CUSTOMER')")
+        @GetMapping("/me")
+        public ResponseEntity<ApiResponse<CustomerResponseDTO>> getMe(
+                        @AuthenticationPrincipal CustomerUserDetails userDetails) {
 
-        // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
+                Integer customerId = userDetails.getUserId();
 
-        return ResponseEntity.ok(
-            ApiResponse.success("Successfully retrieved customer information", customerResponseDTO)
-        );
-    }
+                CustomerResponseDTO customerResponseDTO = customerService.getCustomerById(customerId);
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/{customerId}")
-    public ResponseEntity<ApiResponse<CustomerResponseDTO>> getCustomerByID(@PathVariable Integer customerId) {
+                // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null,
+                // customerResponseDTO));
 
-        CustomerResponseDTO customerResponseDTO = customerService.getCustomerById(customerId);
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully retrieved customer information",
+                                                customerResponseDTO));
+        }
 
-        // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
+        @PreAuthorize("hasRole('ADMIN')")
+        @GetMapping("/{customerId}")
+        public ResponseEntity<ApiResponse<CustomerResponseDTO>> getCustomerByID(@PathVariable Integer customerId) {
 
-        return ResponseEntity.ok(
-            ApiResponse.success("Successfully retrieved customer information", customerResponseDTO)
-        );
-    }
+                CustomerResponseDTO customerResponseDTO = customerService.getCustomerById(customerId);
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<CustomerSummaryDTO>>> getAllCustomer(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        Pageable pageable = PageRequest.of(page - 1, size);
+                // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null,
+                // customerResponseDTO));
 
-        List<CustomerSummaryDTO> customerSummaryDTO = customerService.getAllCustomer(pageable);
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully retrieved customer information",
+                                                customerResponseDTO));
+        }
 
-        return ResponseEntity.ok(
-            ApiResponse.success("Successfully retrieved customers", customerSummaryDTO)
-        );
-    }
+        @PreAuthorize("hasRole('ADMIN')")
+        @GetMapping
+        public ResponseEntity<ApiResponse<Page<CustomerSummaryDTO>>> getAllCustomer(
+                        @RequestParam(defaultValue = "1") Integer page,
+                        @RequestParam(defaultValue = "10") Integer size) {
+                Pageable pageable = PageRequest.of(page - 1, size);
 
-    // Xem lại admin k tự tạo customer
-    // ======================================================================================================================
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
-    public ResponseEntity<ApiResponse<CustomerResponseDTO>> createCustomer(
-            @Valid @RequestBody CustomerRequestDTO customerRequestDTO) {
+                Page<CustomerSummaryDTO> customerSummaryDTO = customerService.getAllCustomer(pageable);
 
-        CustomerResponseDTO customerResponseDTO = customerService.createCustomer(customerRequestDTO);
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully retrieved customers", customerSummaryDTO));
+        }
 
-        // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
-        return ResponseEntity.ok(
-            ApiResponse.created("Successfully created customer",customerResponseDTO)
-        );
-    }
-    // ======================================================================================================================
+        // Xem lại admin k tự tạo customer
+        // ======================================================================================================================
+        // @PreAuthorize("hasRole('ADMIN')")
+        // @PostMapping
+        // public ResponseEntity<ApiResponse<CustomerResponseDTO>> createCustomer(
+        // @Valid @RequestBody CustomerRequestDTO customerRequestDTO) {
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{customerId}") // dành cho admin
-    public ResponseEntity<ApiResponse<CustomerResponseDTO>> updateCustomer(@PathVariable Integer customerId,
-            @Valid @RequestBody CustomerRequestDTO customerRequestDTO) {
+        // CustomerResponseDTO customerResponseDTO =
+        // customerService.createCustomer(customerRequestDTO);
 
-        // BCryptPasswordEncoder bCryptPasswordEncoder = BCryptPasswordEncoder();
+        // // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null,
+        // // customerResponseDTO));
+        // return ResponseEntity.ok(
+        // ApiResponse.created("Successfully created customer", customerResponseDTO));
+        // }
+        // ======================================================================================================================
 
-        CustomerResponseDTO customerResponseDTO = customerService.updateCustomer(customerId, customerRequestDTO);
+        // @PreAuthorize("hasRole('ADMIN')")
+        // @PutMapping("/{customerId}") // dành cho admin
+        // public ResponseEntity<ApiResponse<CustomerResponseDTO>>
+        // updateCustomer(@PathVariable Integer customerId,
+        // @Valid @RequestBody CustomerRequestDTO customerRequestDTO) {
 
-        return ResponseEntity.ok(
-            ApiResponse.success("Successfully updated customer", customerResponseDTO)
-        );
-    }
+        // // BCryptPasswordEncoder bCryptPasswordEncoder = BCryptPasswordEncoder();
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{customerId}")
-    public ResponseEntity<ApiResponse<CustomerResponseDTO>> deleteCustomer(@PathVariable Integer customerId) {
+        // CustomerResponseDTO customerResponseDTO =
+        // customerService.updateCustomer(customerId, customerRequestDTO);
 
-        CustomerResponseDTO customerResponseDTO = customerService.deleteCustomer(customerId);
+        // return ResponseEntity.ok(
+        // ApiResponse.success("Successfully updated customer", customerResponseDTO));
+        // }
 
-        // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
+        // @PreAuthorize("hasRole('ADMIN')")
+        // @DeleteMapping("/{customerId}")
+        // public ResponseEntity<ApiResponse<CustomerResponseDTO>>
+        // deleteCustomer(@PathVariable Integer customerId) {
 
-        return ResponseEntity.ok(
-            ApiResponse.success("Successfully deleted customer", customerResponseDTO)
-        );
-    }
+        // CustomerResponseDTO customerResponseDTO =
+        // customerService.deleteCustomer(customerId);
+
+        // // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null,
+        // // customerResponseDTO));
+
+        // return ResponseEntity.ok(
+        // ApiResponse.success("Successfully deleted customer", customerResponseDTO));
+        // }
+
+        // Chưa xử lý search
+        // @PreAuthorize("hasRole('CUSTOMER')")
+        // @GetMapping("/me/orders")
+        // public ResponseEntity<ApiResponse<List<OrderSummaryDTO>>>
+        // getAllOrderByCustomer(
+        // @RequestParam(defaultValue = "1") Integer page,
+        // @RequestParam(defaultValue = "10") Integer size,
+        // @RequestParam(required = false) String search,
+        // @AuthenticationPrincipal CustomerUserDetails userDetails) {
+        // Pageable pageable = PageRequest.of(page - 1, size);
+        // Integer customerId = userDetails.getUserId();
+        // List<OrderSummaryDTO> orderSummaries =
+        // orderService.getAllOrdersByCustomer(customerId, pageable);
+        // return ResponseEntity.ok(
+        // ApiResponse.success("Successfully retrieved orders", orderSummaries));
+        // }
 
 }

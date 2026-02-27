@@ -3,6 +3,7 @@ package com.example.clothingstore.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
-@RequestMapping("/membership-tier")
+@RequestMapping("v1/membership-tiers")
 @RequiredArgsConstructor
 public class MembershipTierController {
 
@@ -38,13 +39,13 @@ public class MembershipTierController {
 
         @PreAuthorize("hasRole('ADMIN')")
         @GetMapping
-        public ResponseEntity<ApiResponse<List<MembershipTierResponseDTO>>> getAllMembershipTier(
+        public ResponseEntity<ApiResponse<Page<MembershipTierResponseDTO>>> getAllMembershipTier(
                         @RequestParam(defaultValue = "1") Integer page,
                         @RequestParam(defaultValue = "10") Integer size) {
 
                 Pageable pageable = PageRequest.of(page - 1, size);
 
-                List<MembershipTierResponseDTO> membershipTierResponseDTOs = membershipTierService
+                Page<MembershipTierResponseDTO> membershipTierResponseDTOs = membershipTierService
                                 .getAllMembershipTier(pageable);
 
                 return ResponseEntity.ok(

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.clothingstore.dto.address.AddressRequestDTO;
 import com.example.clothingstore.dto.address.AddressResponseDTO;
-import com.example.clothingstore.exception.customer.NotFoundException;
+import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.mapper.AddressMapper;
 import com.example.clothingstore.model.Customer;
 import com.example.clothingstore.model.Address;

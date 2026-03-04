@@ -10,7 +10,7 @@ import com.example.clothingstore.enums.PromotionApplicationTypeEnum;
 import com.example.clothingstore.enums.PromotionConditionTypeEnum;
 import com.example.clothingstore.enums.PromotionScopeTypeEnum;
 import com.example.clothingstore.enums.PromotionTypeEnum;
-import com.example.clothingstore.exception.customer.BadRequestException;
+import com.example.clothingstore.exception.business.BadRequestException;
 
 @Component
 public class PromotionValidator {

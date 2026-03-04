@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import com.example.clothingstore.dto.promotion.PromotionGroupRequestDTO;
 import com.example.clothingstore.dto.promotion.PromotionGroupResponseDTO;
 import com.example.clothingstore.dto.promotion.PromotionResponseDTO;
-import com.example.clothingstore.exception.customer.NotFoundException;
+import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.mapper.mapstruct.PromotionGroupMapper;
 import com.example.clothingstore.model.Product;
 import com.example.clothingstore.model.PromotionGroup;

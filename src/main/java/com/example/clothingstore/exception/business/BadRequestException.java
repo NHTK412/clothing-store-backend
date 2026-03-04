@@ -1,4 +1,4 @@
-package com.example.clothingstore.exception.customer;
+package com.example.clothingstore.exception.business;
 
 // 400
 public class BadRequestException extends RuntimeException {

@@ -3,6 +3,7 @@ package com.example.clothingstore.service;
 import java.security.SecureRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.codec.Hex;
 import org.springframework.stereotype.Service;
@@ -11,9 +12,9 @@ import org.springframework.web.client.HttpClientErrorException.Conflict;
 import com.example.clothingstore.dto.auth.AuthResponseDTO;
 import com.example.clothingstore.enums.AccountStatusEnum;
 import com.example.clothingstore.enums.RoleEnum;
-import com.example.clothingstore.exception.customer.ConflictException;
-import com.example.clothingstore.exception.customer.InvalidRefreshTokenException;
-import com.example.clothingstore.exception.customer.NotFoundException;
+import com.example.clothingstore.exception.business.ConflictException;
+import com.example.clothingstore.exception.business.InvalidRefreshTokenException;
+import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.model.Admin;
 import com.example.clothingstore.model.Cart;
 import com.example.clothingstore.model.Customer;
@@ -56,6 +57,8 @@ public class AuthService {
     private final CartRepository cartRepository;
     private final JwtUtil jwtUtil;
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
     private static long expiration = 1000 * 60 * 60 * 4; // 4h
 
     final private SecureRandom secureRandom = new SecureRandom();
@@ -90,12 +93,13 @@ public class AuthService {
         cart.setCustomer(customer);
         cartRepository.save(cart);
 
-        return login(userName, password, false);
+        // return login(userName, password, false);
+        return login(userName, password);
     }
 
     // public AuthResponseDTO login(String userName, String password) {
     // Customer customer = customerRepository.findByUserName(userName)
-    // .orElseThrow(() -> new RuntimeException("Tên đăng nhập không tồn tại"));
+    // .orElseThrow(() -> new RuntimeException("Username does not exist"));
 
     // BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
@@ -104,7 +108,7 @@ public class AuthService {
 
     // // if (!employee.getPassword().equals(password)) {
     // if (!encoder.matches(password, customer.getPassword())) {
-    // throw new InvalidRefreshTokenException("Mật khẩu không hợp lệ");
+    // throw new InvalidRefreshTokenException("Password is invalid");
     // }
 
     // String accessToken = jwtUtil.generateToken(customer.getUserName(),
@@ -132,13 +136,13 @@ public class AuthService {
     // }
 
     @Transactional
-    public AuthResponseDTO login(String userName, String password, Boolean admin) {
+    public AuthResponseDTO login(String userName, String password) {
 
-        if (admin) {
-            return loginAdmin(userName, password);
-        }
+        // if (admin) {
+        // return loginAdmin(userName, password);
+        // }
         Customer customer = customerRepository.findByUserName(userName)
-                .orElseThrow(() -> new NotFoundException("Tên đăng nhập không tồn tại"));
+                .orElseThrow(() -> new NotFoundException("Username does not exist"));
 
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
@@ -147,7 +151,7 @@ public class AuthService {
 
         // if (!employee.getPassword().equals(password)) {
         if (!encoder.matches(password, customer.getPassword())) {
-            throw new InvalidRefreshTokenException("Mật khẩu không hợp lệ");
+            throw new InvalidRefreshTokenException("Password is invalid");
         }
 
         String accessToken = jwtUtil.generateToken(customer.getUserName(), RoleEnum.ROLE_CUSTOMER.name(),
@@ -161,8 +165,11 @@ public class AuthService {
 
         String refreshToken = new String(Hex.encode(bytes));
 
-        // redisTemplate.opsForValue().set("refreshToken::" + refreshToken,
-        // employee.getUsername(), 7, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set(
+                "refreshToken::" + refreshToken,
+                customer.getCustomerId(),
+                7,
+                java.util.concurrent.TimeUnit.DAYS);
 
         AuthResponseDTO authResponseDTO = new AuthResponseDTO();
         authResponseDTO.setUsername(customer.getUserName());
@@ -176,7 +183,7 @@ public class AuthService {
     @Transactional
     public AuthResponseDTO loginAdmin(String userName, String password) {
         Admin admin = adminRepository.findByUserName(userName)
-                .orElseThrow(() -> new NotFoundException("Tên đăng nhập không tồn tại"));
+                .orElseThrow(() -> new NotFoundException("Username does not exist"));
 
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
@@ -185,7 +192,7 @@ public class AuthService {
 
         // if (!employee.getPassword().equals(password)) {
         if (!encoder.matches(password, admin.getPassword())) {
-            throw new InvalidRefreshTokenException("Mật khẩu không hợp lệ");
+            throw new InvalidRefreshTokenException("Password is invalid");
         }
 
         String accessToken = jwtUtil.generateToken(admin.getUserName(), RoleEnum.ROLE_ADMIN.name(),
@@ -198,6 +205,12 @@ public class AuthService {
         // String refreshToken = Hex.encodeHexString(bytes);
 
         String refreshToken = new String(Hex.encode(bytes));
+
+        redisTemplate.opsForValue().set(
+                "refreshToken-admin::" + refreshToken,
+                admin.getAdminId(),
+                7,
+                java.util.concurrent.TimeUnit.DAYS);
 
         // redisTemplate.opsForValue().set("refreshToken::" + refreshToken,
         // employee.getUsername(), 7, TimeUnit.DAYS);
@@ -218,11 +231,11 @@ public class AuthService {
     // // refreshToken);
 
     // if (userName == null) {
-    // throw new InvalidRefreshTokenException("refresh Token không hợp lệ");
+    // throw new InvalidRefreshTokenException("Refresh token is invalid");
     // }
 
     // Employee employee = employeeRepository.findByUsername(userName)
-    // .orElseThrow(() -> new RuntimeException("Tên đăng nhập không tồn tại"));
+    // .orElseThrow(() -> new RuntimeException("Username does not exist"));
 
     // String accessToken = jwtUtil.generateToken(employee.getUsername(),
     // employee.getRole().name(),
@@ -236,5 +249,50 @@ public class AuthService {
     // authResponseDTO.setExpiresIn(expiration);
     // return authResponseDTO;
     // }
+
+    public AuthResponseDTO getAccessTokenWithRefreshToken(String refreshToken, boolean isAdmin) {
+
+        String redisKey = isAdmin ? "refreshToken-admin::" : "refreshToken::";
+        // String redisKey = "refreshToken::";
+
+        Integer userId = (Integer) redisTemplate.opsForValue().get(redisKey + refreshToken);
+
+        if (userId == null) {
+            throw new InvalidRefreshTokenException("Refresh token is invalid");
+        }
+
+        if (isAdmin) {
+            Admin admin = adminRepository.findById(userId)
+                    .orElseThrow(() -> new NotFoundException("User does not exist"));
+
+            String accessToken = jwtUtil.generateToken(admin.getUserName(), RoleEnum.ROLE_ADMIN.name(),
+                    expiration);
+
+            AuthResponseDTO authResponseDTO = new AuthResponseDTO();
+            authResponseDTO.setUsername(admin.getUserName());
+            authResponseDTO.setRole(RoleEnum.ROLE_ADMIN.name());
+            authResponseDTO.setAccessToken(accessToken);
+            authResponseDTO.setRefreshToken(refreshToken);
+            authResponseDTO.setExpiresIn(expiration);
+
+            return authResponseDTO;
+        } else {
+            Customer customer = customerRepository.findById(userId)
+                    .orElseThrow(() -> new NotFoundException("User does not exist"));
+
+            String accessToken = jwtUtil.generateToken(customer.getUserName(), RoleEnum.ROLE_CUSTOMER.name(),
+                    expiration);
+
+            AuthResponseDTO authResponseDTO = new AuthResponseDTO();
+            authResponseDTO.setUsername(customer.getUserName());
+            authResponseDTO.setRole(RoleEnum.ROLE_CUSTOMER.name());
+            authResponseDTO.setAccessToken(accessToken);
+            authResponseDTO.setRefreshToken(refreshToken);
+            authResponseDTO.setExpiresIn(expiration);
+
+            return authResponseDTO;
+
+        }    
+    }
 
 }

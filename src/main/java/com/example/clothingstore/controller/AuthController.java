@@ -28,9 +28,11 @@ public class AuthController {
         public ResponseEntity<ApiResponse<AuthResponseDTO>> login(
                         @Valid @RequestBody AuthRegisterDTO authRequestDTO,
                         HttpServletRequest request) {
-                AuthResponseDTO authResponseDTO = authService.login(authRequestDTO.getUsername(),
-                                authRequestDTO.getPassword(),
-                                false);
+                AuthResponseDTO authResponseDTO = authService.login(
+                                authRequestDTO.getUsername(),
+                                authRequestDTO.getPassword());
+
+                // false);
 
                 return ResponseEntity.ok(
                                 ApiResponse.success("Successfully logged in", authResponseDTO,
@@ -41,9 +43,13 @@ public class AuthController {
         public ResponseEntity<ApiResponse<AuthResponseDTO>> loginAdmin(
                         @Valid @RequestBody AuthRegisterDTO authRequestDTO,
                         HttpServletRequest request) {
-                AuthResponseDTO authResponseDTO = authService.login(authRequestDTO.getUsername(),
-                                authRequestDTO.getPassword(),
-                                true);
+                // AuthResponseDTO authResponseDTO =
+                // authService.login(authRequestDTO.getUsername(),
+                // authRequestDTO.getPassword(),
+                // true);
+                AuthResponseDTO authResponseDTO = authService.loginAdmin(
+                                authRequestDTO.getUsername(),
+                                authRequestDTO.getPassword());
 
                 return ResponseEntity.ok(
                                 ApiResponse.success("Successfully logged in as admin", authResponseDTO,
@@ -65,5 +71,15 @@ public class AuthController {
 
         // Đăng xuất
         // Refresh token cấp lại access token mới
+
+        @PostMapping("/refresh-token")
+        public ResponseEntity<ApiResponse<AuthResponseDTO>> getAccessTokenWithRefreshToken(
+                        @RequestParam String refreshToken,
+                        @RequestParam boolean isAdmin,
+                        HttpServletRequest request) {
+                AuthResponseDTO authResponseDTO = authService.getAccessTokenWithRefreshToken(refreshToken, isAdmin);
+                return ResponseEntity.ok(ApiResponse.success("Successfully refreshed token", authResponseDTO,
+                                request.getRequestURI()));
+        }
 
 }

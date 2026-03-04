@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.example.clothingstore.enums.RoleEnum;
-import com.example.clothingstore.exception.customer.NotFoundException;
+import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.model.Customer;
 import com.example.clothingstore.model.Admin;
 import com.example.clothingstore.repository.AdminRepository;
@@ -78,7 +78,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 if (role == RoleEnum.ROLE_CUSTOMER) {
                     Customer customer = customerRepository.findByUserName(username)
-                            .orElseThrow(() -> new NotFoundException("Username không tồn tại"));
+                            .orElseThrow(() -> new NotFoundException("Username does not exist"));
 
                     // userDetails = User.builder()
                     // .username(customer.getUserName())
@@ -94,7 +94,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             .build();
                 } else if (role == RoleEnum.ROLE_ADMIN) {
                     Admin admin = adminRepository.findByUserName(username)
-                            .orElseThrow(() -> new NotFoundException("Username không tồn tại"));
+                            .orElseThrow(() -> new NotFoundException("Username does not exist"));
 
                     // userDetails = User.builder()
                     // .username(admin.getUserName())
@@ -110,7 +110,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             .build();
 
                 } else {
-                    throw new RuntimeException("Role không tồn tại");
+                    throw new RuntimeException("Role does not exist");
                 }
 
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(

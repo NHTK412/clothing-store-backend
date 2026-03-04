@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.clothingstore.dto.membershiptier.MembershipTierRequestDTO;
 import com.example.clothingstore.dto.membershiptier.MembershipTierResponseDTO;
-import com.example.clothingstore.exception.customer.NotFoundException;
+import com.example.clothingstore.exception.business.NotFoundException;
 // import com.example.clothingstore.mapper.mapstruct.MembershipTierMapper;
 import com.example.clothingstore.mapper.MembershipTierMapper;
 

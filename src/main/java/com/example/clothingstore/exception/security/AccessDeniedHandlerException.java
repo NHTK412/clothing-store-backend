@@ -1,4 +1,4 @@
-package com.example.clothingstore.exception.customer;
+package com.example.clothingstore.exception.security;
 
 import java.io.IOException;
 

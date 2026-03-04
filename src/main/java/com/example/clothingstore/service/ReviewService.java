@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.clothingstore.dto.review.ReviewRequestDTO;
 import com.example.clothingstore.dto.review.ReviewResponseDTO;
-import com.example.clothingstore.exception.customer.NotFoundException;
+import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.mapper.ReviewMapper;
 import com.example.clothingstore.model.Customer;
 import com.example.clothingstore.model.OrderDetail;

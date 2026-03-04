@@ -24,7 +24,7 @@ import com.example.clothingstore.dto.product.ProductResponseDTO;
 import com.example.clothingstore.dto.product.ProductSummaryDTO;
 import com.example.clothingstore.dto.product.ProductUpdateDTO;
 import com.example.clothingstore.enums.StatusEnum;
-import com.example.clothingstore.exception.customer.NotFoundException;
+import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.mapper.mapstruct.ProductColorMapper;
 import com.example.clothingstore.mapper.mapstruct.ProductDetailMapper;
 import com.example.clothingstore.mapper.mapstruct.ProductMapper;

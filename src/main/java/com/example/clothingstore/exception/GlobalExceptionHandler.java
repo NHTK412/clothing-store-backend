@@ -8,7 +8,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.example.clothingstore.exception.customer.*;
+import com.example.clothingstore.exception.business.AccessDeniedException;
+import com.example.clothingstore.exception.business.BadRequestException;
+import com.example.clothingstore.exception.business.ConflictException;
+import com.example.clothingstore.exception.business.NotFoundException;
+import com.example.clothingstore.exception.business.ServerErrorException;
+import com.example.clothingstore.exception.security.AuthenticationEntryPointException;
 import com.example.clothingstore.util.ApiResponse;
 
 import jakarta.servlet.http.HttpServletRequest;

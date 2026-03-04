@@ -11,7 +11,7 @@ import com.example.clothingstore.dto.customer.CustomerRequestDTO;
 import com.example.clothingstore.dto.customer.CustomerResponseDTO;
 import com.example.clothingstore.dto.customer.CustomerSummaryDTO;
 import com.example.clothingstore.enums.AccountStatusEnum;
-import com.example.clothingstore.exception.customer.NotFoundException;
+import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.mapper.mapstruct.CustomerMapper;
 // import com.example.clothingstore.model.Account;
 import com.example.clothingstore.model.Customer;
@@ -43,17 +43,15 @@ public class CustomerService {
 
         // Customer customer =
         // customerRepository.findByIdWithAccountAndMembershipTier(customerId)
-        // .orElseThrow(() -> new NotFoundException("Mã khách hàng không hợp lệ"));
+        // .orElseThrow(() -> new NotFoundException("Invalid customer ID"));
 
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new NotFoundException("Mã khách hàng không hợp lệ"));
+                .orElseThrow(() -> new NotFoundException("Invalid customer ID"));
 
-        
         return customerMapper.toResponseDTO(customer);
 
     }
 
-    
     @Transactional
     public Page<CustomerSummaryDTO> getAllCustomer(Pageable pageable) {
 
@@ -65,8 +63,8 @@ public class CustomerService {
         return customers.map(customerMapper::toSummaryDTO);
 
         // return customers.stream()
-        //         .map((customer) -> customerMapper.toSummaryDTO(customer))
-        //         .toList();
+        // .map((customer) -> customerMapper.toSummaryDTO(customer))
+        // .toList();
 
         // List<CustomerSummaryDTO> customerSummaryDTOs =
         // customer.stream().map(customer)
@@ -91,7 +89,7 @@ public class CustomerService {
     public CustomerResponseDTO createCustomer(CustomerRequestDTO customerRequestDTO) {
 
         // Account account = accountRepository.findById(accountId)
-        // .orElseThrow(() -> new NotFoundException("Tài khoản không tồn tại"));
+        // .orElseThrow(() -> new NotFoundException("Account does not exist"));
         Customer customer = new Customer();
 
         customerMapper.updateModelFromDTO(customerRequestDTO, customer);

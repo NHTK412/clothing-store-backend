@@ -1,4 +1,4 @@
-package com.example.clothingstore.exception.customer;
+package com.example.clothingstore.exception.business;
 
 // 500
 public class ServerErrorException extends RuntimeException {

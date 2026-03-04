@@ -11,7 +11,7 @@ import com.example.clothingstore.dto.category.CategoryRequestDTO;
 import com.example.clothingstore.dto.category.CategoryResponseDTO;
 import com.example.clothingstore.dto.category.CategorySummaryDTO;
 import com.example.clothingstore.enums.CategoryStatusEnum;
-import com.example.clothingstore.exception.customer.NotFoundException;
+import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.mapper.mapstruct.CategoryMapper;
 // import com.example.clothingstore.mapper.CategoryMapper;
 import com.example.clothingstore.model.Category;

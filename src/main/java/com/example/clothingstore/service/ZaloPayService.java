@@ -15,8 +15,8 @@ import com.example.clothingstore.config.ZaloPayConfig;
 import com.example.clothingstore.dto.zalopay.CreateOrderRequest;
 import com.example.clothingstore.dto.zalopay.ZaloPayResponseDTO;
 import com.example.clothingstore.enums.OrderStatusEnum;
-import com.example.clothingstore.exception.customer.ConflictException;
-import com.example.clothingstore.exception.customer.NotFoundException;
+import com.example.clothingstore.exception.business.ConflictException;
+import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.model.Order;
 import com.example.clothingstore.repository.OrderRepository;
 import com.example.clothingstore.util.crypto.HMACUtil;
@@ -341,8 +341,8 @@ public class ZaloPayService {
             // - Lưu zp_trans_id để đối soát sau này
             // - Gửi email/notification cho khách hàng
 
-            System.out.println("Thanh toán thành công:");
-            System.out.println("- Mã GD: " + appTransId);
+            System.out.println("Payment successful!");
+            System.out.println("- Transaction ID: " + appTransId);
             System.out.println("- Số tiền: " + amount + " VNĐ");
             System.out.println("- User: " + appUser);
             System.out.println("- ZaloPay Trans ID: " + zapTransId);

@@ -1,4 +1,4 @@
-package com.example.clothingstore.exception.customer;
+package com.example.clothingstore.exception.business;
 
 public class AccessDeniedException extends RuntimeException {
 

@@ -12,8 +12,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
-import com.example.clothingstore.exception.customer.AccessDeniedHandlerException;
-import com.example.clothingstore.exception.customer.AuthenticationEntryPointException;
+import com.example.clothingstore.exception.security.AccessDeniedHandlerException;
+import com.example.clothingstore.exception.security.AuthenticationEntryPointException;
 import com.example.clothingstore.filter.JwtAuthFilter;
 
 import lombok.RequiredArgsConstructor;

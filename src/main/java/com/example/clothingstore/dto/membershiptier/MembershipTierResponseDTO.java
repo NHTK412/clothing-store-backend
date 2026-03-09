@@ -11,11 +11,13 @@ public class MembershipTierResponseDTO {
 
     private Integer tiedId;
 
+    private String tierName;
+
     private Double minimumSpending;
 
-    private Double discountRate;
+    // private Double discountRate;
 
-    private String description;
+    // private String description;
 
     private String color;
 }

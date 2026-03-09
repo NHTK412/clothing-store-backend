@@ -12,6 +12,8 @@ public class MembershipTierMapper {
     public MembershipTier convertMembershipTierRequestDTOToModel(
             MembershipTierRequestDTO membershipTierRequestDTO, MembershipTier membershipTier) {
 
+        membershipTier.setTierName(membershipTierRequestDTO.getTierName());
+
         membershipTier.setColor(membershipTierRequestDTO.getColor());
 
         membershipTier.setMinimumSpending(membershipTierRequestDTO.getMinimumSpending());
@@ -26,6 +28,8 @@ public class MembershipTierMapper {
     public MembershipTierResponseDTO convertModelToMembershipTierResponseDTO(MembershipTier membershipTier) {
 
         MembershipTierResponseDTO membershipTierResponseDTO = new MembershipTierResponseDTO();
+
+        membershipTierResponseDTO.setTierName(membershipTier.getTierName());
 
         membershipTierResponseDTO.setTiedId(membershipTier.getTiedId());
 

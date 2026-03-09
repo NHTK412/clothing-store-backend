@@ -92,7 +92,7 @@ public class AuthService {
 
         customer.setStatus(AccountStatusEnum.ACTIVE);
 
-        customer.setMembershipTier(membershipTierRepository.findByTierName("SILVER").get());
+        customer.setMembershipTier(membershipTierRepository.findByTierName("BRONZE").get());
 
         customerRepository.save(customer);
 
@@ -103,7 +103,7 @@ public class AuthService {
         cartRepository.save(cart);
 
         // return login(userName, password, false);
-        return login(userName, password);
+        return login_v2(userName, password);
     }
 
     @Transactional
@@ -126,6 +126,7 @@ public class AuthService {
         admin.setStatus(AccountStatusEnum.ACTIVE);
         adminRepository.save(admin);
         admin.setRole(RoleEnum.ROLE_ADMIN);
+
         return login_v2(userName, password);
 
     }
@@ -317,7 +318,8 @@ public class AuthService {
         String refreshToken = new String(Hex.encode(bytes));
 
         // =====================================================================================
-        // Tạm thời để vậy vì redis docker đang lỗi k connect được nên nếu không kết nối được thì bỏ qua không lưu vào redis
+        // Tạm thời để vậy vì redis docker đang lỗi k connect được nên nếu không kết nối
+        // được thì bỏ qua không lưu vào redis
         try {
             redisTemplate.opsForValue().set(
                     "refreshToken::" + refreshToken,
@@ -328,7 +330,6 @@ public class AuthService {
             System.out.println("Error storing refresh token in Redis: " + e.getMessage());
         }
         // =====================================================================================
-
 
         AuthResponseDTO authResponseDTO = new AuthResponseDTO();
         authResponseDTO.setUsername(user.getUserName());

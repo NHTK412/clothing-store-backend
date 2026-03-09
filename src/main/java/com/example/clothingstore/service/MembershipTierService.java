@@ -48,6 +48,11 @@ public class MembershipTierService {
 
         @Transactional
         public MembershipTierResponseDTO createMembershipTier(MembershipTierRequestDTO membershipTierRequestDTO) {
+
+                if (membershipTierRepository.existsByTierName(membershipTierRequestDTO.getTierName())) {
+                        throw new NotFoundException("Membership tier with the same name already exists");
+                }
+
                 MembershipTier membershipTier = new MembershipTier();
 
                 membershipTier = membershipTierMapper.convertMembershipTierRequestDTOToModel(membershipTierRequestDTO,
@@ -74,6 +79,11 @@ public class MembershipTierService {
         @Transactional
         public MembershipTierResponseDTO updateMembershipTier(Integer membershipTieId,
                         MembershipTierRequestDTO membershipTierRequestDTO) {
+
+                if (membershipTierRepository.existsByTierName(membershipTierRequestDTO.getTierName())) {
+                        throw new NotFoundException("Membership tier with the same name already exists");
+                }
+
                 MembershipTier membershipTier = membershipTierRepository.findById(membershipTieId)
                                 .orElseThrow(() -> new NotFoundException("Invalid membershipTie code"));
 

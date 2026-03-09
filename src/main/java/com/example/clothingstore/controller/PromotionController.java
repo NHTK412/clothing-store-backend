@@ -7,13 +7,14 @@ import com.example.clothingstore.dto.promotion.PromotionCreateRequestDTO;
 import com.example.clothingstore.dto.promotion.PromotionResponseDTO;
 import com.example.clothingstore.service.PromotionService;
 import com.example.clothingstore.util.ApiResponse;
+import com.example.clothingstore.util.CustomerUserDetails;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -27,8 +28,10 @@ public class PromotionController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<PromotionResponseDTO>> createPromotion(
+            @AuthenticationPrincipal CustomerUserDetails userDetails,
             @Valid @RequestBody PromotionCreateRequestDTO promotionCreateRequestDTO,
             HttpServletRequest request) {
+
 
         PromotionResponseDTO promotionResponseDTO = promotionService.createPromotion(promotionCreateRequestDTO);
 

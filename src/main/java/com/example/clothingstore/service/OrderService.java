@@ -113,7 +113,7 @@ public class OrderService {
                 OrderResponseDTO orderResponseDTO = createOrderResponseDTO(order);
 
                 // 11. Cập nhật cart
-                updateCartAfterOrder(customer.getCustomerId(), orderDetailRequestMaps);
+                updateCartAfterOrder(customer.getUserId(), orderDetailRequestMaps);
 
                 return orderResponseDTO;
         }
@@ -622,7 +622,7 @@ public class OrderService {
 
         private void updateCartAfterOrder(Integer customerId,
                         Map<Integer, OrderDetailRequestDTO> orderDetailRequestMap) {
-                Cart cart = cartRepository.findByCustomer_CustomerId(customerId)
+                Cart cart = cartRepository.findByCustomer_UserId(customerId)
                                 .orElseThrow(() -> new NotFoundException("Cart not found"));
 
                 cart.getCartItems().removeIf(cartItem -> {

@@ -82,6 +82,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -174,4 +176,8 @@ public class Promotion extends Base {
 
     // Trước khi phát hoặc nhập mã lưu vào ví sẽ phải check scope
 
+
+    @ManyToOne
+    @JoinColumn(name = "adminId")
+    private Admin admin;
 }

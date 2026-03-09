@@ -73,7 +73,7 @@ public class AddressService {
         @Transactional
         public AddressResponseDTO deleteShippingAddress(Integer customerId, Integer shippingAddressId) {
                 Address shippingAddress = shippingAddressRepository
-                                .findByAddressIdAndCustomer_CustomerId(shippingAddressId, customerId)
+                                .findByAddressIdAndCustomer_UserId(shippingAddressId, customerId)
                                 .orElseThrow(() -> new NotFoundException("Invalid shippingAddressId"));
 
                 AddressResponseDTO responseDTO = shippingAddressMapper
@@ -88,7 +88,7 @@ public class AddressService {
         public AddressResponseDTO updateShippingAddress(Integer customerId, Integer shippingAddressId,
                         AddressRequestDTO shippingAddressRequestDTO) {
                 Address shippingAddress = shippingAddressRepository
-                                .findByAddressIdAndCustomer_CustomerId(shippingAddressId, customerId)
+                                .findByAddressIdAndCustomer_UserId(shippingAddressId, customerId)
                                 .orElseThrow(() -> new NotFoundException("Invalid shippingAddressId"));
 
                 shippingAddress = shippingAddressMapper.convertShippingAddressRequestDTOToModel(
@@ -102,7 +102,7 @@ public class AddressService {
         @Transactional
         public Page<AddressResponseDTO> getAddressesByCustomerId(Integer customerId, Pageable pageable) {
                 Page<Address> shippingAddresses = shippingAddressRepository
-                                .findByCustomer_CustomerId(customerId, pageable);
+                                .findByCustomer_UserId(customerId, pageable);
 
                 return shippingAddresses.map(addressMapper::toResponseDTO);
 

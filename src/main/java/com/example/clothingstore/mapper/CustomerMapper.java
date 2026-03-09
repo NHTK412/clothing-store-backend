@@ -15,7 +15,7 @@ public class CustomerMapper {
 
         CustomerResponseDTO customerResponseDTO = new CustomerResponseDTO();
 
-        customerResponseDTO.setCustomerId(customer.getCustomerId());
+        customerResponseDTO.setCustomerId(customer.getUserId());
 
         customerResponseDTO.setUserName(customer.getUserName());
 
@@ -37,7 +37,7 @@ public class CustomerMapper {
 
         customerResponseDTO.setStatus(customer.getStatus());
 
-        customerResponseDTO.setLastLogin(customer.getLastLogin());
+        // customerResponseDTO.setLastLogin(customer.());
 
         customerResponseDTO.setImage(customer.getImage());
 
@@ -48,7 +48,7 @@ public class CustomerMapper {
 
         CustomerSummaryDTO customerSummaryDTO = new CustomerSummaryDTO();
 
-        customerSummaryDTO.setCustomerId(customer.getCustomerId());
+        customerSummaryDTO.setCustomerId(customer.getUserId());
 
         customerSummaryDTO.setUserName(customer.getUserName());
 

@@ -1,6 +1,5 @@
 package com.example.clothingstore.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -54,6 +53,21 @@ public class AuthController {
                 return ResponseEntity.ok(
                                 ApiResponse.success("Successfully logged in as admin", authResponseDTO,
                                                 request.getRequestURI()));
+        }
+
+        @PostMapping("/register-admin")
+        public ResponseEntity<ApiResponse<AuthResponseDTO>> registerAdmin(
+                        @Valid @RequestBody AuthRegisterDTO authRequestDTO,
+                        @RequestParam String apiKey,
+                        HttpServletRequest request) {
+                AuthResponseDTO authResponseDTO = authService.registerAdmin(
+                                authRequestDTO.getUsername(),
+                                authRequestDTO.getPassword(),
+                                apiKey);
+
+                return ResponseEntity.ok(ApiResponse.created("Successfully registered admin", authResponseDTO,
+                                request.getRequestURI()));
+
         }
 
         // Đăng ký tài khoản

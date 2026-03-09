@@ -13,16 +13,16 @@ import com.example.clothingstore.model.VoucherWallet;
 public interface VoucherWalletRepository extends JpaRepository<VoucherWallet, Integer> {
 
     // Lấy wallet theo customerId
-    List<VoucherWallet> findByCustomer_CustomerId(Integer customerId);
+    List<VoucherWallet> findByCustomer_UserId(Integer customerId);
 
     // Lấy wallet theo nhiều promotionId và customerId
-    List<VoucherWallet> findByPromotion_PromotionIdInAndCustomer_CustomerId(
+    List<VoucherWallet> findByPromotion_PromotionIdInAndCustomer_UserId(
             List<Integer> promotionIds,
             Integer customerId);
 
-    Page<VoucherWallet> findByCustomer_CustomerId(Integer customerId, Pageable pageable);
+    Page<VoucherWallet> findByCustomer_UserId(Integer customerId, Pageable pageable);
 
-    Boolean existsByPromotion_PromotionIdAndCustomer_CustomerId(Integer promotionId, Integer customerId);
+    Boolean existsByPromotion_PromotionIdAndCustomer_UserId(Integer promotionId, Integer customerId);
 
 
 }

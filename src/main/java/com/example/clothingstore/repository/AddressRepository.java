@@ -12,7 +12,13 @@ import com.example.clothingstore.model.Address;
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Integer> {
 
-    Optional<Address> findByAddressIdAndCustomer_CustomerId(Integer addressId, Integer customerId);
+    // Optional<Address> findByAddressIdAndCustomer_CustomerId(Integer addressId,
+    // Integer customerId);
 
-    Page<Address> findByCustomer_CustomerId(Integer customerId, Pageable pageable);
+    // Page<Address> findByCustomer_CustomerId(Integer customerId, Pageable
+    // pageable);
+
+    Optional<Address> findByAddressIdAndCustomer_UserId(Integer addressId, Integer userId);
+
+    Page<Address> findByCustomer_UserId(Integer userId, Pageable pageable);
 }

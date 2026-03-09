@@ -10,7 +10,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 
-@MappedSuperclass
+@MappedSuperclass // Đánh dấu đây là một lớp cơ sở mà các lớp thực thể khác có thể kế thừa
 @EntityListeners(AuditingEntityListener.class)
 public abstract class Base {
     @CreatedDate

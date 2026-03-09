@@ -39,7 +39,7 @@ public class VoucherWalletService {
 
     public List<PromotionSummaryDTO> getVouchersForCustomer(Integer customerId, Pageable pageable) {
 
-        Page<VoucherWallet> voucherWalletPage = voucherWalletRepository.findByCustomer_CustomerId(customerId, pageable);
+        Page<VoucherWallet> voucherWalletPage = voucherWalletRepository.findByCustomer_UserId(customerId, pageable);
 
         List<PromotionSummaryDTO> promotionSummaryDTOs = voucherWalletPage.stream()
                 .map((voucherWallet) -> {
@@ -71,7 +71,7 @@ public class VoucherWalletService {
         Promotion promotion = promotionRepository.findByCouponCode(couponCode)
                 .orElseThrow(() -> new NotFoundException("Voucher not found"));
 
-        if (voucherWalletRepository.existsByPromotion_PromotionIdAndCustomer_CustomerId(promotion.getPromotionId(),
+        if (voucherWalletRepository.existsByPromotion_PromotionIdAndCustomer_UserId(promotion.getPromotionId(),
                 customerId)) {
             throw new ConflictException("Voucher already exists in wallet");
         }

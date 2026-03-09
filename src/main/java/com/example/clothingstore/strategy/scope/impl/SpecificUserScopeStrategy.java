@@ -17,10 +17,10 @@ public class SpecificUserScopeStrategy implements PromotionScopeStrategy {
     public boolean isScopeSatisfied(Customer customerContext, Promotion promotionContext) {
 
         List<Integer> targetUserIds = promotionContext.getPromotionTargetUsers().stream()
-                .map(promotionTargetUser -> promotionTargetUser.getCustomer().getCustomerId())
+                .map(promotionTargetUser -> promotionTargetUser.getCustomer().getUserId())
                 .collect(Collectors.toList());
 
-        return targetUserIds.contains(customerContext.getCustomerId());
+        return targetUserIds.contains(customerContext.getUserId());
     }
 
     @Override

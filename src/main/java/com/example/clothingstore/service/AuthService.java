@@ -3,6 +3,7 @@ package com.example.clothingstore.service;
 import java.security.SecureRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.codec.Hex;
@@ -18,10 +19,12 @@ import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.model.Admin;
 import com.example.clothingstore.model.Cart;
 import com.example.clothingstore.model.Customer;
+import com.example.clothingstore.model.User;
 import com.example.clothingstore.repository.AdminRepository;
 import com.example.clothingstore.repository.CartRepository;
 import com.example.clothingstore.repository.CustomerRepository;
 import com.example.clothingstore.repository.MembershipTierRepository;
+import com.example.clothingstore.repository.UserRepository;
 import com.example.clothingstore.util.JwtUtil;
 
 import jakarta.transaction.Transactional;
@@ -51,7 +54,11 @@ public class AuthService {
     // @Autowired
     // JwtUtil jwtUtil;
 
+    @Value("${api-key}")
+    private String apiKey;
+
     private final CustomerRepository customerRepository;
+    private final UserRepository userRepository;
     private final AdminRepository adminRepository;
     private final MembershipTierRepository membershipTierRepository;
     private final CartRepository cartRepository;
@@ -69,7 +76,7 @@ public class AuthService {
     @Transactional
     public AuthResponseDTO register(String userName, String password) {
 
-        if (customerRepository.existsByUserName(userName)) {
+        if (userRepository.existsByUserName(userName)) {
             throw new ConflictException("Username already exists");
         }
 
@@ -89,12 +96,38 @@ public class AuthService {
 
         customerRepository.save(customer);
 
+        customer.setRole(RoleEnum.ROLE_CUSTOMER);
+
         Cart cart = new Cart();
         cart.setCustomer(customer);
         cartRepository.save(cart);
 
         // return login(userName, password, false);
         return login(userName, password);
+    }
+
+    @Transactional
+    public AuthResponseDTO registerAdmin(String userName, String password, String apiKey) {
+
+        if (userRepository.existsByUserName(userName)) {
+            throw new ConflictException("Username already exists");
+        }
+
+        Admin admin = new Admin();
+
+        if (!this.apiKey.equals(apiKey)) {
+            throw new InvalidRefreshTokenException("API key is invalid");
+        }
+
+        admin.setUserName(userName);
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String encodedPassword = encoder.encode(password);
+        admin.setPassword(encodedPassword);
+        admin.setStatus(AccountStatusEnum.ACTIVE);
+        adminRepository.save(admin);
+        admin.setRole(RoleEnum.ROLE_ADMIN);
+        return login_v2(userName, password);
+
     }
 
     // public AuthResponseDTO login(String userName, String password) {
@@ -154,7 +187,13 @@ public class AuthService {
             throw new InvalidRefreshTokenException("Password is invalid");
         }
 
-        String accessToken = jwtUtil.generateToken(customer.getUserName(), RoleEnum.ROLE_CUSTOMER.name(),
+        // String accessToken = jwtUtil.generateToken(customer.getUserName(),
+        // RoleEnum.ROLE_CUSTOMER.name(),
+        // expiration);
+
+        String accessToken = jwtUtil.generateToken(
+                customer.getUserName(),
+                customer.getRole().name(),
                 expiration);
 
         byte[] bytes = new byte[50];
@@ -167,7 +206,7 @@ public class AuthService {
 
         redisTemplate.opsForValue().set(
                 "refreshToken::" + refreshToken,
-                customer.getCustomerId(),
+                customer.getUserId(),
                 7,
                 java.util.concurrent.TimeUnit.DAYS);
 
@@ -208,7 +247,7 @@ public class AuthService {
 
         redisTemplate.opsForValue().set(
                 "refreshToken-admin::" + refreshToken,
-                admin.getAdminId(),
+                admin.getUserId(),
                 7,
                 java.util.concurrent.TimeUnit.DAYS);
 
@@ -249,6 +288,60 @@ public class AuthService {
     // authResponseDTO.setExpiresIn(expiration);
     // return authResponseDTO;
     // }
+
+    @Transactional
+    public AuthResponseDTO login_v2(String userName, String password) {
+
+        // if (admin) {
+        // return loginAdmin(userName, password);
+        // }
+        // Customer customer = customerRepository.findByUserName(userName)
+        // .orElseThrow(() -> new NotFoundException("Username does not exist"));
+
+        User user = userRepository.findByUserName(userName)
+                .orElseThrow(() -> new NotFoundException("Username does not exist"));
+
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+        String code = encoder.encode(password);
+        System.out.println(code);
+
+        // if (!employee.getPassword().equals(password)) {
+        if (!encoder.matches(password, user.getPassword())) {
+            throw new InvalidRefreshTokenException("Password is invalid");
+        }
+
+        // String accessToken = jwtUtil.generateToken(customer.getUserName(),
+        // RoleEnum.ROLE_CUSTOMER.name(),
+        // expiration);
+
+        String accessToken = jwtUtil.generateToken(
+                user.getUserName(),
+                user.getRole().name(),
+                expiration);
+
+        byte[] bytes = new byte[50];
+
+        secureRandom.nextBytes(bytes);
+
+        // String refreshToken = Hex.encodeHexString(bytes);
+
+        String refreshToken = new String(Hex.encode(bytes));
+
+        redisTemplate.opsForValue().set(
+                "refreshToken::" + refreshToken,
+                user.getUserId(),
+                7,
+                java.util.concurrent.TimeUnit.DAYS);
+
+        AuthResponseDTO authResponseDTO = new AuthResponseDTO();
+        authResponseDTO.setUsername(user.getUserName());
+        authResponseDTO.setRole(user.getRole().name());
+        authResponseDTO.setAccessToken(accessToken);
+        authResponseDTO.setRefreshToken(refreshToken);
+        authResponseDTO.setExpiresIn(expiration);
+        return authResponseDTO;
+    }
 
     public AuthResponseDTO getAccessTokenWithRefreshToken(String refreshToken, boolean isAdmin) {
 
@@ -292,7 +385,7 @@ public class AuthService {
 
             return authResponseDTO;
 
-        }    
+        }
     }
 
 }

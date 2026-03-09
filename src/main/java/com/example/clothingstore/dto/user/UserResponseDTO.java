@@ -1,9 +1,10 @@
-package com.example.clothingstore.dto.customer;
+package com.example.clothingstore.dto.user;
 
 import java.time.LocalDateTime;
 
 import com.example.clothingstore.enums.AccountStatusEnum;
 import com.example.clothingstore.enums.GenderEnum;
+import com.example.clothingstore.enums.RoleEnum;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,12 +13,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class CustomerResponseDTO {
+public class UserResponseDTO {
 
-    private Integer customerId;
+    private Integer userId;
 
     private String userName;
-
 
     private String email;
 
@@ -29,13 +29,10 @@ public class CustomerResponseDTO {
 
     private String phone;
 
-    private String membership;
-
-    private String colorMembership;
+    private String image;
 
     private AccountStatusEnum status;
 
-    private LocalDateTime lastLogin;
+    private RoleEnum role;
 
-    private String image;
 }

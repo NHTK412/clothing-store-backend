@@ -23,6 +23,7 @@ public class ReviewResponseDTO {
         this.reviewId = review.getReviewId();
         this.rating = review.getRating();
         this.reviewContent = review.getReviewContent();
+        // this.userNameCustomer = review.getCustomer().getUserName();
         this.userNameCustomer = review.getCustomer().getUserName();
     }
 }

@@ -116,68 +116,6 @@ public class CustomerController {
                                                 request.getRequestURI()));
         }
 
-        // Xem lại admin k tự tạo customer
-        // ======================================================================================================================
-        // @PreAuthorize("hasRole('ADMIN')")
-        // @PostMapping
-        // public ResponseEntity<ApiResponse<CustomerResponseDTO>> createCustomer(
-        // @Valid @RequestBody CustomerRequestDTO customerRequestDTO) {
-
-        // CustomerResponseDTO customerResponseDTO =
-        // customerService.createCustomer(customerRequestDTO);
-
-        // // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null,
-        // // customerResponseDTO));
-        // return ResponseEntity.ok(
-        // ApiResponse.created("Successfully created customer", customerResponseDTO));
-        // }
-        // ======================================================================================================================
-
-        // @PreAuthorize("hasRole('ADMIN')")
-        // @PutMapping("/{customerId}") // dành cho admin
-        // public ResponseEntity<ApiResponse<CustomerResponseDTO>>
-        // updateCustomer(@PathVariable Integer customerId,
-        // @Valid @RequestBody CustomerRequestDTO customerRequestDTO) {
-
-        // // BCryptPasswordEncoder bCryptPasswordEncoder = BCryptPasswordEncoder();
-
-        // CustomerResponseDTO customerResponseDTO =
-        // customerService.updateCustomer(customerId, customerRequestDTO);
-
-        // return ResponseEntity.ok(
-        // ApiResponse.success("Successfully updated customer", customerResponseDTO));
-        // }
-
-        // @PreAuthorize("hasRole('ADMIN')")
-        // @DeleteMapping("/{customerId}")
-        // public ResponseEntity<ApiResponse<CustomerResponseDTO>>
-        // deleteCustomer(@PathVariable Integer customerId) {
-
-        // CustomerResponseDTO customerResponseDTO =
-        // customerService.deleteCustomer(customerId);
-
-        // // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null,
-        // // customerResponseDTO));
-
-        // return ResponseEntity.ok(
-        // ApiResponse.success("Successfully deleted customer", customerResponseDTO));
-        // }
-
-        // Chưa xử lý search
-        // @PreAuthorize("hasRole('CUSTOMER')")
-        // @GetMapping("/me/orders")
-        // public ResponseEntity<ApiResponse<List<OrderSummaryDTO>>>
-        // getAllOrderByCustomer(
-        // @RequestParam(defaultValue = "1") Integer page,
-        // @RequestParam(defaultValue = "10") Integer size,
-        // @RequestParam(required = false) String search,
-        // @AuthenticationPrincipal CustomerUserDetails userDetails) {
-        // Pageable pageable = PageRequest.of(page - 1, size);
-        // Integer customerId = userDetails.getUserId();
-        // List<OrderSummaryDTO> orderSummaries =
-        // orderService.getAllOrdersByCustomer(customerId, pageable);
-        // return ResponseEntity.ok(
-        // ApiResponse.success("Successfully retrieved orders", orderSummaries));
-        // }
+        
 
 }

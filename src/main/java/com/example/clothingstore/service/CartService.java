@@ -88,7 +88,7 @@ public class CartService {
     @Transactional
     public CartItemResponseDTO addCartItemByCart(Integer customerId, CartItemRequestDTO cartItemRequestDTO) {
 
-        Cart cart = cartRepository.findByCustomer_CustomerId(customerId)
+        Cart cart = cartRepository.findByCustomer_UserId(customerId)
                 .orElseThrow(() -> new NotFoundException("Invalid Cart By Customer"));
 
         ProductDetail productDetail = productDetailRepository.findById(cartItemRequestDTO.getProductDetailId())
@@ -124,7 +124,7 @@ public class CartService {
     @Transactional
     public CartItemResponseDTO updateCartItem(Integer customerId, Integer cartDetailId, Integer quantity) {
 
-        Cart cart = cartRepository.findByCustomer_CustomerId(customerId)
+        Cart cart = cartRepository.findByCustomer_UserId(customerId)
                 .orElseThrow(() -> new NotFoundException("Invalue Cart By Customer"));
 
         CartItem cartItem = cartDetailRepository.findByCartItemIdAndCart_CartId(cartDetailId, cart.getCartId())
@@ -158,7 +158,7 @@ public class CartService {
                 .findById(cartDetailId)
                 .orElseThrow(() -> new NotFoundException("Invalue CartDetail Code"));
 
-        if (!cartDetail.getCart().getCustomer().getCustomerId().equals(customerId)) {
+        if (!cartDetail.getCart().getCustomer().getUserId().equals(customerId)) {
             throw new AccessDeniedException("You cannot delete items from another user's cart");
         }
 
@@ -174,7 +174,7 @@ public class CartService {
     public OrderPreviewDTO previewOrder(Integer customerId, List<Integer> cartItemIds, List<Integer> promotionIds) {
 
         // Kiểm tra xem cartItemIds có thuộc về customerId hay không
-        Cart cart = cartRepository.findByCustomer_CustomerId(customerId)
+        Cart cart = cartRepository.findByCustomer_UserId(customerId)
                 .orElseThrow(() -> new NotFoundException("Invalue Cart By Customer"));
 
         List<CartItem> cartItems = cartDetailRepository.findAllById(cartItemIds);
@@ -321,7 +321,7 @@ public class CartService {
         }
 
         List<VoucherWallet> voucherWallets = voucherWalletRepository
-                .findByPromotion_PromotionIdInAndCustomer_CustomerId(promotionIds,
+                .findByPromotion_PromotionIdInAndCustomer_UserId(promotionIds,
                         customerId);
 
         if (voucherWallets.size() != promotionIds.size()) {

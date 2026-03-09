@@ -25,6 +25,7 @@ import com.example.clothingstore.enums.PromotionTypeEnum;
 import com.example.clothingstore.exception.business.BadRequestException;
 import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.mapper.mapstruct.PromotionGroupMapper;
+import com.example.clothingstore.model.Admin;
 import com.example.clothingstore.model.Customer;
 import com.example.clothingstore.model.MembershipTier;
 import com.example.clothingstore.model.Product;
@@ -34,7 +35,9 @@ import com.example.clothingstore.model.PromotionCondition;
 import com.example.clothingstore.model.PromotionGroup;
 import com.example.clothingstore.model.PromotionMemberTier;
 import com.example.clothingstore.model.PromotionTargetUser;
+import com.example.clothingstore.model.User;
 import com.example.clothingstore.model.VoucherWallet;
+import com.example.clothingstore.repository.AdminRepository;
 import com.example.clothingstore.repository.CustomerRepository;
 import com.example.clothingstore.repository.MembershipTierRepository;
 import com.example.clothingstore.repository.ProductRepository;
@@ -42,6 +45,7 @@ import com.example.clothingstore.repository.PromotionGroupRepository;
 import com.example.clothingstore.repository.PromotionMemberTierRepository;
 import com.example.clothingstore.repository.PromotionRepository;
 import com.example.clothingstore.repository.PromotionTargetUserRepository;
+import com.example.clothingstore.repository.UserRepository;
 import com.example.clothingstore.repository.VoucherWalletRepository;
 import com.example.clothingstore.strategy.scope.PromotionScopeStrategy;
 import com.example.clothingstore.strategy.scope.PromotionScopeFactory;
@@ -75,6 +79,8 @@ public class PromotionService {
     final private PromotionMemberTierRepository promotionMemberTierRepository;
 
     final private MembershipTierRepository membershipTierRepository;
+
+    final private AdminRepository adminRepository;
 
     // final private PromotionActionFactory promotionActionFactory;
 
@@ -301,7 +307,7 @@ public class PromotionService {
     }
 
     @Transactional
-    public PromotionResponseDTO createPromotion(PromotionCreateRequestDTO requestDTO) {
+    public PromotionResponseDTO createPromotion(PromotionCreateRequestDTO requestDTO, Integer adminId) {
 
         promotionValidator.validatePromotionRequest(requestDTO);
 
@@ -430,6 +436,11 @@ public class PromotionService {
             promotion.setPromotionMemberTiers(promotionMemberTiers);
 
         }
+
+        Admin admin = adminRepository.findById(adminId)
+                .orElseThrow(() -> new NotFoundException("Admin not found"));
+
+        promotion.setAdmin(admin);
 
         Promotion savedPromotion = promotionRepository.save(promotion);
 

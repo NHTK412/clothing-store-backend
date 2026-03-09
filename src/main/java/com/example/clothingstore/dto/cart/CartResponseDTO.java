@@ -14,6 +14,6 @@ public class CartResponseDTO {
 
     private Integer cartId;
 
-    private List<CartItemResponseDTO> cartItemResponseDTOs = new ArrayList<>();
+    private List<CartItemResponseDTO> cartItem = new ArrayList<>();
 
 }

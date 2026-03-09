@@ -143,9 +143,9 @@ public class Promotion extends Base {
     @Column(name = "PromotionType")
     private PromotionTypeEnum promotionType; // Tự động áp dụng, được phát và phải nhập
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "ApplicationType")
-    private PromotionApplicationTypeEnum applicationType; // Áp dụng cho sản phẩm cụ thể hay áp dụng cho đơn hàng
+    // @Enumerated(EnumType.STRING)
+    // @Column(name = "ApplicationType")
+    // private PromotionApplicationTypeEnum applicationType; // Áp dụng cho sản phẩm cụ thể hay áp dụng cho đơn hàng
 
     // Mã này áp dụng cho mọi khách hàng hay chỉ áp dụng cho một nhóm khách hàng cụ
     // thể

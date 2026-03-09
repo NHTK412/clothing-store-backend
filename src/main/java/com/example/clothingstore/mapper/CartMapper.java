@@ -36,7 +36,7 @@ public class CartMapper {
                         .convertModelToCartItemResponseDTO(cartItemResponseDTO))
                 .toList();
 
-        cartResponseDTO.setCartItemResponseDTOs(cartItemResponseDTOs);
+        cartResponseDTO.setCartItem(cartItemResponseDTOs);
 
         return cartResponseDTO;
     }

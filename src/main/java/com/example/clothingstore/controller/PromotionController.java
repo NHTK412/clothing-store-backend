@@ -31,9 +31,11 @@ public class PromotionController {
             @AuthenticationPrincipal CustomerUserDetails userDetails,
             @Valid @RequestBody PromotionCreateRequestDTO promotionCreateRequestDTO,
             HttpServletRequest request) {
+            
+        Integer adminId = userDetails.getUserId();
 
 
-        PromotionResponseDTO promotionResponseDTO = promotionService.createPromotion(promotionCreateRequestDTO);
+        PromotionResponseDTO promotionResponseDTO = promotionService.createPromotion(promotionCreateRequestDTO, adminId);
 
         return ResponseEntity.ok(
                 ApiResponse.created("Successfully created promotion", promotionResponseDTO, request.getRequestURI()));

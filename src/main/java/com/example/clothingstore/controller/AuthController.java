@@ -27,7 +27,7 @@ public class AuthController {
         public ResponseEntity<ApiResponse<AuthResponseDTO>> login(
                         @Valid @RequestBody AuthRegisterDTO authRequestDTO,
                         HttpServletRequest request) {
-                AuthResponseDTO authResponseDTO = authService.login(
+                AuthResponseDTO authResponseDTO = authService.login_v2(
                                 authRequestDTO.getUsername(),
                                 authRequestDTO.getPassword());
 

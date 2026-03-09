@@ -292,28 +292,18 @@ public class AuthService {
     @Transactional
     public AuthResponseDTO login_v2(String userName, String password) {
 
-        // if (admin) {
-        // return loginAdmin(userName, password);
-        // }
-        // Customer customer = customerRepository.findByUserName(userName)
-        // .orElseThrow(() -> new NotFoundException("Username does not exist"));
-
         User user = userRepository.findByUserName(userName)
                 .orElseThrow(() -> new NotFoundException("Username does not exist"));
 
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
         String code = encoder.encode(password);
-        System.out.println(code);
+        // System.out.println(code);
 
         // if (!employee.getPassword().equals(password)) {
         if (!encoder.matches(password, user.getPassword())) {
             throw new InvalidRefreshTokenException("Password is invalid");
         }
-
-        // String accessToken = jwtUtil.generateToken(customer.getUserName(),
-        // RoleEnum.ROLE_CUSTOMER.name(),
-        // expiration);
 
         String accessToken = jwtUtil.generateToken(
                 user.getUserName(),
@@ -324,15 +314,21 @@ public class AuthService {
 
         secureRandom.nextBytes(bytes);
 
-        // String refreshToken = Hex.encodeHexString(bytes);
-
         String refreshToken = new String(Hex.encode(bytes));
 
-        redisTemplate.opsForValue().set(
-                "refreshToken::" + refreshToken,
-                user.getUserId(),
-                7,
-                java.util.concurrent.TimeUnit.DAYS);
+        // =====================================================================================
+        // Tạm thời để vậy vì redis docker đang lỗi k connect được nên nếu không kết nối được thì bỏ qua không lưu vào redis
+        try {
+            redisTemplate.opsForValue().set(
+                    "refreshToken::" + refreshToken,
+                    user.getUserId(),
+                    7,
+                    java.util.concurrent.TimeUnit.DAYS);
+        } catch (Exception e) {
+            System.out.println("Error storing refresh token in Redis: " + e.getMessage());
+        }
+        // =====================================================================================
+
 
         AuthResponseDTO authResponseDTO = new AuthResponseDTO();
         authResponseDTO.setUsername(user.getUserName());

@@ -56,7 +56,7 @@ public class ZaloPayConfig {
     // public static final String CALLBACK_URL =
     // "http://127.0.0.1:8080/api/zalopay/callback";
 
-    public static final String CALLBACK_URL = "https://bilateral-misunderstandingly-veola.ngrok-free.dev/api/zalopay/callback";
+    public static final String CALLBACK_URL = "https://bilateral-misunderstandingly-veola.ngrok-free.dev/api/v1/payments/zalopay/callback";
 
     /**
      * REDIRECT_URL: URL để redirect người dùng sau khi thanh toán (thành công hoặc

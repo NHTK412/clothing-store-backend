@@ -81,6 +81,10 @@ public class ZaloPayService {
         Order o = orderRepository.findById(req.getOrderId())
                 .orElseThrow(() -> new NotFoundException("Order not found"));
 
+        if (o.getCustomer().getUserId() != userId) {
+            throw new ConflictException("You can only create ZaloPay order for your own orders");
+        }
+
         if (o.getStatus() != OrderStatusEnum.PLACED) {
             throw new ConflictException("Only orders with status PLACED can be paid via ZaloPay");
         }
@@ -101,7 +105,7 @@ public class ZaloPayService {
 
         // amount: Số tiền thanh toán (VNĐ)
         // order.put("amount", req.getAmount());
-        order.put("amount", o.getTotalAmount().longValue() + o.getShippingFee().longValue());
+        order.put("amount", o.getFinalAmount().longValue());
 
         // app_time: Timestamp tạo đơn hàng (milliseconds)
         order.put("app_time", System.currentTimeMillis());

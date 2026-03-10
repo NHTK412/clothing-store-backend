@@ -32,13 +32,13 @@ public class VoucherWalletController {
         @GetMapping
         public ResponseEntity<ApiResponse<List<PromotionSummaryDTO>>> getVouchersForCustomer(
                         @AuthenticationPrincipal CustomerUserDetails customerUserDetails,
-                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "1") int page,
                         @RequestParam(defaultValue = "10") int size,
                         HttpServletRequest request) {
 
                 Integer customerId = customerUserDetails.getUserId();
 
-                Pageable pageable = PageRequest.of(page, size);
+                Pageable pageable = PageRequest.of(page - 1, size);
 
                 List<PromotionSummaryDTO> promotionSummaryDTOs = voucherWalletService.getVouchersForCustomer(customerId,
                                 pageable);

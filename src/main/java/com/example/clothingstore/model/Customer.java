@@ -7,6 +7,7 @@ import com.example.clothingstore.enums.AccountStatusEnum;
 import com.example.clothingstore.enums.GenderEnum;
 
 import jakarta.persistence.EnumType;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -111,5 +112,8 @@ public class Customer extends User {
 
     @OneToMany(mappedBy = "customer")
     private List<Address> shippingAddresses;
+
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VoucherWallet> voucherWallets;
 
 }

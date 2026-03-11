@@ -8,6 +8,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -40,7 +42,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.logging.Logger;
+// import java.util.logging.Logger;
 
 /**
  * Service xử lý logic nghiệp vụ tích hợp thanh toán ZaloPay
@@ -54,7 +56,7 @@ public class ZaloPayService {
     // @Autowired
     // private OrderRepository orderRepository;
 
-    private final static Logger logger = Logger.getLogger(ZaloPayService.class.getName());
+    private final static Logger logger = LoggerFactory.getLogger(ZaloPayService.class);
 
     private final OrderRepository orderRepository;
 
@@ -402,11 +404,11 @@ public class ZaloPayService {
             // - Lưu zp_trans_id để đối soát sau này
             // - Gửi email/notification cho khách hàng
 
-            System.out.println("Payment successful!");
-            System.out.println("- Transaction ID: " + appTransId);
-            System.out.println("- Số tiền: " + amount + " VNĐ");
-            System.out.println("- User: " + appUser);
-            System.out.println("- ZaloPay Trans ID: " + zapTransId);
+            logger.info("Payment successful!");
+            logger.info("- Transaction ID: " + appTransId);
+            logger.info("- Số tiền: " + amount + " VNĐ");
+            logger.info("- User: " + appUser);
+            logger.info("- ZaloPay Trans ID: " + zapTransId);
 
             // Bước 5: Trả về thành công cho ZaloPay
             // return_code = 1 -> ZaloPay biết callback đã được xử lý thành công
@@ -416,7 +418,10 @@ public class ZaloPayService {
 
         } catch (Exception e) {
             // Có lỗi xảy ra -> trả về -1 để ZaloPay retry
-            e.printStackTrace();
+            // e.printStackTrace();
+            // logger.error("Error occurred while processing ZaloPay callback", e);
+            logger.error("Error occurred while processing ZaloPay callback: " + e);
+
             result.put("return_code", -1);
             result.put("return_message", e.getMessage());
         }
@@ -427,18 +432,18 @@ public class ZaloPayService {
     public Map<String, Object> getPaymentDetail(String appTransId) throws Exception {
 
         // String data = ZaloPayConfig.APP_ID + "|" + appTransId + "|" +
-        //         ZaloPayConfig.KEY1;
+        // ZaloPayConfig.KEY1;
         // String mac = HMACUtil.HMacHexStringEncode(
-        //         HMACUtil.HMACSHA256,
-        //         ZaloPayConfig.KEY1,
-        //         data);
+        // HMACUtil.HMACSHA256,
+        // ZaloPayConfig.KEY1,
+        // data);
 
         String data = APP_ID + "|" + appTransId + "|" + KEY1;
         String mac = HMACUtil.HMacHexStringEncode(
-        HMACUtil.HMACSHA256,
-        // ZaloPayConfig.KEY1,
-        KEY1,
-        data);
+                HMACUtil.HMACSHA256,
+                // ZaloPayConfig.KEY1,
+                KEY1,
+                data);
 
         String url = "https://sb-openapi.zalopay.vn/v2/query";
 

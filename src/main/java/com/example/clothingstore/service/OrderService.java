@@ -23,6 +23,7 @@ import com.example.clothingstore.dto.orderdetail.OrderDetailResponseDTO;
 import com.example.clothingstore.dto.ordergift.OrderGiftResponseDTO;
 import com.example.clothingstore.enums.OrderPaymentStatusEnum;
 import com.example.clothingstore.enums.OrderStatusEnum;
+import com.example.clothingstore.enums.OrderTypeEnum;
 import com.example.clothingstore.enums.PaymentMethodEnum;
 import com.example.clothingstore.enums.PromotionActionTypeEnum;
 import com.example.clothingstore.enums.PromotionTypeEnum;
@@ -43,6 +44,7 @@ import com.example.clothingstore.repository.CustomerRepository;
 import com.example.clothingstore.repository.OrderRepository;
 import com.example.clothingstore.repository.ProductDetailRepository;
 import com.example.clothingstore.repository.PromotionRepository;
+import com.example.clothingstore.repository.VoucherWalletRepository;
 import com.example.clothingstore.strategy.action.PromotionActionFactory;
 import com.example.clothingstore.strategy.action.PromotionActionStrategy;
 import com.example.clothingstore.strategy.condition.PromotionConditionFactory;
@@ -60,6 +62,7 @@ public class OrderService {
         private final PromotionRepository promotionRepository;
         private final CustomerRepository customerRepository;
         private final CartRepository cartRepository;
+        private final VoucherWalletRepository voucherWalletRepository;
 
         private final PromotionConditionFactory promotionConditionFactory;
         private final PromotionActionFactory promotionActionFactory;
@@ -79,7 +82,7 @@ public class OrderService {
                 setOrderShippingInfo(order, shippingAddress);
 
                 // 4. Lấy chi tiết sản phẩm
-                List<OrderDetailRequestDTO> orderDetailRequestDTOs = orderRequestDTO.getOrderDetailRequestDTOs();
+                List<OrderDetailRequestDTO> orderDetailRequestDTOs = orderRequestDTO.getOrderDetails();
                 Map<Integer, OrderDetailRequestDTO> orderDetailRequestMaps = buildOrderDetailRequestMap(
                                 orderDetailRequestDTOs);
                 Map<Integer, ProductDetail> productDetailMaps = getAndValidateProductDetails(orderDetailRequestDTOs);
@@ -94,13 +97,15 @@ public class OrderService {
                 applyPromotions(orderPreviewDTO, promotions);
 
                 // 7. Xác thực giá cả
-                validateOrderPrices(orderPreviewDTO.getOrderDetails(), orderPreviewDTO,
-                                orderRequestDTO, orderDetailRequestMaps);
+                // validateOrderPrices(orderPreviewDTO.getOrderDetails(), orderPreviewDTO,
+                // orderRequestDTO, orderDetailRequestMaps);
 
                 // 8. Tạo order details và set thông tin cuối cùng
                 Set<OrderDetailPreviewDTO> orderDetailPreviewDTOCheck = orderPreviewDTO.getOrderDetails();
-                List<OrderDetail> orderDetails = createOrderDetailEntities(orderDetailPreviewDTOCheck,
-                                productDetailMaps, order);
+                List<OrderDetail> orderDetails = createOrderDetailEntities(
+                                orderDetailPreviewDTOCheck,
+                                productDetailMaps,
+                                order);
                 order.setOrderDetails(orderDetails);
 
                 setOrderFinalInfo(order, orderPreviewDTO, orderRequestDTO);
@@ -116,7 +121,9 @@ public class OrderService {
                 OrderResponseDTO orderResponseDTO = createOrderResponseDTO(order);
 
                 // 11. Cập nhật cart
-                updateCartAfterOrder(customer.getUserId(), orderDetailRequestMaps);
+                if (orderRequestDTO.getOrderType() == OrderTypeEnum.CART) {
+                        updateCartAfterOrder(customer.getUserId(), orderDetailRequestMaps);
+                }
 
                 // 12. Update số lượng sản phẩm trong kho
                 for (OrderDetail orderDetail : orderDetails) {
@@ -125,6 +132,9 @@ public class OrderService {
                 }
                 productDetailRepository.saveAll(productDetails);
 
+                customer.getVoucherWallets().removeIf(vw -> orderRequestDTO.getPromotionApplyIds()
+                                .contains(vw.getPromotion().getPromotionId()));
+                                
                 return orderResponseDTO;
         }
 
@@ -158,12 +168,6 @@ public class OrderService {
 
                 orderResponseDTO.setProvince(order.getProvince());
 
-                // orderResponseDTO.setPayment(order.getPaymentMethod());
-
-                // orderResponseDTO.setPaymentStatus(order.getPaymentStatus());
-
-                // orderResponseDTO.setZaloAppTransId(order.getZaloAppTransId());
-
                 // Map order detail
                 List<OrderDetailResponseDTO> orderDetailResponseDTOs = order.getOrderDetails()
                                 .stream()
@@ -192,26 +196,6 @@ public class OrderService {
                                 .toList();
 
                 orderResponseDTO.setOrderDetails(orderDetailResponseDTOs);
-
-                // Map order gift
-                // List<OrderGiftResponseDTO> orderGiftDTOs = order.getOrderGifts()
-                // .stream()
-                // .map(og -> {
-                // OrderGiftResponseDTO ogDTO = new OrderGiftResponseDTO();
-
-                // ogDTO.setGiftName(og.getGiftName());
-
-                // ogDTO.setGiftQuantity(og.getGiftQuantity());
-
-                // ogDTO.setGiftImage(og.getGiftImage());
-
-                // ogDTO.setPromotionName(og.getPromotionName());
-
-                // return ogDTO;
-                // })
-                // .toList();
-                // orderResponseDTO.setOrderGifts(orderGiftDTOs);
-
                 return orderResponseDTO;
         }
 
@@ -219,36 +203,6 @@ public class OrderService {
         public Page<OrderSummaryDTO> getAllOrdersByCustomer(Integer customerId, Pageable pageable) {
 
                 Page<Order> orders = orderRepository.findAllByCustomerId(customerId, pageable);
-
-                // List<OrderSummaryDTO> orderSummaries = orders
-                // .stream()
-                // .map(order -> {
-
-                // OrderSummaryDTO orderSummaryDTO = new OrderSummaryDTO();
-
-                // orderSummaryDTO.setOrderId(order.getOrderId());
-
-                // orderSummaryDTO.setTotalAmount(order.getTotalAmount());
-
-                // orderSummaryDTO.setShippingFee(order.getShippingFee());
-
-                // orderSummaryDTO.setDeliveryDate(order.getDeliveryDate());
-
-                // orderSummaryDTO.setStatus(order.getStatus());
-
-                // orderSummaryDTO.setOrderFirstName(
-                // order.getOrderDetails().get(0).getProductName());
-
-                // orderSummaryDTO.setOrderFirstImage(
-                // order.getOrderDetails().get(0).getProductImage());
-
-                // orderSummaryDTO.setOrderQuantity(order.getOrderDetails().size());
-
-                // // orderSummaryDTO.setPaymentStatus(order.getPaymentStatus());
-
-                // return orderSummaryDTO;
-                // })
-                // .toList();
 
                 return orders.map(
                                 order -> {
@@ -285,36 +239,6 @@ public class OrderService {
         public Page<OrderSummaryDTO> getAllOrders(Pageable pageable) {
 
                 Page<Order> orders = orderRepository.findAll(pageable);
-
-                // List<OrderSummaryDTO> orderSummaries = orders
-                // .stream()
-                // .map(order -> {
-
-                // OrderSummaryDTO orderSummaryDTO = new OrderSummaryDTO();
-
-                // orderSummaryDTO.setOrderId(order.getOrderId());
-
-                // orderSummaryDTO.setTotalAmount(order.getTotalAmount());
-
-                // orderSummaryDTO.setShippingFee(order.getShippingFee());
-
-                // orderSummaryDTO.setDeliveryDate(order.getDeliveryDate());
-
-                // orderSummaryDTO.setStatus(order.getStatus());
-
-                // orderSummaryDTO.setOrderFirstName(
-                // order.getOrderDetails().get(0).getProductName());
-
-                // orderSummaryDTO.setOrderFirstImage(
-                // order.getOrderDetails().get(0).getProductImage());
-
-                // orderSummaryDTO.setOrderQuantity(order.getOrderDetails().size());
-
-                // // orderSummaryDTO.setPaymentStatus(order.getPaymentStatus());
-
-                // return orderSummaryDTO;
-                // })
-                // .toList();
 
                 return orders.map(
                                 order -> {
@@ -433,7 +357,8 @@ public class OrderService {
         private Set<OrderDetailPreviewDTO> createOrderDetailPreviews(List<ProductDetail> productDetails,
                         Map<Integer, OrderDetailRequestDTO> orderDetailRequestMap) {
                 return productDetails.stream()
-                                .filter(pd -> orderDetailRequestMap.get(pd.getDetailId()).getIsFree() == false)
+                                // .filter(pd -> orderDetailRequestMap.get(pd.getDetailId()).getIsFree() ==
+                                // false)
                                 .map(pd -> buildOrderDetailPreviewDTO(pd,
                                                 orderDetailRequestMap.get(pd.getDetailId())))
                                 .collect(Collectors.toSet());
@@ -514,45 +439,6 @@ public class OrderService {
                 }
         }
 
-        private void validateOrderPrices(Set<OrderDetailPreviewDTO> orderDetailPreviews,
-                        OrderPreviewDTO orderPreview, OrderRequestDTO orderRequest,
-                        Map<Integer, OrderDetailRequestDTO> orderDetailRequestMap) {
-                // Xác thực chi tiết từng product
-                for (OrderDetailPreviewDTO preview : orderDetailPreviews) {
-                        validateOrderDetailPrice(preview, orderDetailRequestMap);
-                }
-
-                // Xác thực tổng đơn hàng
-                validateOrderSummary(orderRequest, orderPreview);
-        }
-
-        private void validateOrderDetailPrice(OrderDetailPreviewDTO preview,
-                        Map<Integer, OrderDetailRequestDTO> orderDetailRequestMap) {
-                OrderDetailRequestDTO request = orderDetailRequestMap.get(preview.getProductDetailId());
-
-                boolean matchPrice = Objects.equals(preview.getPrice(), request.getPrice());
-                boolean matchDiscount = Objects.equals(preview.getDiscountAmount(), request.getDiscount());
-                boolean matchFinalPrice = Objects.equals(preview.getFinalPrice(), request.getFinalPrice());
-                boolean matchIsFree = Objects.equals(preview.getIsFree(), request.getIsFree());
-
-                if (!matchPrice || !matchDiscount || !matchFinalPrice || !matchIsFree) {
-                        throw new ConflictException(
-                                        "Price mismatch for product detail id: " + preview.getProductDetailId());
-                }
-        }
-
-        private void validateOrderSummary(OrderRequestDTO orderRequest, OrderPreviewDTO orderPreview) {
-                if (!Objects.equals(orderRequest.getTotalAmount(), orderPreview.getTotalAmount())
-                                || !Objects.equals(orderRequest.getDiscount(), orderPreview.getDiscountAmount())
-                                || !Objects.equals(orderRequest.getShippingFee(), orderPreview.getShippingFee())
-                                || !Objects.equals(orderRequest.getDiscountShippingFee(),
-                                                orderPreview.getDiscountShippingFee())
-                                || !Objects.equals(orderRequest.getFinalAmount(),
-                                                orderPreview.getFinalAmount())) {
-                        throw new ConflictException("Order summary mismatch");
-                }
-        }
-
         private List<OrderDetail> createOrderDetailEntities(Set<OrderDetailPreviewDTO> orderDetailPreviews,
                         Map<Integer, ProductDetail> productDetailMap, Order order) {
                 return orderDetailPreviews.stream()
@@ -630,15 +516,17 @@ public class OrderService {
                 return dto;
         }
 
-        private void updateCartAfterOrder(Integer customerId,
+        private void updateCartAfterOrder(
+                        Integer customerId,
                         Map<Integer, OrderDetailRequestDTO> orderDetailRequestMap) {
                 Cart cart = cartRepository.findByCustomer_UserId(customerId)
                                 .orElseThrow(() -> new NotFoundException("Cart not found"));
 
                 cart.getCartItems().removeIf(cartItem -> {
                         Integer productDetailId = cartItem.getProductDetail().getDetailId();
-                        return orderDetailRequestMap.containsKey(productDetailId)
-                                        && !orderDetailRequestMap.get(productDetailId).getIsFree();
+                        return orderDetailRequestMap.containsKey(productDetailId);
+                        // return orderDetailRequestMap.containsKey(productDetailId)
+                        // && !orderDetailRequestMap.get(productDetailId).getIsFree();
                 });
 
                 cartRepository.save(cart);

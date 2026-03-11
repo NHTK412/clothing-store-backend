@@ -137,7 +137,7 @@ public class Promotion extends Base {
     private String couponCode; // Nếu isCoupon = true thì sẽ có trường này để nhập mã giảm giá
 
     @Column(name = "UsageLimit")
-    private Integer usageLimit; // Giới hạn số lần sử dụng cho mỗi khách hàng
+    private Integer usageLimit; // Số lượng mã có thể nhập 
 
     @Enumerated(EnumType.STRING)
     @Column(name = "PromotionType")

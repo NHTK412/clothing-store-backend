@@ -19,16 +19,16 @@ public class OrderDetailRequestDTO {
     @Positive(message = "Quantity must be a positive integer")
     private Integer quantity;
 
-    @PositiveOrZero(message = "Price must be zero or a positive value")
-    private Double price;
+    // @PositiveOrZero(message = "Price must be zero or a positive value")
+    // private Double price;
 
-    @PositiveOrZero(message = "Discount must be zero or a positive value")
-    private Double discount;
+    // @PositiveOrZero(message = "Discount must be zero or a positive value")
+    // private Double discount;
 
-    @PositiveOrZero(message = "Final price must be zero or a positive value")
-    private Double finalPrice;
+    // @PositiveOrZero(message = "Final price must be zero or a positive value")
+    // private Double finalPrice;
 
-    @NotNull(message = "Is free flag is required")
-    private Boolean isFree;
+    // @NotNull(message = "Is free flag is required")
+    // private Boolean isFree;
 
 }

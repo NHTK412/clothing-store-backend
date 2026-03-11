@@ -26,9 +26,16 @@ public class PromotionValidator {
         }
 
         if (requestDTO.getPromotionType() == PromotionTypeEnum.COUPON_CODE) {
+            // if (requestDTO.getCouponCode() == null ||
+            // requestDTO.getCouponCode().isBlank()) {
+            // throw new BadRequestException("Coupon code is required for COUPON_CODE
+            // type");
+            // }
+
             if (requestDTO.getCouponCode() == null || requestDTO.getCouponCode().isBlank()) {
-                throw new BadRequestException("Coupon code is required for COUPON_CODE type");
+                requestDTO.setCouponCode(generateRandomCouponCode());
             }
+
             if (requestDTO.getUsageLimit() == null || requestDTO.getUsageLimit() <= 0) {
                 throw new BadRequestException("Usage limit must be positive for COUPON_CODE type");
             }
@@ -130,5 +137,15 @@ public class PromotionValidator {
                     "ORDER_LEVEL promotion with product-specific conditions or actions must have at least one promotion group");
         }
 
+    }
+
+    private String generateRandomCouponCode() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder couponCode = new StringBuilder();
+        for (int i = 0; i < 8; i++) {
+            int randomIndex = (int) (Math.random() * chars.length()); // 0 to chars.length() - 1
+            couponCode.append(chars.charAt(randomIndex));
+        }
+        return couponCode.toString();
     }
 }

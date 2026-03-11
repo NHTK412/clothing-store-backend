@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -31,13 +32,26 @@ public class PromotionController {
             @AuthenticationPrincipal CustomerUserDetails userDetails,
             @Valid @RequestBody PromotionCreateRequestDTO promotionCreateRequestDTO,
             HttpServletRequest request) {
-            
+
         Integer adminId = userDetails.getUserId();
 
-
-        PromotionResponseDTO promotionResponseDTO = promotionService.createPromotion(promotionCreateRequestDTO, adminId);
+        PromotionResponseDTO promotionResponseDTO = promotionService.createPromotion(promotionCreateRequestDTO,
+                adminId);
 
         return ResponseEntity.ok(
                 ApiResponse.created("Successfully created promotion", promotionResponseDTO, request.getRequestURI()));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/deactivate")
+    public ResponseEntity<ApiResponse<PromotionResponseDTO>> deactivatePromotion(
+            @RequestBody Integer promotionId,
+            HttpServletRequest request) {
+
+        PromotionResponseDTO promotionResponseDTO = promotionService.deactivatePromotion(promotionId);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Successfully deactivated promotion", promotionResponseDTO,
+                        request.getRequestURI()));
     }
 }

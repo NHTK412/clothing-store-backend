@@ -129,6 +129,7 @@ public class PromotionService {
 
                                 for (Product product : products) {
                                     product.setDiscount(0.0);
+                                    product.setPromotion(null);
                                 }
 
                                 productRepository.saveAll(products);
@@ -230,6 +231,7 @@ public class PromotionService {
                                     Double discountValue = product.getUnitPrice() * discountPercentage / 100;
 
                                     product.setDiscount(discountValue);
+                                    product.setPromotion(promotion);
                                 }
 
                                 productRepository.saveAll(products);
@@ -256,7 +258,7 @@ public class PromotionService {
 
                             voucherWallet.setCustomer(customer);
                             voucherWallet.setPromotion(promotion);
-                            voucherWallet.setUsedCount(0);
+                            // voucherWallet.setUsedCount(0);
 
                             voucherWalletRepository.save(voucherWallet);
 
@@ -272,7 +274,7 @@ public class PromotionService {
 
                             voucherWallet.setCustomer(customer);
                             voucherWallet.setPromotion(promotion);
-                            voucherWallet.setUsedCount(0);
+                            // voucherWallet.setUsedCount(0);
 
                             voucherWalletRepository.save(voucherWallet);
 
@@ -292,7 +294,7 @@ public class PromotionService {
 
                             voucherWallet.setCustomer(customer);
                             voucherWallet.setPromotion(promotion);
-                            voucherWallet.setUsedCount(0);
+                            // voucherWallet.setUsedCount(0);
 
                             voucherWalletRepository.save(voucherWallet);
 
@@ -364,7 +366,7 @@ public class PromotionService {
                     .map(conditionDTO -> {
                         PromotionCondition condition = new PromotionCondition();
                         condition.setConditionType(conditionDTO.getConditionType());
-                        condition.setOperator(conditionDTO.getOperator());
+                        // condition.setOperator(conditionDTO.getOperator());
                         condition.setValue(conditionDTO.getValue());
                         condition.setPromotion(promotion);
                         return condition;
@@ -481,7 +483,7 @@ public class PromotionService {
                 .map(condition -> PromotionConditionResponseDTO.builder()
                         .promotionConditionId(condition.getPromotionConditionId())
                         .conditionType(condition.getConditionType())
-                        .operator(condition.getOperator())
+                        // .operator(condition.getOperator())
                         .value(condition.getValue())
                         .build())
                 .collect(Collectors.toList());
@@ -521,6 +523,56 @@ public class PromotionService {
                 .actions(actions)
                 .promotionGroups(groups)
                 .build();
+    }
+
+    // Tắt khuyến mãi
+    @Transactional
+    public PromotionResponseDTO deactivatePromotion(Integer promotionId) {
+        Promotion promotion = promotionRepository.findById(promotionId)
+                .orElseThrow(() -> new NotFoundException("Promotion not found"));
+
+        if (!promotion.getIsActive()) {
+            throw new BadRequestException("Promotion is already inactive");
+        }
+
+        promotion.setIsActive(false);
+
+        updateDiscountProduct(promotion);
+
+        Promotion updatedPromotion = promotionRepository.save(promotion);
+
+        return mapToResponseDTO(updatedPromotion);
+    }
+
+    private void updateDiscountProduct(Promotion promotion) {
+        if (promotion.getPromotionType() == PromotionTypeEnum.AUTOMATIC) {
+            List<PromotionCondition> promotionConditions = promotion.getPromotionConditions();
+            boolean checkCondtion = promotionConditions.stream()
+                    .allMatch((promotionCondition) -> promotionCondition
+                            .getConditionType() == PromotionConditionTypeEnum.PRODUCT_SPECIFIC);
+            if (checkCondtion) {
+                List<PromotionAction> promotionActions = promotion.getPromotionActions();
+                for (PromotionAction promotionAction : promotionActions) {
+                    if (promotionAction.getActionType() == PromotionActionTypeEnum.PRODUCT_FIXED_DISCOUNT
+                            || promotionAction
+                                    .getActionType() == PromotionActionTypeEnum.PRODUCT_PERCENT_DISCOUNT) {
+                        Map<String, Object> actionParams = promotionAction.getValue();
+                        Integer promtionGroupId = (Integer) actionParams.get("promtionGroupId");
+                        Optional<PromotionGroup> promotionGroup = promotionGroupRepository
+                                .findById(promtionGroupId);
+                        if (!promotionGroup.isPresent()) {
+                            break;
+                        }
+                        List<Product> products = promotionGroup.get().getProducts();
+                        for (Product product : products) {
+                            product.setDiscount(0.0);
+                            product.setPromotion(null);
+                        }
+                        productRepository.saveAll(products);
+                    }
+                }
+            }
+        }
     }
 
 }

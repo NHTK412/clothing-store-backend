@@ -6,3 +6,7 @@
 
 
 # Trường hợp nếu mà thanh toán k được bằng zalo pay thì cho đổi phương thức thanh toán 
+
+--------------------------------------------
+## TEST TRƯỜNG HỢP GIẢM GIÁ CHO SẢN PHẨM
+## Chưa chỉnh logic khi hủy đơn thì trả lại voucher 

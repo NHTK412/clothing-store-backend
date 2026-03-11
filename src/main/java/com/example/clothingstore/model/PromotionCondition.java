@@ -39,8 +39,8 @@ public class PromotionCondition {
     @Column(name = "ConditionType")
     private PromotionConditionTypeEnum conditionType;
 
-    @Column(name = "Operator")
-    private String operator;
+    // @Column(name = "Operator")
+    // private String operator;
 
     @JdbcTypeCode(org.hibernate.type.SqlTypes.JSON) // Khi lưu vào database, trường này sẽ được lưu dưới dạng JSON
     @Column(name = "Value", columnDefinition = "json") // Khi tạo bảng, trường này sẽ được tạo với kiểu dữ liệu JSON

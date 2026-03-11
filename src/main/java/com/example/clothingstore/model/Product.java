@@ -14,8 +14,10 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -62,11 +64,12 @@ public class Product extends Base {
     @OneToMany(mappedBy = "product")
     private List<Review> reviews;
 
-
     @Enumerated(jakarta.persistence.EnumType.STRING)
     @Column(name = "Status", columnDefinition = "varchar(255) default 'ACTIVE'")
     private StatusEnum status;
 
-    
+    @OneToOne
+    @JoinColumn(name = "PromotionId")
+    private Promotion promotion; // Thêm quan hệ với Promotion
 
 }

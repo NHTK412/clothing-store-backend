@@ -17,6 +17,7 @@ import com.example.clothingstore.dto.cart.CartItemResponseDTO;
 import com.example.clothingstore.dto.cart.CartResponseDTO;
 import com.example.clothingstore.dto.order.OrderPreviewDTO;
 import com.example.clothingstore.dto.orderdetail.OrderDetailPreviewDTO;
+import com.example.clothingstore.dto.product.CreatePreviewDTO;
 import com.example.clothingstore.enums.PromotionActionTypeEnum;
 import com.example.clothingstore.enums.PromotionConditionTypeEnum;
 import com.example.clothingstore.enums.PromotionTypeEnum;
@@ -171,56 +172,76 @@ public class CartService {
     }
 
     @Transactional
-    public OrderPreviewDTO previewOrder(Integer customerId, List<Integer> cartItemIds, List<Integer> promotionIds) {
+    // public OrderPreviewDTO previewOrder(Integer customerId, List<Integer>
+    // cartItemIds, List<Integer> promotionIds) {
+    public OrderPreviewDTO previewOrder(Integer customerId, CreatePreviewDTO createPreviewDTO) {
 
         // Kiểm tra xem cartItemIds có thuộc về customerId hay không
-        Cart cart = cartRepository.findByCustomer_UserId(customerId)
-                .orElseThrow(() -> new NotFoundException("Invalue Cart By Customer"));
+        // Cart cart = cartRepository.findByCustomer_UserId(customerId)
+        // .orElseThrow(() -> new NotFoundException("Invalue Cart By Customer"));
 
-        List<CartItem> cartItems = cartDetailRepository.findAllById(cartItemIds);
+        // List<CartItem> cartItems = cartDetailRepository.findAllById(cartItemIds);
 
-        if (cartItems.size() != cartItemIds.size() || cartItems.isEmpty()) {
-            throw new NotFoundException("Some cart items not found");
-        }
+        // if (cartItems.size() != cartItemIds.size() || cartItems.isEmpty()) {
+        // throw new NotFoundException("Some cart items not found");
+        // }
 
-        for (CartItem cartItem : cartItems) {
-            if (!cartItem.getCart().getCartId().equals(cart.getCartId())) {
-                throw new AccessDeniedException("You cannot preview items from another user's cart");
-            }
+        // for (CartItem cartItem : cartItems) {
+        // if (!cartItem.getCart().getCartId().equals(cart.getCartId())) {
+        // throw new AccessDeniedException("You cannot preview items from another user's
+        // cart");
+        // }
+        // }
+
+        Map<Integer, Integer> productDetailIdToQuantity = createPreviewDTO.getDetails().stream()
+                .collect(
+                        Collectors.toMap(
+                                CreatePreviewDTO.CreatePreviewDetailsDTO::getProductDetailIds,
+                                CreatePreviewDTO.CreatePreviewDetailsDTO::getQuantity));
+
+        List<ProductDetail> productDetails = productDetailRepository.findAllById(productDetailIdToQuantity.keySet());
+
+        boolean isStockEnough = productDetails.stream()
+                .allMatch(productDetail -> productDetail.getQuantity() >= productDetailIdToQuantity
+                        .get(productDetail.getDetailId()));
+
+        if (!isStockEnough) {
+            throw new ConflictException("Some product details do not have enough stock");
         }
 
         // Tạo OrderPreviewDTO ban đầu
 
-        Set<OrderDetailPreviewDTO> orderDetails = cartItems.stream()
-                .map(cartItem -> {
+        // Set<OrderDetailPreviewDTO> orderDetails = cartItems.stream()
+        // .map(cartItem -> {
+        Set<OrderDetailPreviewDTO> orderDetails = productDetails.stream()
+                .map(productDetail -> {
 
                     // final Double discountAmount = 0.0;
-                    final Double discountAmount = cartItem.getProductDetail().getProductColor().getProduct()
+                    final Double discountAmount = productDetail.getProductColor().getProduct()
                             .getDiscount() != null
-                                    ? cartItem.getProductDetail().getProductColor().getProduct().getDiscount()
+                                    ? productDetail.getProductColor().getProduct().getDiscount()
                                     : 0.0; // Lấy giá trị giảm giá từ sản phẩm, nếu không có thì mặc định là 0
 
-                    final Double price = cartItem.getProductDetail().getProductColor().getProduct().getUnitPrice();
+                    final Double price = productDetail.getProductColor().getProduct().getUnitPrice();
 
                     final Double finalPrice = price - discountAmount; // Tính giá cuối cùng sau khi áp dụng giảm giá
 
                     final Boolean isFree = false;
 
                     OrderDetailPreviewDTO orderDetailPreviewDTO = OrderDetailPreviewDTO.builder()
-                            .productDetailId(cartItem.getProductDetail().getDetailId())
-                            .productName(cartItem.getProductDetail().getProductColor().getProduct().getProductName())
-                            .productImage(cartItem.getProductDetail().getProductColor().getProductImage())
-                            .color(cartItem.getProductDetail().getProductColor().getColor())
-                            .size(cartItem.getProductDetail().getSize())
-                            .quantity(cartItem.getQuantity())
+                            .productDetailId(productDetail.getDetailId())
+                            .productName(productDetail.getProductColor().getProduct().getProductName())
+                            .productImage(productDetail.getProductColor().getProductImage())
+                            .color(productDetail.getProductColor().getColor())
+                            .size(productDetail.getSize())
+                            .quantity(productDetail.getQuantity())
                             .price(price)
                             .discountAmount(discountAmount)
                             .finalPrice(finalPrice)
                             .isFree(isFree)
                             .build();
                     return orderDetailPreviewDTO;
-                })
-                .collect(Collectors.toSet());
+                }).collect(Collectors.toSet());
 
         Double totalAmount = orderDetails.stream()
                 .mapToDouble(orderDetail -> orderDetail.getFinalPrice() * orderDetail.getQuantity())
@@ -309,6 +330,8 @@ public class CartService {
 
         }
 
+        List<Integer> promotionIds = createPreviewDTO.getPromotionIds();
+
         // Áp dụng khuyến mãi do nhập mã khuyến mãi
         if (promotionIds == null || promotionIds.isEmpty()) {
             return orderPreviewDTO;
@@ -383,6 +406,12 @@ public class CartService {
             }
 
         }
+
+        Set<Integer> promotionProductIds = productDetails.stream()
+                .map((productDetail) -> productDetail.getProductColor().getProduct().getPromotion().getPromotionId())
+                .collect(Collectors.toSet());
+
+        orderPreviewDTO.getAppliedPromotions().addAll(promotionProductIds);
 
         return orderPreviewDTO;
     }

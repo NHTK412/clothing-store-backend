@@ -34,7 +34,7 @@ public class VoucherWallet {
 
     // Số lượng đã sử dụng
     // Khi check sẽ check này với promotion để xem đã sử dụng hết số lần được phép sử dụng chưa
-    @Column(name = "UsedCount")
-    private Integer usedCount;
+    // @Column(name = "UsedCount")
+    // private Integer usedCount;
 
 }

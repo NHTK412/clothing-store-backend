@@ -19,7 +19,7 @@ public class PromotionConditionRequestDTO {
     @NotNull(message = "Condition type is required")
     private PromotionConditionTypeEnum conditionType;
 
-    private String operator; // >=, <=, ==, etc.
+    // private String operator; // >=, <=, ==, etc.
 
     @NotNull(message = "Condition value is required")
     private Map<String, Object> value;

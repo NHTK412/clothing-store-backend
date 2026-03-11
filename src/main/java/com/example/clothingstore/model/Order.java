@@ -2,6 +2,10 @@ package com.example.clothingstore.model;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
 
 import com.example.clothingstore.enums.OrderPaymentStatusEnum;
 import com.example.clothingstore.enums.OrderStatusEnum;
@@ -24,6 +28,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "Orders")
@@ -82,8 +87,19 @@ public class Order extends Base {
     @Column(name = "PaymentMethod")
     private PaymentMethodEnum paymentMethod;
 
-    @Column(name = "ZaloAppTransId")
-    private String zaloAppTransId;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "PaymentStatus")
+    private OrderPaymentStatusEnum paymentStatus;
+
+    @Column(name = "PaymentId")
+    private String paymentId;
+
+    // @JdbcTypeCode(SqlTypes.JSON)
+    // @Column(name = "PaymentData", columnDefinition = "JSON")
+    // private Map<String, Object> paymentData;
+
+    // @Column(name = "ZaloAppTransId")
+    // private String zaloAppTransId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails;

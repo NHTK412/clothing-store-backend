@@ -1,5 +1,7 @@
 package com.example.clothingstore.controller;
 
+import java.util.Map;
+
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.clothingstore.dto.zalopay.CreateOrderRequest;
+// import com.example.clothingstore.dto.zalopay.CreateOrderRequest;
 import com.example.clothingstore.dto.zalopay.ZaloPayResponseDTO;
 import com.example.clothingstore.service.ZaloPayService;
 import com.example.clothingstore.util.ApiResponse;
@@ -16,6 +18,8 @@ import com.example.clothingstore.util.CustomerUserDetails;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Controller xử lý các API liên quan đến thanh toán ZaloPay
@@ -42,9 +46,11 @@ public class ZaloPayController {
      * @throws Exception nếu có lỗi trong quá trình tạo đơn hàng
      */
     @PreAuthorize("hasRole('CUSTOMER')")
-    @PostMapping("/create") // Mapping cho HTTP POST request
+    @PostMapping("/create/{orderId}") // Mapping cho HTTP POST request
     public ResponseEntity<ApiResponse<ZaloPayResponseDTO>> createOrder(
-            @AuthenticationPrincipal CustomerUserDetails userDetails, @RequestBody CreateOrderRequest req,
+            @AuthenticationPrincipal CustomerUserDetails userDetails,
+            // @RequestBody CreateOrderRequest req,
+            @PathVariable Integer orderId,
             HttpServletRequest request)
             throws Exception {
         // Gọi service để tạo đơn hàng trên ZaloPay
@@ -54,7 +60,7 @@ public class ZaloPayController {
 
         Integer userId = userDetails.getUserId();
 
-        ZaloPayResponseDTO res = zaloPayService.createOrder(userId, req);
+        ZaloPayResponseDTO res = zaloPayService.createOrder(userId, orderId);
 
         // return ResponseEntity.ok(new ApiResponse<>(true, "Create ZaloPay order
         // successfully", res));
@@ -102,4 +108,18 @@ public class ZaloPayController {
         // Trả về kết quả cho ZaloPay
         return result.toString();
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/payment-detail/{appTransId}")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getPaymentDetail(
+            @AuthenticationPrincipal CustomerUserDetails userDetails,
+            HttpServletRequest request,
+            @PathVariable String appTransId) throws Exception {
+
+        Map<String, Object> res = zaloPayService.getPaymentDetail(appTransId);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Successfully retrieved payment detail", res, request.getRequestURI()));
+    }
+
 }

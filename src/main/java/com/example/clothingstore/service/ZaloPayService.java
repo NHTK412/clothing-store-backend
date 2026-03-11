@@ -9,17 +9,28 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
-import com.example.clothingstore.config.ZaloPayConfig;
-import com.example.clothingstore.dto.zalopay.CreateOrderRequest;
+// import com.example.clothingstore.config.ZaloPayConfig;
+// import com.example.clothingstore.dto.zalopay.CreateOrderRequest;
 import com.example.clothingstore.dto.zalopay.ZaloPayResponseDTO;
+import com.example.clothingstore.enums.OrderPaymentStatusEnum;
 import com.example.clothingstore.enums.OrderStatusEnum;
+import com.example.clothingstore.enums.PaymentMethodEnum;
 import com.example.clothingstore.exception.business.ConflictException;
 import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.model.Order;
 import com.example.clothingstore.repository.OrderRepository;
 import com.example.clothingstore.util.crypto.HMACUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.transaction.Transactional;
@@ -29,6 +40,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Service xử lý logic nghiệp vụ tích hợp thanh toán ZaloPay
@@ -37,13 +49,32 @@ import java.util.*;
  */
 @Service // Đánh dấu đây là một Spring Service bean
 @RequiredArgsConstructor
-
 public class ZaloPayService {
 
     // @Autowired
     // private OrderRepository orderRepository;
 
+    private final static Logger logger = Logger.getLogger(ZaloPayService.class.getName());
+
     private final OrderRepository orderRepository;
+
+    @Value("${zalopay.app-id}")
+    private String APP_ID;
+
+    @Value("${zalopay.key1}")
+    private String KEY1;
+
+    @Value("${zalopay.key2}")
+    private String KEY2;
+
+    @Value("${zalopay.create-order-url}")
+    private String CREATE_ORDER_URL;
+
+    @Value("${zalopay.callback-url}")
+    private String CALLBACK_URL;
+
+    @Value("${zalopay.return-url}")
+    private String REDIRECT_URL;
 
     /**
      * Tạo mã giao dịch duy nhất (app_trans_id)
@@ -76,13 +107,22 @@ public class ZaloPayService {
      */
     // public JSONObject createOrder(CreateOrderRequest req) throws Exception {
     @Transactional
-    public ZaloPayResponseDTO createOrder(Integer userId, CreateOrderRequest req) throws Exception {
+    public ZaloPayResponseDTO createOrder(
+            Integer userId,
+            // CreateOrderRequest req
+            Integer orderId) throws Exception {
 
-        Order o = orderRepository.findById(req.getOrderId())
+        // Order o = orderRepository.findById(req.getOrderId())
+        Order o = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("Order not found"));
 
         if (o.getCustomer().getUserId() != userId) {
             throw new ConflictException("You can only create ZaloPay order for your own orders");
+        }
+
+        if (o.getPaymentStatus() != OrderPaymentStatusEnum.UNPAID
+                || o.getPaymentMethod() != PaymentMethodEnum.ZALOPAY) {
+            throw new ConflictException("Only unpaid orders with payment method ZALOPAY can be paid via ZaloPay");
         }
 
         if (o.getStatus() != OrderStatusEnum.PLACED) {
@@ -96,7 +136,8 @@ public class ZaloPayService {
         // String appTransId = o.getOrderId().toString();
 
         // APP_ID: ID ứng dụng được cấp bởi ZaloPay khi đăng ký (giống như API key)
-        order.put("app_id", ZaloPayConfig.APP_ID);
+        // order.put("app_id", ZaloPayConfig.APP_ID);
+        order.put("app_id", APP_ID);
         // app_trans_id: Mã giao dịch duy nhất do merchant tạo ra
         order.put("app_trans_id", appTransId);
         // app_user: Username/ID của người dùng đang thanh toán
@@ -112,17 +153,19 @@ public class ZaloPayService {
         // bank_code: Phương thức thanh toán ("zalopayapp" = ví ZaloPay)
         order.put("bank_code", "zalopayapp");
         // description: Mô tả đơn hàng
-        order.put("description", req.getDescription());
+        order.put("description", "Payment for order #" + o.getOrderId());
         // item: Danh sách sản phẩm (JSON array) - hiện tại để trống
         order.put("item", "[]");
         // embed_data: Dữ liệu bổ sung (JSON object) - có thể chứa redirect_url
         // redirect_url: URL để redirect user sau khi thanh toán (không bắt buộc)
         JSONObject embedData = new JSONObject();
-        embedData.put("redirecturl", ZaloPayConfig.REDIRECT_URL);
+        // embedData.put("redirecturl", ZaloPayConfig.REDIRECT_URL);
+        embedData.put("redirecturl", REDIRECT_URL);
         order.put("embed_data", embedData.toString());
         // callback_url: URL mà ZaloPay sẽ gọi khi thanh toán thành công
         // ZaloPay sẽ POST dữ liệu callback về URL này (BẮT BUỘC phải là URL public)
-        order.put("callback_url", ZaloPayConfig.CALLBACK_URL);
+        // order.put("callback_url", ZaloPayConfig.CALLBACK_URL);
+        order.put("callback_url", CALLBACK_URL);
 
         // Tạo chuỗi data để tính MAC (Message Authentication Code)
         // Các trường phải được nối theo đúng thứ tự và cách thức quy định của ZaloPay
@@ -140,7 +183,8 @@ public class ZaloPayService {
         // Kết quả: Chuỗi hex đại diện cho chữ ký điện tử của dữ liệu
         String mac = HMACUtil.HMacHexStringEncode(
                 HMACUtil.HMACSHA256,
-                ZaloPayConfig.KEY1,
+                // ZaloPayConfig.KEY1,
+                KEY1,
                 data);
 
         // Thêm MAC vào dữ liệu đơn hàng
@@ -151,7 +195,8 @@ public class ZaloPayService {
         // Tạo HTTP client để gửi request
         CloseableHttpClient client = HttpClients.createDefault();
         // Tạo POST request tới endpoint tạo đơn hàng của ZaloPay
-        HttpPost post = new HttpPost(ZaloPayConfig.CREATE_ORDER_ENDPOINT);
+        // HttpPost post = new HttpPost(ZaloPayConfig.CREATE_ORDER_ENDPOINT);
+        HttpPost post = new HttpPost(CREATE_ORDER_URL);
 
         // Chuyển đổi Map thành danh sách NameValuePair (form data)
         List<NameValuePair> params = new ArrayList<>();
@@ -303,7 +348,8 @@ public class ZaloPayService {
             // Sử dụng KEY2 để verify (khác với KEY1 dùng khi tạo đơn)
             String mac = HMACUtil.HMacHexStringEncode(
                     HMACUtil.HMACSHA256,
-                    ZaloPayConfig.KEY2,
+                    // ZaloPayConfig.KEY2,
+                    KEY2,
                     dataStr);
 
             // Bước 2: So sánh MAC tính được với MAC từ ZaloPay gửi về
@@ -321,7 +367,7 @@ public class ZaloPayService {
             String appTransId = data.getString("app_trans_id"); // Mã giao dịch
             Long amount = data.getLong("amount"); // Số tiền
             String appUser = data.getString("app_user"); // User ID
-            Long appTime = data.getLong("app_time"); // Thời gian tạo đơn
+            // Long appTime = data.getLong("app_time"); // Thời gian tạo đơn
             Long zapTransId = data.getLong("zp_trans_id"); // Mã giao dịch ZaloPay
 
             Integer orderId = Integer.parseInt(appTransId.split("_")[2]);
@@ -334,7 +380,18 @@ public class ZaloPayService {
             }
 
             // o.setVnpayCode(zapTransId.toString());
-            o.setZaloAppTransId(appTransId);
+            // o.setZaloAppTransId(appTransId);
+
+            // Map<String, Object> paymentData = new HashMap<>();
+            // paymentData.put("appId", data.getInt("app_id"));
+            // paymentData.put("appTransId", data.getString("app_trans_id"));
+            // paymentData.put("mac", mac);
+
+            // o.setPaymentData(paymentData);
+
+            o.setPaymentId(data.getString("app_trans_id"));
+
+            o.setPaymentStatus(OrderPaymentStatusEnum.PAID);
 
             orderRepository.save(o);
 
@@ -365,5 +422,53 @@ public class ZaloPayService {
         }
 
         return result;
+    }
+
+    public Map<String, Object> getPaymentDetail(String appTransId) throws Exception {
+
+        // String data = ZaloPayConfig.APP_ID + "|" + appTransId + "|" +
+        //         ZaloPayConfig.KEY1;
+        // String mac = HMACUtil.HMacHexStringEncode(
+        //         HMACUtil.HMACSHA256,
+        //         ZaloPayConfig.KEY1,
+        //         data);
+
+        String data = APP_ID + "|" + appTransId + "|" + KEY1;
+        String mac = HMACUtil.HMacHexStringEncode(
+        HMACUtil.HMACSHA256,
+        // ZaloPayConfig.KEY1,
+        KEY1,
+        data);
+
+        String url = "https://sb-openapi.zalopay.vn/v2/query";
+
+        // logger.warning("app_id: " + APP_ID);
+        // logger.warning("app_trans_id: " + appTransId);
+        // logger.warning("mac: " + mac);
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+
+        // body.add("app_id", String.valueOf(ZaloPayConfig.APP_ID));
+        // body.add("app_trans_id", String.valueOf(appTransId));
+        // body.add("mac", String.valueOf(mac));
+
+        body.add("app_id", String.valueOf(APP_ID));
+        body.add("app_trans_id", String.valueOf(appTransId));
+        body.add("mac", String.valueOf(mac));
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        // return Map.of(
+        // "body", response.getBody());
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> res = mapper.readValue(response.getBody(), new TypeReference<Map<String, Object>>() {
+        });
+
+        return res;
+
     }
 }

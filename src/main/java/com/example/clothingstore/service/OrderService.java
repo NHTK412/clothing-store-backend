@@ -107,6 +107,9 @@ public class OrderService {
 
                 // 9. Lưu dữ liệu
                 productDetailRepository.saveAll(productDetails);
+
+                order.setPaymentStatus(OrderPaymentStatusEnum.UNPAID);
+
                 orderRepository.save(order);
 
                 // 10. Tạo response DTO
@@ -114,6 +117,13 @@ public class OrderService {
 
                 // 11. Cập nhật cart
                 updateCartAfterOrder(customer.getUserId(), orderDetailRequestMaps);
+
+                // 12. Update số lượng sản phẩm trong kho
+                for (OrderDetail orderDetail : orderDetails) {
+                        ProductDetail productDetail = orderDetail.getProductDetail();
+                        productDetail.setQuantity(productDetail.getQuantity() - orderDetail.getQuantity());
+                }
+                productDetailRepository.saveAll(productDetails);
 
                 return orderResponseDTO;
         }
@@ -152,7 +162,7 @@ public class OrderService {
 
                 // orderResponseDTO.setPaymentStatus(order.getPaymentStatus());
 
-                orderResponseDTO.setZaloAppTransId(order.getZaloAppTransId());
+                // orderResponseDTO.setZaloAppTransId(order.getZaloAppTransId());
 
                 // Map order detail
                 List<OrderDetailResponseDTO> orderDetailResponseDTOs = order.getOrderDetails()
@@ -593,7 +603,7 @@ public class OrderService {
                 responseDTO.setDetailedAddress(order.getDetailedAddress());
                 responseDTO.setWard(order.getWard());
                 responseDTO.setProvince(order.getProvince());
-                responseDTO.setZaloAppTransId(order.getZaloAppTransId());
+                // responseDTO.setZaloAppTransId(order.getZaloAppTransId());
                 responseDTO.setIsReview(order.getIsReview());
 
                 // Map order details

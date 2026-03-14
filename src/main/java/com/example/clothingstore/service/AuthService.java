@@ -298,7 +298,7 @@ public class AuthService {
 
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-        String code = encoder.encode(password);
+        // String code = encoder.encode(password);
         // System.out.println(code);
 
         // if (!employee.getPassword().equals(password)) {
@@ -315,15 +315,23 @@ public class AuthService {
 
         secureRandom.nextBytes(bytes);
 
-        String refreshToken = new String(Hex.encode(bytes));
+        // String refreshToken = new String(Hex.encode(bytes));
+        String refreshToken = jwtUtil.generateToken(
+                user.getUserName(),
+                user.getRole().name(),
+                // expiration * 7); // Refresh token có thời gian sống lâu hơn access token
+                Long.valueOf(1000 * 60 * 60 * 24 * 7)); // Refresh token có thời gian sống lâu hơn access token, ở đây
+                                                        // là 7 ngày
 
-        // =====================================================================================
+        // ====================================================================================
         // Tạm thời để vậy vì redis docker đang lỗi k connect được nên nếu không kết nối
         // được thì bỏ qua không lưu vào redis
         try {
             redisTemplate.opsForValue().set(
-                    "refreshToken::" + refreshToken,
-                    user.getUserId(),
+                    // "refreshToken::" + refreshToken,
+                    "refreshToken::" + user.getUserId(),
+                    refreshToken,
+                    // user.getUserId(),
                     7,
                     java.util.concurrent.TimeUnit.DAYS);
         } catch (Exception e) {

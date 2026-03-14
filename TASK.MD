@@ -9,4 +9,9 @@
 
 --------------------------------------------
 ## TEST TRƯỜNG HỢP GIẢM GIÁ CHO SẢN PHẨM
-## Chưa chỉnh logic khi hủy đơn thì trả lại voucher 
+## Chưa chỉnh logic khi hủy đơn thì trả lại voucher  --> done
+
+
+## Tạo logic update đơn hàng - update trả hàng
+
+// ĐANG LM LOGIC TẠO PHIẾU TRẢ HÀNG

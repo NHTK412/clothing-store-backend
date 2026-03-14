@@ -7,6 +7,7 @@ import com.example.clothingstore.dto.orderdetail.OrderDetailResponseDTO;
 import com.example.clothingstore.dto.ordergift.OrderGiftResponseDTO;
 import com.example.clothingstore.enums.OrderPaymentStatusEnum;
 import com.example.clothingstore.enums.OrderStatusEnum;
+import com.example.clothingstore.enums.PaymentMethodEnum;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,7 +30,7 @@ public class OrderResponseDTO {
 
     private Double finalAmount;
 
-    private LocalDateTime deliveryDate;
+    // private LocalDateTime deliveryDate;
 
     private OrderStatusEnum status;
 
@@ -44,14 +45,20 @@ public class OrderResponseDTO {
     private String province;
 
     // private String paymentMethod;
+
+    private PaymentMethodEnum paymentMethod;
+
     private OrderPaymentStatusEnum paymentStatus;
 
-    private String zaloAppTransId;
+    private String paymentId;
 
     private List<OrderDetailResponseDTO> orderDetails;
 
-    private List<OrderGiftResponseDTO> orderGifts;
+
+
+    // private List<OrderGiftResponseDTO> orderGifts;
 
     private Boolean isReview;
+
 
 }

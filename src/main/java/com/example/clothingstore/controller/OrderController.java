@@ -50,17 +50,23 @@ public class OrderController {
                 String userName = userDetails.getUsername();
                 OrderResponseDTO createdOrder = orderService.createOrder(userName, orderRequestDTO);
                 return ResponseEntity.ok(
-                                ApiResponse.created("Successfully created order", createdOrder,
+                                ApiResponse.created(
+                                                "Successfully created order",
+                                                createdOrder,
                                                 request.getRequestURI()));
         }
 
         @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
         @GetMapping("/{orderId}")
-        public ResponseEntity<ApiResponse<OrderResponseDTO>> getOrderById(@PathVariable Integer orderId,
+        public ResponseEntity<ApiResponse<OrderResponseDTO>> getOrderById(
+                        @AuthenticationPrincipal CustomerUserDetails userDetails,
+                        @PathVariable Integer orderId,
                         HttpServletRequest request) {
-                OrderResponseDTO orderResponseDTO = orderService.getOrderById(orderId);
+                OrderResponseDTO orderResponseDTO = orderService.getOrderById(orderId, userDetails.getUserId());
                 return ResponseEntity.ok(
-                                ApiResponse.success("Successfully retrieved order", orderResponseDTO,
+                                ApiResponse.success(
+                                                "Successfully retrieved order",
+                                                orderResponseDTO,
                                                 request.getRequestURI()));
         }
 
@@ -75,7 +81,9 @@ public class OrderController {
                 Integer customerId = userDetails.getUserId();
                 Page<OrderSummaryDTO> orderSummaries = orderService.getAllOrdersByCustomer(customerId, pageable);
                 return ResponseEntity.ok(
-                                ApiResponse.success("Successfully retrieved orders", orderSummaries,
+                                ApiResponse.success(
+                                                "Successfully retrieved orders",
+                                                orderSummaries,
                                                 request.getRequestURI()));
         }
 
@@ -88,29 +96,54 @@ public class OrderController {
                 Pageable pageable = PageRequest.of(page - 1, size);
                 Page<OrderSummaryDTO> orderSummaries = orderService.getAllOrders(pageable);
                 return ResponseEntity.ok(
-                                ApiResponse.success("Successfully retrieved orders", orderSummaries,
+                                ApiResponse.success(
+                                                "Successfully retrieved orders",
+                                                orderSummaries,
+                                                request.getRequestURI()));
+        }
+
+        @PreAuthorize("hasRole('CUSTOMER')")
+        @PatchMapping("/{orderId}/canceled")
+        public ResponseEntity<ApiResponse<OrderResponseDTO>> cancelOrder(
+                        @AuthenticationPrincipal CustomerUserDetails userDetails,
+                        @PathVariable Integer orderId,
+                        HttpServletRequest request) {
+                Integer customerId = userDetails.getUserId();
+                OrderResponseDTO updatedOrder = orderService.cancelOrder(
+                                customerId,
+                                orderId);
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                "Successfully canceled order",
+                                                updatedOrder,
                                                 request.getRequestURI()));
         }
 
         @PreAuthorize("hasRole('ADMIN')")
         @PatchMapping("/{orderId}/status")
-        public ResponseEntity<ApiResponse<OrderResponseDTO>> updateStatus(@PathVariable Integer orderId,
+        public ResponseEntity<ApiResponse<OrderResponseDTO>> updateStatus(
+                        @PathVariable Integer orderId,
                         @RequestParam OrderStatusEnum status,
                         HttpServletRequest request) {
                 OrderResponseDTO updatedOrder = orderService.updateStatus(orderId, status);
                 return ResponseEntity.ok(
-                                ApiResponse.success("Successfully updated order status", updatedOrder,
+                                ApiResponse.success(
+                                                "Successfully updated order status",
+                                                updatedOrder,
                                                 request.getRequestURI()));
         }
 
-        // @PreAuthorize("hasRole('CUSTOMER')")
-        // @PatchMapping("/{orderId}/canceled")
-        // public ResponseEntity<ApiResponse<OrderResponseDTO>>
-        // updateStatus(@PathVariable Integer orderId) {
-        // OrderResponseDTO updatedOrder = orderService.updateStatus(orderId,
-        // OrderStatusEnum.CANCELED);
-        // return ResponseEntity.ok(
-        // ApiResponse.success("Successfully canceled order", updatedOrder));
+        // @PreAuthorize("hasRole('ADMIN')")
+        // @PatchMapping("/{orderId}/refund-payment")
+        // public ResponseEntity<ApiResponse<OrderResponseDTO>> refundPayment(
+        //                 @PathVariable Integer orderId,
+        //                 HttpServletRequest request) {
+        //         OrderResponseDTO updatedOrder = orderService.refundPayment(orderId);
+        //         return ResponseEntity.ok(
+        //                         ApiResponse.success(
+        //                                         "Successfully refunded payment for order",
+        //                                         updatedOrder,
+        //                                         request.getRequestURI()));
         // }
 
 }

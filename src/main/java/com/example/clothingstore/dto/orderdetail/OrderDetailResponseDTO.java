@@ -23,8 +23,16 @@ public class OrderDetailResponseDTO {
 
     private Double price;
 
+    private Double discount;
+
+    private Double finalPrice;
+
     private Integer productId;
 
     private Boolean isReview;
+
+    // private Boolean isRefunded;
+
+    private Integer refundQuantity;
 
 }

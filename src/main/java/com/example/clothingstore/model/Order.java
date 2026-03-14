@@ -2,15 +2,10 @@ package com.example.clothingstore.model;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.annotations.JdbcTypeCode;
 
 import com.example.clothingstore.enums.OrderPaymentStatusEnum;
 import com.example.clothingstore.enums.OrderStatusEnum;
 import com.example.clothingstore.enums.PaymentMethodEnum;
-// import com.example.clothingstore.enums.PaymentMethodStatusEnum;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -21,6 +16,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -28,7 +25,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "Orders")
@@ -57,8 +53,8 @@ public class Order extends Base {
     @Column(name = "FinalAmount")
     private Double finalAmount;
 
-    @Column(name = "DeliveryDate")
-    private LocalDateTime deliveryDate;
+    // @Column(name = "DeliveryDate")
+    // private LocalDateTime deliveryDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "Status")
@@ -79,10 +75,6 @@ public class Order extends Base {
     @Column(name = "Province")
     private String province;
 
-    // @Enumerated(EnumType.STRING)
-    // @Column(name = "PaymentStatus")
-    // private OrderPaymentStatusEnum paymentStatus;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "PaymentMethod")
     private PaymentMethodEnum paymentMethod;
@@ -94,18 +86,8 @@ public class Order extends Base {
     @Column(name = "PaymentId")
     private String paymentId;
 
-    // @JdbcTypeCode(SqlTypes.JSON)
-    // @Column(name = "PaymentData", columnDefinition = "JSON")
-    // private Map<String, Object> paymentData;
-
-    // @Column(name = "ZaloAppTransId")
-    // private String zaloAppTransId;
-
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails;
-
-    // @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    // private List<OrderGift> orderGifts;
 
     @ManyToOne
     @JoinColumn(name = "CustomerId")
@@ -114,4 +96,12 @@ public class Order extends Base {
     @Column(name = "IsReview")
     private Boolean isReview;
 
+    @ManyToMany()
+    @JoinTable(name = "OrderPromotion", joinColumns = @JoinColumn(name = "OrderId"), inverseJoinColumns = @JoinColumn(name = "PromotionId"))
+    private List<Promotion> promotions;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RefundRequest> refundRequests;
+
+    
 }

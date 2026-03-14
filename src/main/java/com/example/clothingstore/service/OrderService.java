@@ -1,5 +1,6 @@
 package com.example.clothingstore.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,9 @@ import com.example.clothingstore.enums.OrderTypeEnum;
 import com.example.clothingstore.enums.PaymentMethodEnum;
 import com.example.clothingstore.enums.PromotionActionTypeEnum;
 import com.example.clothingstore.enums.PromotionTypeEnum;
+import com.example.clothingstore.enums.RefundMethodEnum;
+import com.example.clothingstore.enums.RefundRequestStatusEnum;
+import com.example.clothingstore.enums.RoleEnum;
 import com.example.clothingstore.exception.business.ConflictException;
 import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.model.Cart;
@@ -38,12 +42,18 @@ import com.example.clothingstore.model.ProductDetail;
 import com.example.clothingstore.model.Promotion;
 import com.example.clothingstore.model.PromotionAction;
 import com.example.clothingstore.model.PromotionCondition;
+import com.example.clothingstore.model.RefundItem;
+import com.example.clothingstore.model.RefundRequest;
+import com.example.clothingstore.model.User;
+import com.example.clothingstore.model.VoucherWallet;
 import com.example.clothingstore.model.Address;
 import com.example.clothingstore.repository.CartRepository;
 import com.example.clothingstore.repository.CustomerRepository;
 import com.example.clothingstore.repository.OrderRepository;
 import com.example.clothingstore.repository.ProductDetailRepository;
 import com.example.clothingstore.repository.PromotionRepository;
+import com.example.clothingstore.repository.RefundRequestRepository;
+import com.example.clothingstore.repository.UserRepository;
 import com.example.clothingstore.repository.VoucherWalletRepository;
 import com.example.clothingstore.strategy.action.PromotionActionFactory;
 import com.example.clothingstore.strategy.action.PromotionActionStrategy;
@@ -63,6 +73,8 @@ public class OrderService {
         private final CustomerRepository customerRepository;
         private final CartRepository cartRepository;
         private final VoucherWalletRepository voucherWalletRepository;
+        private final UserRepository userRepository;
+        private final RefundRequestRepository refundRequestRepository;
 
         private final PromotionConditionFactory promotionConditionFactory;
         private final PromotionActionFactory promotionActionFactory;
@@ -132,65 +144,75 @@ public class OrderService {
                 }
                 productDetailRepository.saveAll(productDetails);
 
+                List<Promotion> appliedPromotions = promotionRepository
+                                .findAllById(orderPreviewDTO.getAppliedPromotions());
+
+                order.setPromotions(appliedPromotions);
+
                 customer.getVoucherWallets().removeIf(vw -> orderRequestDTO.getPromotionApplyIds()
                                 .contains(vw.getPromotion().getPromotionId()));
-                                
+
                 return orderResponseDTO;
         }
 
         @Transactional
-        public OrderResponseDTO getOrderById(Integer orderId) {
-
+        public OrderResponseDTO getOrderById(Integer orderId, Integer userId) {
                 Order order = orderRepository.findById(orderId)
                                 .orElseThrow(() -> new NotFoundException("Order not found"));
 
+                User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+
+                if (user.getRole() == RoleEnum.ROLE_CUSTOMER) {
+                        if (!order.getCustomer().getUserId().equals(userId)) {
+                                throw new ConflictException("You can only view your own orders");
+                        }
+                }
+
                 OrderResponseDTO orderResponseDTO = new OrderResponseDTO();
-
                 orderResponseDTO.setOrderId(order.getOrderId());
-
                 orderResponseDTO.setTotalAmount(order.getTotalAmount());
-
                 orderResponseDTO.setDiscountAmount(order.getDiscountAmount());
-
                 orderResponseDTO.setShippingFee(order.getShippingFee());
-
-                orderResponseDTO.setDeliveryDate(order.getDeliveryDate());
-
+                orderResponseDTO.setDiscountShippingFee(order.getDiscountShippingFee());
+                orderResponseDTO.setFinalAmount(order.getFinalAmount());
+                // orderResponseDTO.setDeliveryDate(order.getDeliveryDate());
                 orderResponseDTO.setStatus(order.getStatus());
-
                 orderResponseDTO.setRecipientName(order.getRecipientName());
-
                 orderResponseDTO.setPhoneNumber(order.getPhoneNumber());
-
                 orderResponseDTO.setDetailedAddress(order.getDetailedAddress());
-
                 orderResponseDTO.setWard(order.getWard());
-
                 orderResponseDTO.setProvince(order.getProvince());
+
+                orderResponseDTO.setPaymentMethod(order.getPaymentMethod());
+                orderResponseDTO.setPaymentStatus(order.getPaymentStatus());
+                orderResponseDTO.setPaymentId(order.getPaymentId());
 
                 // Map order detail
                 List<OrderDetailResponseDTO> orderDetailResponseDTOs = order.getOrderDetails()
                                 .stream()
                                 .map(od -> {
                                         OrderDetailResponseDTO orderDetailResponseDTO = new OrderDetailResponseDTO();
-
                                         orderDetailResponseDTO.setProductName(od.getProductName());
-
                                         orderDetailResponseDTO.setProductImage(od.getProductImage());
-
                                         orderDetailResponseDTO.setColor(od.getColor());
-
                                         orderDetailResponseDTO.setSize(od.getSize());
-
                                         orderDetailResponseDTO.setQuantity(od.getQuantity());
-
                                         orderDetailResponseDTO.setPrice(od.getPrice());
-
                                         orderDetailResponseDTO.setOrderDetailId(od.getDetailId());
-
-                                        orderDetailResponseDTO.setProductId(od.getProductDetail().getProductColor()
-                                                        .getProduct().getProductId());
-
+                                        orderDetailResponseDTO.setProductId(
+                                                        od.getProductDetail().getProductColor()
+                                                                        .getProduct().getProductId());
+                                        orderDetailResponseDTO.setDiscount(od.getDiscount());
+                                        orderDetailResponseDTO.setFinalPrice(od.getFinalPrice());
+                                        orderDetailResponseDTO.setIsReview(od.getIsReview());
+                                        orderDetailResponseDTO.setRefundQuantity(refundRequestRepository
+                                                        .findByOrder_OrderId(order.getOrderId())
+                                                        .stream()
+                                                        .flatMap(rr -> rr.getRefundItems().stream())
+                                                        .filter(ri -> ri.getProductDetail().getDetailId()
+                                                                        .equals(od.getProductDetail().getDetailId()))
+                                                        .mapToInt(ri -> ri.getQuantity())
+                                                        .sum());
                                         return orderDetailResponseDTO;
                                 })
                                 .toList();
@@ -211,11 +233,11 @@ public class OrderService {
 
                                         orderSummaryDTO.setOrderId(order.getOrderId());
 
-                                        orderSummaryDTO.setTotalAmount(order.getTotalAmount());
+                                        orderSummaryDTO.setFinalAmount(order.getFinalAmount());
 
                                         orderSummaryDTO.setShippingFee(order.getShippingFee());
 
-                                        orderSummaryDTO.setDeliveryDate(order.getDeliveryDate());
+                                        // orderSummaryDTO.setDeliveryDate(order.getDeliveryDate());
 
                                         orderSummaryDTO.setStatus(order.getStatus());
 
@@ -244,9 +266,9 @@ public class OrderService {
                                 order -> {
                                         OrderSummaryDTO orderSummaryDTO = new OrderSummaryDTO();
                                         orderSummaryDTO.setOrderId(order.getOrderId());
-                                        orderSummaryDTO.setTotalAmount(order.getTotalAmount());
+                                        orderSummaryDTO.setFinalAmount(order.getFinalAmount());
                                         orderSummaryDTO.setShippingFee(order.getShippingFee());
-                                        orderSummaryDTO.setDeliveryDate(order.getDeliveryDate());
+                                        // orderSummaryDTO.setDeliveryDate(order.getDeliveryDate());
                                         orderSummaryDTO.setStatus(order.getStatus());
                                         orderSummaryDTO.setOrderFirstName(
                                                         order.getOrderDetails().get(0).getProductName());
@@ -259,27 +281,20 @@ public class OrderService {
 
         @Transactional
         public OrderResponseDTO updateStatus(Integer orderId, OrderStatusEnum status) {
-
                 Order order = orderRepository.findById(orderId)
                                 .orElseThrow(() -> new NotFoundException("Order not found"));
 
-                if (status == OrderStatusEnum.CANCELED) {
-                        if (order.getStatus() != OrderStatusEnum.PLACED) {
-                                throw new ConflictException("Only orders with status PLACED can be canceled");
-                        }
+                order.setStatus(status);
 
-                        // Hoàn lại số lượng vào kho
-                        for (OrderDetail od : order.getOrderDetails()) {
-                                ProductDetail pd = od.getProductDetail();
-                                pd.setQuantity(pd.getQuantity() + od.getQuantity());
-                                productDetailRepository.save(pd);
-                        }
+                if (status == OrderStatusEnum.CANCELED) {
+                        refundProduct(order);
+                        refundVoucher(order);
                 }
 
-                order.setStatus(status);
                 orderRepository.save(order);
 
-                return getOrderById(order.getOrderId());
+                return getOrderById(order.getOrderId(), order.getCustomer().getUserId());
+
         }
 
         private Customer validateAndGetCustomer(String userName) {
@@ -316,7 +331,7 @@ public class OrderService {
         private Order initializeOrder(Customer customer) {
                 Order order = new Order();
                 order.setCustomer(customer);
-                order.setDeliveryDate(LocalDateTime.now().plusDays(3));
+                // order.setDeliveryDate(LocalDateTime.now().plusDays(3));
                 order.setStatus(OrderStatusEnum.PLACED);
                 order.setIsReview(false);
                 return order;
@@ -477,12 +492,14 @@ public class OrderService {
         private OrderResponseDTO createOrderResponseDTO(Order order) {
                 OrderResponseDTO responseDTO = new OrderResponseDTO();
                 responseDTO.setOrderId(order.getOrderId());
+
                 responseDTO.setTotalAmount(order.getTotalAmount());
                 responseDTO.setDiscountAmount(order.getDiscountAmount());
                 responseDTO.setShippingFee(order.getShippingFee());
                 responseDTO.setDiscountShippingFee(order.getDiscountShippingFee());
                 responseDTO.setFinalAmount(order.getFinalAmount());
-                responseDTO.setDeliveryDate(order.getDeliveryDate());
+
+                // responseDTO.setDeliveryDate(order.getDeliveryDate());
                 responseDTO.setStatus(order.getStatus());
                 responseDTO.setRecipientName(order.getRecipientName());
                 responseDTO.setPhoneNumber(order.getPhoneNumber());
@@ -491,6 +508,10 @@ public class OrderService {
                 responseDTO.setProvince(order.getProvince());
                 // responseDTO.setZaloAppTransId(order.getZaloAppTransId());
                 responseDTO.setIsReview(order.getIsReview());
+
+                responseDTO.setPaymentMethod(order.getPaymentMethod());
+                responseDTO.setPaymentStatus(order.getPaymentStatus());
+                responseDTO.setPaymentId(order.getPaymentId());
 
                 // Map order details
                 List<OrderDetailResponseDTO> orderDetailDTOs = order.getOrderDetails().stream()
@@ -503,16 +524,34 @@ public class OrderService {
 
         private OrderDetailResponseDTO buildOrderDetailResponseDTO(OrderDetail orderDetail) {
                 OrderDetailResponseDTO dto = new OrderDetailResponseDTO();
+                dto.setProductId(orderDetail.getProductDetail().getProductColor()
+                                .getProduct().getProductId());
                 dto.setProductName(orderDetail.getProductName());
                 dto.setProductImage(orderDetail.getProductImage());
                 dto.setColor(orderDetail.getColor());
                 dto.setSize(orderDetail.getSize());
                 dto.setQuantity(orderDetail.getQuantity());
+
                 dto.setPrice(orderDetail.getPrice());
+                dto.setDiscount(orderDetail.getDiscount());
+                dto.setFinalPrice(orderDetail.getFinalPrice());
+
                 dto.setOrderDetailId(orderDetail.getDetailId());
-                dto.setProductId(orderDetail.getProductDetail().getProductColor()
-                                .getProduct().getProductId());
+
                 dto.setIsReview(orderDetail.getIsReview());
+
+                List<RefundRequest> refundRequests = refundRequestRepository
+                                .findByOrder_OrderId(orderDetail.getOrder().getOrderId());
+
+                Integer refundQuantity = refundRequests.stream()
+                                .flatMap(rr -> rr.getRefundItems().stream())
+                                .filter(ri -> ri.getProductDetail().getDetailId()
+                                                .equals(orderDetail.getProductDetail().getDetailId()))
+                                .mapToInt(ri -> ri.getQuantity())
+                                .sum();
+
+                dto.setRefundQuantity(refundQuantity);
+
                 return dto;
         }
 
@@ -532,4 +571,81 @@ public class OrderService {
                 cartRepository.save(cart);
         }
 
+        @Transactional
+        public OrderResponseDTO cancelOrder(
+                        Integer customerId,
+                        Integer orderId) {
+                Order order = orderRepository.findById(orderId)
+                                .orElseThrow(() -> new NotFoundException("Order not found"));
+                if (!order.getCustomer().getUserId().equals(customerId)) {
+                        throw new ConflictException("You can only cancel your own orders");
+                }
+                if (order.getStatus() != OrderStatusEnum.PLACED) {
+                        throw new ConflictException("Only orders with status PLACED can be canceled");
+                }
+                order.setStatus(OrderStatusEnum.CANCELED);
+                refundProduct(order);
+                refundVoucher(order);
+                if (order.getPaymentStatus() == OrderPaymentStatusEnum.PAID) {
+                        refundPayment(order);
+                }
+
+                orderRepository.save(order);
+
+                return getOrderById(order.getOrderId(), customerId);
+        }
+
+        private void refundPayment(Order order) {
+                RefundRequest refundRequest = new RefundRequest();
+                refundRequest.setOrder(order);
+                refundRequest.setReason("Refund for canceled order");
+                refundRequest.setStatus(RefundRequestStatusEnum.APPROVED);
+                refundRequest.setRefundMethod(RefundMethodEnum.ZALOPAY);
+                refundRequest.setRefundShippingFee(BigDecimal.valueOf(
+                                order.getShippingFee() - order.getDiscountShippingFee()));
+
+                List<RefundItem> refundItems = order.getOrderDetails().stream()
+                                .map(od -> {
+                                        RefundItem refundItem = new RefundItem();
+                                        refundItem.setProductDetail(od.getProductDetail());
+                                        refundItem.setQuantity(od.getQuantity());
+                                        refundItem.setRefundAmount(BigDecimal.valueOf(od.getFinalPrice()));
+                                        refundItem.setRefundRequest(refundRequest);
+                                        return refundItem;
+                                })
+                                .toList();
+                refundRequest.setRefundItems(refundItems);
+
+                order.getRefundRequests().add(refundRequest);
+
+        }
+
+        private void refundProduct(Order order) {
+                for (OrderDetail od : order.getOrderDetails()) {
+                        ProductDetail pd = od.getProductDetail();
+                        pd.setQuantity(pd.getQuantity() + od.getQuantity());
+                        productDetailRepository.save(pd);
+                }
+
+        }
+
+        private void refundVoucher(
+                        Order order) {
+                List<Promotion> appliedPromotions = order.getPromotions();
+                Customer customer = order.getCustomer();
+                Set<Promotion> customerPromotions = appliedPromotions.stream()
+                                .filter(promo -> promo.getPromotionType() != PromotionTypeEnum.AUTOMATIC)
+                                .collect(Collectors.toSet());
+                List<VoucherWallet> voucherWalletsToReturn = customerPromotions.stream()
+                                .map(
+                                                (promotion) -> {
+                                                        VoucherWallet voucherWallet = new VoucherWallet();
+                                                        voucherWallet.setCustomer(customer);
+                                                        voucherWallet.setPromotion(promotion);
+                                                        return voucherWallet;
+                                                })
+                                .toList();
+                voucherWalletRepository.saveAll(voucherWalletsToReturn);
+                orderRepository.save(order);
+        }
 }

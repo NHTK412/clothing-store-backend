@@ -2,13 +2,11 @@ package com.example.clothingstore.service;
 
 import java.security.SecureRandom;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.codec.Hex;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException.Conflict;
 
 import com.example.clothingstore.dto.auth.AuthResponseDTO;
 import com.example.clothingstore.enums.AccountStatusEnum;

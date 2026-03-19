@@ -30,7 +30,6 @@ public class RefundPayment extends Base {
     @Column(name = "RefundPaymentId")
     private Integer refundPaymentId;
 
-
     @Column(name = "GatewayRefundId")
     private String gatewayRefundId;
 

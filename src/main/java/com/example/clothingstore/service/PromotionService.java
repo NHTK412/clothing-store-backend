@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.access.method.P;
 import org.springframework.stereotype.Service;
 
 import com.example.clothingstore.dto.promotion.PromotionActionResponseDTO;
@@ -45,7 +44,6 @@ import com.example.clothingstore.repository.PromotionGroupRepository;
 import com.example.clothingstore.repository.PromotionMemberTierRepository;
 import com.example.clothingstore.repository.PromotionRepository;
 import com.example.clothingstore.repository.PromotionTargetUserRepository;
-import com.example.clothingstore.repository.UserRepository;
 import com.example.clothingstore.repository.VoucherWalletRepository;
 import com.example.clothingstore.strategy.scope.PromotionScopeStrategy;
 import com.example.clothingstore.strategy.scope.PromotionScopeFactory;

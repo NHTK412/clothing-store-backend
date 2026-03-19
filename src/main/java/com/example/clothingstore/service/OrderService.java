@@ -1,15 +1,12 @@
 package com.example.clothingstore.service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,12 +18,9 @@ import com.example.clothingstore.dto.order.OrderSummaryDTO;
 import com.example.clothingstore.dto.orderdetail.OrderDetailPreviewDTO;
 import com.example.clothingstore.dto.orderdetail.OrderDetailRequestDTO;
 import com.example.clothingstore.dto.orderdetail.OrderDetailResponseDTO;
-import com.example.clothingstore.dto.ordergift.OrderGiftResponseDTO;
 import com.example.clothingstore.enums.OrderPaymentStatusEnum;
 import com.example.clothingstore.enums.OrderStatusEnum;
 import com.example.clothingstore.enums.OrderTypeEnum;
-import com.example.clothingstore.enums.PaymentMethodEnum;
-import com.example.clothingstore.enums.PromotionActionTypeEnum;
 import com.example.clothingstore.enums.PromotionTypeEnum;
 import com.example.clothingstore.enums.RefundMethodEnum;
 import com.example.clothingstore.enums.RefundRequestStatusEnum;
@@ -37,7 +31,6 @@ import com.example.clothingstore.model.Cart;
 import com.example.clothingstore.model.Customer;
 import com.example.clothingstore.model.Order;
 import com.example.clothingstore.model.OrderDetail;
-import com.example.clothingstore.model.OrderGift;
 import com.example.clothingstore.model.ProductDetail;
 import com.example.clothingstore.model.Promotion;
 import com.example.clothingstore.model.PromotionAction;

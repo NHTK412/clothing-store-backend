@@ -5,19 +5,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.catalina.connector.Request;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.example.clothingstore.dto.refund.CreateRefundPaymentDTO;
 import com.example.clothingstore.dto.refund.RefundRequestDTO;
+import com.example.clothingstore.dto.refund.RefundResponseDTO;
+import com.example.clothingstore.dto.refund.RefundSummaryDTO;
 import com.example.clothingstore.enums.OrderStatusEnum;
+import com.example.clothingstore.enums.RefundMethodEnum;
+import com.example.clothingstore.enums.RefundRequestStatusEnum;
 import com.example.clothingstore.exception.business.ConflictException;
 import com.example.clothingstore.exception.business.NotFoundException;
-import com.example.clothingstore.exception.security.AccessDeniedHandlerException;
+import com.example.clothingstore.mapper.mapstruct.RefundMapper;
 import com.example.clothingstore.model.Order;
 import com.example.clothingstore.model.OrderDetail;
 import com.example.clothingstore.model.RefundItem;
 import com.example.clothingstore.model.RefundPayment;
 import com.example.clothingstore.model.RefundRequest;
-import com.example.clothingstore.repository.CustomerRepository;
 import com.example.clothingstore.repository.OrderRepository;
 import com.example.clothingstore.repository.RefundRequestRepository;
 
@@ -29,6 +36,8 @@ import lombok.RequiredArgsConstructor;
 public class RefundRequestService {
         private final RefundRequestRepository refundRequestRepository;
         private final OrderRepository orderRepository;
+
+        private final RefundMapper refundMapper;
 
         @Transactional
         public Map<String, Object> createRefundRequest(
@@ -121,6 +130,76 @@ public class RefundRequestService {
                 return Map.of(
                                 "refundRequestId", refundRequest.getRefundRequestId());
 
+        }
+
+        @Transactional
+        public Page<RefundSummaryDTO> getAll(Pageable pageable) {
+                return refundRequestRepository.findAll(pageable)
+                                .map(refundMapper::toSummaryDTO);
+        }
+
+        @Transactional
+        public RefundResponseDTO getById(Long refundRequestId) {
+                RefundRequest refundRequest = refundRequestRepository.findById(refundRequestId)
+                                .orElseThrow(() -> new NotFoundException(
+                                                "Refund request not found with ID: " + refundRequestId));
+                return refundMapper.toResponseDTO(refundRequest);
+        }
+
+        @Transactional
+        public RefundResponseDTO updateStatus(Long refundRequestId, RefundRequestStatusEnum status) {
+                RefundRequest refundRequest = refundRequestRepository.findById(refundRequestId)
+                                .orElseThrow(() -> new NotFoundException(
+                                                "Refund request not found with ID: " + refundRequestId));
+
+                if (refundRequest.getStatus() != RefundRequestStatusEnum.PENDING) {
+                        throw new ConflictException(
+                                        "Only refund requests with status PENDING can be updated.");
+                }
+                refundRequest.setStatus(status);
+                refundRequestRepository.save(refundRequest);
+                return refundMapper.toResponseDTO(refundRequest);
+        }
+
+        @Transactional
+        public RefundResponseDTO updateRefundMethod(Long refundRequestId, RefundMethodEnum refundMethod) {
+                RefundRequest refundRequest = refundRequestRepository.findById(refundRequestId)
+                                .orElseThrow(() -> new NotFoundException(
+                                                "Refund request not found with ID: " + refundRequestId));
+
+                if (refundRequest.getStatus() != RefundRequestStatusEnum.PENDING) {
+                        throw new ConflictException(
+                                        "Only refund requests with status PENDING can be updated.");
+                }
+                refundRequest.setRefundMethod(refundMethod);
+                refundRequestRepository.save(refundRequest);
+                return refundMapper.toResponseDTO(refundRequest);
+        }
+
+        @Transactional
+        public RefundResponseDTO processRefundPayment(Long refundRequestId,
+                        CreateRefundPaymentDTO createRefundPaymentDTO) {
+                RefundRequest refundRequest = refundRequestRepository.findById(refundRequestId)
+                                .orElseThrow(() -> new NotFoundException(
+                                                "Refund request not found with ID: " + refundRequestId));
+
+                if (refundRequest.getStatus() != RefundRequestStatusEnum.APPROVED) {
+                        throw new ConflictException(
+                                        "Only refund requests with status APPROVED can be processed for payment.");
+
+                }
+
+                RefundPayment refundPayment = new RefundPayment();
+                refundPayment.setGatewayRefundId(createRefundPaymentDTO.getGatewayRefundId());
+                refundPayment.setImageRefund(createRefundPaymentDTO.getImageRefund());
+                refundPayment.setNote(createRefundPaymentDTO.getNote());
+                refundRequest.setRefundPayment(refundPayment);
+
+                refundRequest.setStatus(RefundRequestStatusEnum.COMPLETED);
+
+                refundRequestRepository.save(refundRequest);
+
+                return refundMapper.toResponseDTO(refundRequest);
         }
 
 }

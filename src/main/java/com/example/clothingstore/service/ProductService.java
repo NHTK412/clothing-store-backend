@@ -1,13 +1,10 @@
 package com.example.clothingstore.service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 
@@ -77,27 +74,22 @@ public class ProductService {
     }
 
     @Transactional
-    // public List<ProductSummaryDTO> getAllProduct(Integer categoryId, Pageable pageable) {
+    // public List<ProductSummaryDTO> getAllProduct(Integer categoryId, Pageable
+    // pageable) {
     public Page<ProductSummaryDTO> getAllProduct(Integer categoryId, Pageable pageable) {
-
 
         Page<Product> products = (categoryId == null) ? productRepository.findAll(pageable)
                 : productRepository.findByCategories_CategoryId(categoryId, pageable);
 
         // List<ProductSummaryDTO> productSummaryDTOs = products.toList()
-        //         .stream()
-        //         .map((product) -> {
-        //             // return new ProductSummaryDTO(product);
-        //             return productMapper.toSummaryDTO(product);
-        //         })
-        //         .toList();
-
-
+        // .stream()
+        // .map((product) -> {
+        // // return new ProductSummaryDTO(product);
+        // return productMapper.toSummaryDTO(product);
+        // })
+        // .toList();
 
         return products.map(productMapper::toSummaryDTO);
-        
-
-        
 
         // return productSummaryDTOs;
     }

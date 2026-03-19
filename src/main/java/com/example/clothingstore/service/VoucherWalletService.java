@@ -6,7 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.example.clothingstore.dto.promotion.PromotionResponseDTO;
 import com.example.clothingstore.dto.promotion.PromotionSummaryDTO;
 import com.example.clothingstore.enums.PromotionTypeEnum;
 import com.example.clothingstore.exception.business.ConflictException;

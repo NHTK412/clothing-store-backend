@@ -1,8 +1,5 @@
 package com.example.clothingstore.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +19,6 @@ import com.example.clothingstore.dto.order.OrderRequestDTO;
 import com.example.clothingstore.dto.order.OrderResponseDTO;
 import com.example.clothingstore.dto.order.OrderSummaryDTO;
 import com.example.clothingstore.enums.OrderStatusEnum;
-import com.example.clothingstore.model.Order;
 import com.example.clothingstore.service.OrderService;
 import com.example.clothingstore.util.ApiResponse;
 import com.example.clothingstore.util.CustomerUserDetails;
@@ -136,14 +132,14 @@ public class OrderController {
         // @PreAuthorize("hasRole('ADMIN')")
         // @PatchMapping("/{orderId}/refund-payment")
         // public ResponseEntity<ApiResponse<OrderResponseDTO>> refundPayment(
-        //                 @PathVariable Integer orderId,
-        //                 HttpServletRequest request) {
-        //         OrderResponseDTO updatedOrder = orderService.refundPayment(orderId);
-        //         return ResponseEntity.ok(
-        //                         ApiResponse.success(
-        //                                         "Successfully refunded payment for order",
-        //                                         updatedOrder,
-        //                                         request.getRequestURI()));
+        // @PathVariable Integer orderId,
+        // HttpServletRequest request) {
+        // OrderResponseDTO updatedOrder = orderService.refundPayment(orderId);
+        // return ResponseEntity.ok(
+        // ApiResponse.success(
+        // "Successfully refunded payment for order",
+        // updatedOrder,
+        // request.getRequestURI()));
         // }
 
 }

@@ -3,9 +3,13 @@ package com.example.clothingstore.service;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.apache.catalina.connector.Request;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,6 +26,7 @@ import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.mapper.mapstruct.RefundMapper;
 import com.example.clothingstore.model.Order;
 import com.example.clothingstore.model.OrderDetail;
+import com.example.clothingstore.model.ProductDetail;
 import com.example.clothingstore.model.RefundItem;
 import com.example.clothingstore.model.RefundPayment;
 import com.example.clothingstore.model.RefundRequest;
@@ -38,6 +43,155 @@ public class RefundRequestService {
         private final OrderRepository orderRepository;
 
         private final RefundMapper refundMapper;
+
+        private static final Logger logger = LoggerFactory.getLogger(RefundRequestService.class);
+
+        @Transactional
+        // public void createRefundRequest_v2(
+        public RefundResponseDTO createRefundRequest_v2(
+                        Integer customerId,
+                        RefundRequestDTO refundRequestDTO) {
+
+                // Kiểm tra tồn tại
+                Order order = orderRepository.findById(refundRequestDTO.getOrderId())
+                                .orElseThrow(() -> new NotFoundException(
+                                                "Order not found with ID: " + refundRequestDTO.getOrderId()));
+                // Kiểm tra quyền sở hữu
+                if (!order.getCustomer().getUserId().equals(customerId)) {
+                        throw new ConflictException(
+                                        "Customer does not own the order with ID: " + refundRequestDTO.getOrderId());
+                }
+
+                // Kiểm tra các item có thuộc đơn hàng không
+                if (!refundRequestDTO.getRefundItems().stream()
+                                .allMatch(refundItem -> order.getOrderDetails().stream()
+                                                .anyMatch(orderDetail -> orderDetail.getDetailId()
+                                                                .equals(refundItem.getOrderItemId())))) {
+                        throw new ConflictException(
+                                        "One or more items in the refund request do not exist in the order.");
+                }
+                // Kiểm tra trạng thái đơn hàng
+                if (order.getStatus() != OrderStatusEnum.DELIVERED) {
+                        throw new ConflictException(
+                                        "Refund request can only be created for orders with status DELIVERED.");
+                }
+                // Kiểm tra item của request
+                if (refundRequestDTO.getRefundItems() == null || refundRequestDTO.getRefundItems().isEmpty()) {
+                        throw new ConflictException("Refund request must contain at least one item.");
+                }
+
+                Map<Integer, Integer> soSanPhamDaMua = order.getOrderDetails().stream()
+                                .collect(Collectors.toMap(
+                                                (orderDetail) -> orderDetail.getProductDetail().getDetailId(),
+                                                (orderDetail) -> orderDetail.getQuantity()));
+
+                for (Integer i : soSanPhamDaMua.keySet()) {
+                        logger.warn("soSanPhamDaMua: " + i + " - " + soSanPhamDaMua.get(i));
+                }
+
+                Map<Integer, Integer> soSanPhamDaHoan = order
+                                .getRefundRequests()
+                                .stream()
+                                .flatMap((refundRequest) -> refundRequest.getRefundItems().stream())
+                                .collect(Collectors.groupingBy(
+                                                (refundItem) -> refundItem.getProductDetail()
+                                                                .getDetailId(),
+                                                Collectors.summingInt(RefundItem::getQuantity)));
+                for (Integer i : soSanPhamDaHoan.keySet()) {
+                        logger.warn("soSanPhamDaHoan: " + i + " - " + soSanPhamDaHoan.get(i));
+                }
+
+                Map<Integer, Integer> sanPhamConLaiCoTheHoan = order.getOrderDetails().stream().collect(
+                                Collectors.toMap((orderDetail) -> orderDetail.getProductDetail().getDetailId(),
+                                                (orderDetail) -> {
+                                                        Integer quantityMua = orderDetail.getQuantity();
+                                                        Integer quantityDaHoan = soSanPhamDaHoan.get(orderDetail
+                                                                        .getProductDetail().getDetailId()) == null
+                                                                                        ? 0
+                                                                                        : soSanPhamDaHoan.get(
+                                                                                                        orderDetail.getProductDetail()
+                                                                                                                        .getDetailId());
+                                                        Integer quantityConLai = quantityMua - quantityDaHoan;
+                                                        return quantityConLai;
+                                                }));
+
+                for (Integer i : sanPhamConLaiCoTheHoan.keySet()) {
+                        logger.warn("sanPhamConLaiCoTheHoan: " + i + " - " + sanPhamConLaiCoTheHoan.get(i));
+                }
+
+                List<Integer> cacChiTieuTraHang = refundRequestDTO.getRefundItems().stream()
+                                .map((refundItem) -> refundItem.getOrderItemId())
+                                .collect(Collectors.toList());
+
+                Map<Integer, OrderDetail> orderItemMaps = order.getOrderDetails().stream()
+                                .filter((orderDetail) -> cacChiTieuTraHang.contains(orderDetail.getDetailId()))
+                                .collect(Collectors.toMap(
+                                                (orderDetail) -> orderDetail.getDetailId(),
+                                                (orderDetail) -> orderDetail));
+
+                Map<Integer, ProductDetail> productDetailMaps = order.getOrderDetails().stream()
+                                .filter((orderDetail) -> cacChiTieuTraHang.contains(orderDetail.getDetailId()))
+                                .collect(Collectors.toMap(
+                                                (orderDetail) -> orderDetail.getDetailId(),
+                                                (orderDetail) -> orderDetail.getProductDetail()));
+
+                var soLuongYeuCauHoanTrongRequest = refundRequestDTO.getRefundItems().stream()
+                                .collect(Collectors.toMap(
+                                                (refundItem) -> orderItemMaps.get(refundItem.getOrderItemId())
+                                                                .getProductDetail().getDetailId(),
+                                                (refundItem) -> refundItem.getQuantity()));
+
+                var allItemsInRefundRequestExistInOrder = soLuongYeuCauHoanTrongRequest.entrySet().stream()
+                                .allMatch((entry) -> sanPhamConLaiCoTheHoan.containsKey(entry.getKey())
+                                                && entry.getValue() > 0
+                                                && entry.getValue() <= sanPhamConLaiCoTheHoan.get(entry.getKey()));
+                if (!allItemsInRefundRequestExistInOrder) {
+                        throw new ConflictException(
+                                        "One or more items in the refund request do not exist in the order or have invalid quantity.");
+                }
+
+                // Hoàn tiền ship nếu như khách hàng yêu cầu hoàn tất cả sản phẩm của đơn hàng ( Nếu số khách yêu cầu = số lượng sản phẩm còn lại có thể hoàn trong đơn hàng)
+                boolean isRefundShippingFee = soLuongYeuCauHoanTrongRequest.entrySet().stream()
+                                .allMatch((entry) -> entry.getValue().equals(sanPhamConLaiCoTheHoan.get(entry.getKey())));
+
+                
+
+                BigDecimal refundShippingFee = isRefundShippingFee
+                                ? BigDecimal.valueOf(order.getShippingFee() - order.getDiscountShippingFee())
+                                : BigDecimal.ZERO;
+
+                // Tạo refund request
+                RefundRequest newRefundRequest = new RefundRequest();
+                newRefundRequest.setOrder(order);
+                newRefundRequest.setReason(refundRequestDTO.getReason());
+                newRefundRequest.setRefundMethod(refundRequestDTO.getRefundMethod());
+                newRefundRequest.setStatus(RefundRequestStatusEnum.PENDING);
+
+                newRefundRequest.setRefundShippingFee(refundShippingFee);
+
+                List<RefundItem> newRefundItems = refundRequestDTO.getRefundItems().stream()
+                                .map((refundItem) -> {
+                                        RefundItem newRefundItem = new RefundItem();
+                                        newRefundItem.setProductDetail(productDetailMaps.get(
+                                                        refundItem.getOrderItemId()));
+                                        newRefundItem.setQuantity(refundItem.getQuantity());
+                                        newRefundItem.setRefundAmount(BigDecimal.valueOf(
+                                                        orderItemMaps.get(
+                                                                        refundItem.getOrderItemId())
+                                                                        .getFinalPrice()));
+                                        newRefundItem.setRefundRequest(newRefundRequest);
+                                        return newRefundItem;
+                                })
+                                .toList();
+
+                newRefundRequest.setRefundItems(newRefundItems);
+
+                // throw new RuntimeException("Test");
+                refundRequestRepository.save(newRefundRequest);
+
+                return refundMapper.toResponseDTO(newRefundRequest);
+
+        }
 
         @Transactional
         public Map<String, Object> createRefundRequest(
@@ -58,7 +212,7 @@ public class RefundRequestService {
                                         "Refund request can only be created for orders with status DELIVERED.");
                 }
 
-                order.setStatus(OrderStatusEnum.RETURNED);
+                // order.setStatus(OrderStatusEnum.RETURNED);
                 orderRepository.save(order);
 
                 Map<Integer, OrderDetail> orderDetailMaps = order.getOrderDetails().stream()
@@ -130,6 +284,12 @@ public class RefundRequestService {
                 return Map.of(
                                 "refundRequestId", refundRequest.getRefundRequestId());
 
+        }
+
+        @Transactional
+        public Page<RefundSummaryDTO> getByCustomerId(Integer customerId, Pageable pageable) {
+                return refundRequestRepository.findByOrder_Customer_UserId(customerId, pageable)
+                                .map(refundMapper::toSummaryDTO);
         }
 
         @Transactional

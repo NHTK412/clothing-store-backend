@@ -272,17 +272,47 @@ public class OrderService {
                                 });
         }
 
+        private Map<OrderStatusEnum, List<OrderStatusEnum>> allowedStatusTransitions = Map.of(
+                        OrderStatusEnum.PLACED, List.of(OrderStatusEnum.PREPARING, OrderStatusEnum.CANCELED),
+                        OrderStatusEnum.PREPARING, List.of(OrderStatusEnum.SHIPPED, OrderStatusEnum.CANCELED),
+                        OrderStatusEnum.SHIPPED, List.of(OrderStatusEnum.DELIVERED),
+                        OrderStatusEnum.DELIVERED, List.of(),
+                        OrderStatusEnum.CANCELED, List.of());
+        // OrderStatusEnum.RETURNED, List.of());
+        // private List<OrderStatusEnum> orderStatus
+
+        private boolean isValidStatusTransition(OrderStatusEnum currentStatus, OrderStatusEnum newStatus) {
+                return allowedStatusTransitions.getOrDefault(currentStatus, List.of()).contains(newStatus);
+        }
+
         @Transactional
         public OrderResponseDTO updateStatus(Integer orderId, OrderStatusEnum status) {
-                Order order = orderRepository.findById(orderId)
-                                .orElseThrow(() -> new NotFoundException("Order not found"));
-
-                order.setStatus(status);
 
                 if (status == OrderStatusEnum.CANCELED) {
-                        refundProduct(order);
-                        refundVoucher(order);
+                        throw new ConflictException("Cannot update order status to CANCELED from this endpoint");
                 }
+
+                Order order = orderRepository.findById(orderId)
+                                .orElseThrow(() -> new NotFoundException("Order not found"));
+                if (!isValidStatusTransition(order.getStatus(), status)) {
+                        throw new ConflictException(
+                                        "Invalid order status transition from " + order.getStatus() + " to " + status);
+                }
+
+                switch (status) {
+                        // Trường hợp này là vì khi cập nhật trạng thái sang DELIVERED thì mới coi là đã
+                        // thanh toán, còn các trạng thái trước đó vẫn để UNPAID
+                        // Nếu đã thanh toán trước đó (ví dụ khách hàng thanh toán trước khi nhận hàng)
+                        // thì sẽ không bị ảnh hưởng bởi logic này
+                        case DELIVERED:
+                                order.setPaymentStatus(OrderPaymentStatusEnum.PAID);
+                                break;
+
+                        default:
+                                break;
+                }
+
+                order.setStatus(status);
 
                 orderRepository.save(order);
 
@@ -304,6 +334,10 @@ public class OrderService {
         }
 
         private List<Promotion> validateAndGetPromotions(List<Integer> promotionIds) {
+                if (promotionIds == null || promotionIds.isEmpty()) {
+                        return List.of();
+                }
+
                 List<Promotion> promotions = promotionRepository.findAllById(promotionIds);
 
                 if (promotions.isEmpty() || promotions.size() != promotionIds.size()) {
@@ -478,6 +512,7 @@ public class OrderService {
                 order.setDiscountAmount(orderPreview.getDiscountAmount());
                 order.setDiscountShippingFee(orderPreview.getDiscountShippingFee());
                 order.setFinalAmount(orderPreview.getFinalAmount());
+                order.setTotalAmount(orderPreview.getTotalAmount());
                 order.setStatus(OrderStatusEnum.PLACED);
                 order.setIsReview(false);
         }
@@ -573,7 +608,8 @@ public class OrderService {
                 if (!order.getCustomer().getUserId().equals(customerId)) {
                         throw new ConflictException("You can only cancel your own orders");
                 }
-                if (order.getStatus() != OrderStatusEnum.PLACED) {
+                // if (order.getStatus() != OrderStatusEnum.PLACED) {
+                if (!isValidStatusTransition(order.getStatus(), OrderStatusEnum.CANCELED)) {
                         throw new ConflictException("Only orders with status PLACED can be canceled");
                 }
                 order.setStatus(OrderStatusEnum.CANCELED);

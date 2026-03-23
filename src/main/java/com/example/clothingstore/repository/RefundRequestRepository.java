@@ -2,6 +2,8 @@ package com.example.clothingstore.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,5 +13,7 @@ import com.example.clothingstore.model.RefundRequest;
 public interface RefundRequestRepository extends JpaRepository<RefundRequest, Long> {
 
     List<RefundRequest> findByOrder_OrderId(Integer orderId);
+
+    Page<RefundRequest> findByOrder_Customer_UserId(Integer customerId, Pageable pageable);
 
 }

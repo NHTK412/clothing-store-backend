@@ -37,17 +37,29 @@ public class RefundRequestController {
 
         private final RefundRequestService refundRequestService;
 
+        @PreAuthorize("hasRole('CUSTOMER')")
         @PostMapping
-        public ResponseEntity<ApiResponse<Map<String, Object>>> createRefundRequest(
+        public ResponseEntity<ApiResponse<RefundResponseDTO>> createRefundRequest(
                         @AuthenticationPrincipal CustomerUserDetails userDetails,
                         @RequestBody RefundRequestDTO refundRequestDTO,
                         HttpServletRequest httpRequest) {
-                Map<String, Object> result = refundRequestService.createRefundRequest(userDetails.getUserId(),
+                // Map<String, Object> result =
+                // refundRequestService.createRefundRequest(userDetails.getUserId(),
+                // refundRequestDTO);
+                // return ResponseEntity.ok(ApiResponse.success(
+                // "Refund request created successfully",
+                // result,
+                // httpRequest.getRequestURI()));
+
+                RefundResponseDTO refundResponseDTO = refundRequestService.createRefundRequest_v2(
+                                userDetails.getUserId(),
                                 refundRequestDTO);
+                // throw new RuntimeException("Test exception handling");
                 return ResponseEntity.ok(ApiResponse.success(
                                 "Refund request created successfully",
-                                result,
+                                refundResponseDTO,
                                 httpRequest.getRequestURI()));
+
         }
 
         // getall
@@ -123,4 +135,21 @@ public class RefundRequestController {
                                 httpRequest.getRequestURI()));
 
         }
+
+        @PreAuthorize("hasRole('CUSTOMER')")
+        @GetMapping("/me")
+        public ResponseEntity<ApiResponse<Page<RefundSummaryDTO>>> getMyRefundRequests(
+                        @AuthenticationPrincipal CustomerUserDetails userDetails,
+                        @RequestParam(defaultValue = "1") int page,
+                        @RequestParam(defaultValue = "10") int size,
+                        HttpServletRequest httpRequest) {
+                Pageable pageable = Pageable.ofSize(size).withPage(page - 1);
+                Page<RefundSummaryDTO> refundRequests = refundRequestService.getByCustomerId(userDetails.getUserId(),
+                                pageable);
+                return ResponseEntity.ok(ApiResponse.success(
+                                "My refund requests retrieved successfully",
+                                refundRequests,
+                                httpRequest.getRequestURI()));
+        }
+
 }

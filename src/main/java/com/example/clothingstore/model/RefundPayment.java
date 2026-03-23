@@ -33,7 +33,7 @@ public class RefundPayment extends Base {
     @Column(name = "GatewayRefundId")
     private String gatewayRefundId;
 
-    @Column(name = "ImageRefund")
+    @Column(name = "ImageRefund")   
     private String imageRefund;
 
     @Column(name = "Note", columnDefinition = "TEXT")

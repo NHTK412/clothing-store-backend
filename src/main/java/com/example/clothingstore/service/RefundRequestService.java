@@ -14,10 +14,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.example.clothingstore.dto.refund.AddRefundPaymentDTO;
 import com.example.clothingstore.dto.refund.CreateRefundPaymentDTO;
 import com.example.clothingstore.dto.refund.RefundRequestDTO;
 import com.example.clothingstore.dto.refund.RefundResponseDTO;
 import com.example.clothingstore.dto.refund.RefundSummaryDTO;
+import com.example.clothingstore.dto.refund.UpdateRefundRequest;
 import com.example.clothingstore.enums.OrderStatusEnum;
 import com.example.clothingstore.enums.RefundMethodEnum;
 import com.example.clothingstore.enums.RefundRequestStatusEnum;
@@ -92,6 +94,9 @@ public class RefundRequestService {
                 Map<Integer, Integer> soSanPhamDaHoan = order
                                 .getRefundRequests()
                                 .stream()
+                                .filter((refundRequest) -> refundRequest.getStatus() != RefundRequestStatusEnum.CANCEL
+                                                &&
+                                                refundRequest.getStatus() != RefundRequestStatusEnum.REJECTED)
                                 .flatMap((refundRequest) -> refundRequest.getRefundItems().stream())
                                 .collect(Collectors.groupingBy(
                                                 (refundItem) -> refundItem.getProductDetail()
@@ -150,11 +155,11 @@ public class RefundRequestService {
                                         "One or more items in the refund request do not exist in the order or have invalid quantity.");
                 }
 
-                // Hoàn tiền ship nếu như khách hàng yêu cầu hoàn tất cả sản phẩm của đơn hàng ( Nếu số khách yêu cầu = số lượng sản phẩm còn lại có thể hoàn trong đơn hàng)
+                // Hoàn tiền ship nếu như khách hàng yêu cầu hoàn tất cả sản phẩm của đơn hàng (
+                // Nếu số khách yêu cầu = số lượng sản phẩm còn lại có thể hoàn trong đơn hàng)
                 boolean isRefundShippingFee = soLuongYeuCauHoanTrongRequest.entrySet().stream()
-                                .allMatch((entry) -> entry.getValue().equals(sanPhamConLaiCoTheHoan.get(entry.getKey())));
-
-                
+                                .allMatch((entry) -> entry.getValue()
+                                                .equals(sanPhamConLaiCoTheHoan.get(entry.getKey())));
 
                 BigDecimal refundShippingFee = isRefundShippingFee
                                 ? BigDecimal.valueOf(order.getShippingFee() - order.getDiscountShippingFee())
@@ -353,9 +358,91 @@ public class RefundRequestService {
                 refundPayment.setGatewayRefundId(createRefundPaymentDTO.getGatewayRefundId());
                 refundPayment.setImageRefund(createRefundPaymentDTO.getImageRefund());
                 refundPayment.setNote(createRefundPaymentDTO.getNote());
+
+                refundRequest.setRefundPayment(refundPayment);
+                refundRequest.setStatus(RefundRequestStatusEnum.COMPLETED);
+
+                refundRequestRepository.save(refundRequest);
+
+                return refundMapper.toResponseDTO(refundRequest);
+        }
+
+        @Transactional
+        public RefundResponseDTO approveRefundRequest(Long refundRequestId) {
+                return updateStatus(refundRequestId, RefundRequestStatusEnum.APPROVED);
+        }
+
+        @Transactional
+        public RefundResponseDTO rejectRefundRequest(Long refundRequestId) {
+                return updateStatus(refundRequestId, RefundRequestStatusEnum.REJECTED);
+        }
+
+        @Transactional
+        public RefundResponseDTO completeRefundRequest(Long refundRequestId, AddRefundPaymentDTO addRefundPaymentDTO) {
+                RefundRequest refundRequest = refundRequestRepository.findById(refundRequestId)
+                                .orElseThrow(() -> new NotFoundException(
+                                                "Refund request not found with ID: " + refundRequestId));
+
+                if (refundRequest.getStatus() != RefundRequestStatusEnum.APPROVED) {
+                        throw new ConflictException(
+                                        "Only refund requests with status APPROVED can be completed.");
+                }
+
+                RefundPayment refundPayment = new RefundPayment();
+                refundPayment.setGatewayRefundId(addRefundPaymentDTO.getGatewayRefundId());
+                refundPayment.setImageRefund(addRefundPaymentDTO.getImageRefund());
+                refundPayment.setNote(addRefundPaymentDTO.getNote());
                 refundRequest.setRefundPayment(refundPayment);
 
                 refundRequest.setStatus(RefundRequestStatusEnum.COMPLETED);
+
+                refundRequestRepository.save(refundRequest);
+
+                return refundMapper.toResponseDTO(refundRequest);
+        }
+
+        @Transactional
+        public RefundResponseDTO cancelRefundRequest(Integer customerId, Long refundRequestId) {
+
+                RefundRequest refundRequest = refundRequestRepository.findById(refundRequestId)
+                                .orElseThrow(() -> new NotFoundException(
+                                                "Refund request not found with ID: " + refundRequestId));
+
+                if (!refundRequest.getOrder().getCustomer().getUserId().equals(customerId)) {
+                        throw new ConflictException(
+                                        "Customer does not own the refund request with ID: " + refundRequestId);
+                }
+                if (refundRequest.getStatus() != RefundRequestStatusEnum.PENDING) {
+                        throw new ConflictException(
+                                        "Only refund requests with status PENDING can be cancelled.");
+                }
+                refundRequest.setStatus(RefundRequestStatusEnum.CANCEL);
+                refundRequestRepository.save(refundRequest);
+                return refundMapper.toResponseDTO(refundRequest);
+
+        }
+
+        @Transactional
+        public RefundResponseDTO updateRefundRequest(
+                        Integer customerId,
+                        Long refundRequestId,
+                        UpdateRefundRequest updateRefundRequest) {
+
+                RefundRequest refundRequest = refundRequestRepository.findById(refundRequestId)
+                                .orElseThrow(() -> new NotFoundException(
+                                                "Refund request not found with ID: " + refundRequestId));
+
+                if (!refundRequest.getOrder().getCustomer().getUserId().equals(customerId)) {
+                        throw new ConflictException(
+                                        "Customer does not own the refund request with ID: " + refundRequestId);
+                }
+                if (refundRequest.getStatus() != RefundRequestStatusEnum.PENDING) {
+                        throw new ConflictException(
+                                        "Only refund requests with status PENDING can be updated.");
+                }
+
+                refundRequest.setRefundMethod(updateRefundRequest.getRefundMethod());
+                refundRequest.setReason(updateRefundRequest.getReason());
 
                 refundRequestRepository.save(refundRequest);
 

@@ -129,50 +129,9 @@ public class AuthService {
 
     }
 
-    // public AuthResponseDTO login(String userName, String password) {
-    // Customer customer = customerRepository.findByUserName(userName)
-    // .orElseThrow(() -> new RuntimeException("Username does not exist"));
-
-    // BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-
-    // String code = encoder.encode(password);
-    // System.out.println(code);
-
-    // // if (!employee.getPassword().equals(password)) {
-    // if (!encoder.matches(password, customer.getPassword())) {
-    // throw new InvalidRefreshTokenException("Password is invalid");
-    // }
-
-    // String accessToken = jwtUtil.generateToken(customer.getUserName(),
-    // RoleEnum.ROLE_CUSTOMER.name(),
-    // expiration);
-
-    // byte[] bytes = new byte[50];
-
-    // secureRandom.nextBytes(bytes);
-
-    // // String refreshToken = Hex.encodeHexString(bytes);
-
-    // String refreshToken = new String(Hex.encode(bytes));
-
-    // // redisTemplate.opsForValue().set("refreshToken::" + refreshToken,
-    // // employee.getUsername(), 7, TimeUnit.DAYS);
-
-    // AuthResponseDTO authResponseDTO = new AuthResponseDTO();
-    // authResponseDTO.setUsername(customer.getUserName());
-    // authResponseDTO.setRole(RoleEnum.ROLE_CUSTOMER.name());
-    // authResponseDTO.setAccessToken(accessToken);
-    // authResponseDTO.setRefreshToken(refreshToken);
-    // authResponseDTO.setExpiresIn(expiration);
-    // return authResponseDTO;
-    // }
-
     @Transactional
     public AuthResponseDTO login(String userName, String password) {
 
-        // if (admin) {
-        // return loginAdmin(userName, password);
-        // }
         Customer customer = customerRepository.findByUserName(userName)
                 .orElseThrow(() -> new NotFoundException("Username does not exist"));
 
@@ -185,10 +144,6 @@ public class AuthService {
         if (!encoder.matches(password, customer.getPassword())) {
             throw new InvalidRefreshTokenException("Password is invalid");
         }
-
-        // String accessToken = jwtUtil.generateToken(customer.getUserName(),
-        // RoleEnum.ROLE_CUSTOMER.name(),
-        // expiration);
 
         String accessToken = jwtUtil.generateToken(
                 customer.getUserName(),
@@ -219,85 +174,12 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResponseDTO loginAdmin(String userName, String password) {
-        Admin admin = adminRepository.findByUserName(userName)
-                .orElseThrow(() -> new NotFoundException("Username does not exist"));
-
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-
-        String code = encoder.encode(password);
-        System.out.println(code);
-
-        // if (!employee.getPassword().equals(password)) {
-        if (!encoder.matches(password, admin.getPassword())) {
-            throw new InvalidRefreshTokenException("Password is invalid");
-        }
-
-        String accessToken = jwtUtil.generateToken(admin.getUserName(), RoleEnum.ROLE_ADMIN.name(),
-                expiration);
-
-        byte[] bytes = new byte[50];
-
-        secureRandom.nextBytes(bytes);
-
-        // String refreshToken = Hex.encodeHexString(bytes);
-
-        String refreshToken = new String(Hex.encode(bytes));
-
-        redisTemplate.opsForValue().set(
-                "refreshToken-admin::" + refreshToken,
-                admin.getUserId(),
-                7,
-                java.util.concurrent.TimeUnit.DAYS);
-
-        // redisTemplate.opsForValue().set("refreshToken::" + refreshToken,
-        // employee.getUsername(), 7, TimeUnit.DAYS);
-
-        AuthResponseDTO authResponseDTO = new AuthResponseDTO();
-        authResponseDTO.setUsername(admin.getUserName());
-        authResponseDTO.setRole(RoleEnum.ROLE_ADMIN.name());
-        authResponseDTO.setAccessToken(accessToken);
-        authResponseDTO.setRefreshToken(refreshToken);
-        authResponseDTO.setExpiresIn(expiration);
-        return authResponseDTO;
-    }
-
-    // public AuthResponseDTO getAccessTokenWithRefreshToken(String refreshToken) {
-
-    // // String userName = (String)
-    // redisTemplate.opsForValue().get("refreshToken::" +
-    // // refreshToken);
-
-    // if (userName == null) {
-    // throw new InvalidRefreshTokenException("Refresh token is invalid");
-    // }
-
-    // Employee employee = employeeRepository.findByUsername(userName)
-    // .orElseThrow(() -> new RuntimeException("Username does not exist"));
-
-    // String accessToken = jwtUtil.generateToken(employee.getUsername(),
-    // employee.getRole().name(),
-    // expiration);
-
-    // AuthResponseDTO authResponseDTO = new AuthResponseDTO();
-    // authResponseDTO.setUsername(employee.getUsername());
-    // authResponseDTO.setRole(employee.getRole().name());
-    // authResponseDTO.setAccessToken(accessToken);
-    // authResponseDTO.setRefreshToken(refreshToken);
-    // authResponseDTO.setExpiresIn(expiration);
-    // return authResponseDTO;
-    // }
-
-    @Transactional
     public AuthResponseDTO login_v2(String userName, String password) {
 
         User user = userRepository.findByUserName(userName)
                 .orElseThrow(() -> new NotFoundException("Username does not exist"));
 
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-
-        // String code = encoder.encode(password);
-        // System.out.println(code);
 
         // if (!employee.getPassword().equals(password)) {
         if (!encoder.matches(password, user.getPassword())) {
@@ -313,23 +195,15 @@ public class AuthService {
 
         secureRandom.nextBytes(bytes);
 
-        // String refreshToken = new String(Hex.encode(bytes));
         String refreshToken = jwtUtil.generateToken(
                 user.getUserName(),
                 user.getRole().name(),
-                // expiration * 7); // Refresh token có thời gian sống lâu hơn access token
-                Long.valueOf(1000 * 60 * 60 * 24 * 7)); // Refresh token có thời gian sống lâu hơn access token, ở đây
-                                                        // là 7 ngày
+                Long.valueOf(1000 * 60 * 60 * 24 * 7));
 
-        // ====================================================================================
-        // Tạm thời để vậy vì redis docker đang lỗi k connect được nên nếu không kết nối
-        // được thì bỏ qua không lưu vào redis
         try {
             redisTemplate.opsForValue().set(
-                    // "refreshToken::" + refreshToken,
                     "refreshToken::" + user.getUserId(),
                     refreshToken,
-                    // user.getUserId(),
                     7,
                     java.util.concurrent.TimeUnit.DAYS);
         } catch (Exception e) {
@@ -349,7 +223,6 @@ public class AuthService {
     public AuthResponseDTO getAccessTokenWithRefreshToken(String refreshToken, boolean isAdmin) {
 
         String redisKey = isAdmin ? "refreshToken-admin::" : "refreshToken::";
-        // String redisKey = "refreshToken::";
 
         Integer userId = (Integer) redisTemplate.opsForValue().get(redisKey + refreshToken);
 

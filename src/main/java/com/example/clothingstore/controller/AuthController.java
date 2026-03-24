@@ -38,23 +38,6 @@ public class AuthController {
                                                 request.getRequestURI()));
         }
 
-        @PostMapping("/admin/login")
-        public ResponseEntity<ApiResponse<AuthResponseDTO>> loginAdmin(
-                        @Valid @RequestBody AuthRegisterDTO authRequestDTO,
-                        HttpServletRequest request) {
-                // AuthResponseDTO authResponseDTO =
-                // authService.login(authRequestDTO.getUsername(),
-                // authRequestDTO.getPassword(),
-                // true);
-                AuthResponseDTO authResponseDTO = authService.loginAdmin(
-                                authRequestDTO.getUsername(),
-                                authRequestDTO.getPassword());
-
-                return ResponseEntity.ok(
-                                ApiResponse.success("Successfully logged in as admin", authResponseDTO,
-                                                request.getRequestURI()));
-        }
-
         @PostMapping("/register-admin")
         public ResponseEntity<ApiResponse<AuthResponseDTO>> registerAdmin(
                         @Valid @RequestBody AuthRegisterDTO authRequestDTO,

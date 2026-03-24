@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ReviewRequestDTO {
 
-    private Integer productId;
+    // private Integer productId;
 
     private Integer orderdetailId;
 

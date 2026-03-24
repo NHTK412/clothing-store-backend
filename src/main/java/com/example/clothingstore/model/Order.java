@@ -53,8 +53,8 @@ public class Order extends Base {
     @Column(name = "FinalAmount")
     private Double finalAmount;
 
-    // @Column(name = "DeliveryDate")
-    // private LocalDateTime deliveryDate;
+    @Column(name = "DeliveryDate")
+    private LocalDateTime deliveryDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "Status")

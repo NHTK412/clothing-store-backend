@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
@@ -34,72 +35,81 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 public class ReviewController {
 
-    // @Autowired
-    // private ReviewService reviewService;
+        // @Autowired
+        // private ReviewService reviewService;
 
-    private final ReviewService reviewService;
+        private final ReviewService reviewService;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
-    @GetMapping
-    public ResponseEntity<ApiResponse<Page<ReviewResponseDTO>>> getALLReviewByProductId(
-            @PathVariable Integer productId, @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "5") Integer size,
-            HttpServletRequest request) {
+        @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+        @GetMapping
+        public ResponseEntity<ApiResponse<Page<ReviewResponseDTO>>> getALLReviewByProductId(
+                        @PathVariable Integer productId, @RequestParam(defaultValue = "1") Integer page,
+                        @RequestParam(defaultValue = "5") Integer size,
+                        HttpServletRequest request) {
 
-        Pageable pageable = PageRequest.of(page - 1, size);
-        Page<ReviewResponseDTO> reviewResponseDTOs = reviewService.getALLReviewByProductId(productId, pageable);
+                Pageable pageable = PageRequest.of(page - 1, size);
+                Page<ReviewResponseDTO> reviewResponseDTOs = reviewService.getALLReviewByProductId(productId, pageable);
 
-        // return ResponseEntity.ok(new ApiResponse<List<ReviewResponseDTO>>(true, null,
-        // reviewResponseDTOs));
-        return ResponseEntity.ok(
-                ApiResponse.success("Successfully retrieved reviews for the product", reviewResponseDTOs,
-                        request.getRequestURI()));
-    }
+                // return ResponseEntity.ok(new ApiResponse<List<ReviewResponseDTO>>(true, null,
+                // reviewResponseDTOs));
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully retrieved reviews for the product",
+                                                reviewResponseDTOs,
+                                                request.getRequestURI()));
+        }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
-    // @PostMapping("/{orderdetailId}")
-    @PostMapping
-    public ResponseEntity<ApiResponse<ReviewResponseDTO>> createReviewByProductId(
-            ReviewRequestDTO reviewRequestDTO, @AuthenticationPrincipal CustomerUserDetails userDetails,
-            HttpServletRequest request) {
+        @PreAuthorize("hasAnyRole('CUSTOMER')")
+        // @PostMapping("/{orderdetailId}")
+        @PostMapping
+        public ResponseEntity<ApiResponse<ReviewResponseDTO>> createReviewByProductId(
+                        @PathVariable Integer productId,
+                        @RequestBody ReviewRequestDTO reviewRequestDTO,
+                        @AuthenticationPrincipal CustomerUserDetails userDetails,
+                        HttpServletRequest request) {
 
-        ReviewResponseDTO reviewResponseDTO = reviewService.createReviewByProductId(reviewRequestDTO.getProductId(),
-                userDetails.getUserId(), reviewRequestDTO.getOrderdetailId(),
-                reviewRequestDTO);
+                ReviewResponseDTO reviewResponseDTO = reviewService.createReviewByProductId(
+                                // reviewRequestDTO.getProductId(),
+                                productId,
+                                userDetails.getUserId(),
+                                // reviewRequestDTO.getOrderdetailId(),
+                                reviewRequestDTO);
 
-        // return ResponseEntity.ok(new ApiResponse<ReviewResponseDTO>(true, null,
-        // reviewResponseDTO));
-        return ResponseEntity
-                .ok(ApiResponse.created("Successfully created review", reviewResponseDTO, request.getRequestURI()));
-    }
+                // return ResponseEntity.ok(new ApiResponse<ReviewResponseDTO>(true, null,
+                // reviewResponseDTO));
+                return ResponseEntity
+                                .ok(ApiResponse.created("Successfully created review", reviewResponseDTO,
+                                                request.getRequestURI()));
+        }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
-    @PutMapping("/{reviewId}")
-    public ResponseEntity<ApiResponse<ReviewResponseDTO>> updateReview(@PathVariable Integer productId,
-            @PathVariable Integer reviewId,
-            ReviewRequestDTO reviewRequestDTO,
-            HttpServletRequest request) {
+        @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+        @PutMapping("/{reviewId}")
+        public ResponseEntity<ApiResponse<ReviewResponseDTO>> updateReview(@PathVariable Integer productId,
+                        @PathVariable Integer reviewId,
+                        ReviewRequestDTO reviewRequestDTO,
+                        HttpServletRequest request) {
 
-        ReviewResponseDTO reviewResponseDTO = reviewService.updateReview(productId, reviewId, reviewRequestDTO);
+                ReviewResponseDTO reviewResponseDTO = reviewService.updateReview(productId, reviewId, reviewRequestDTO);
 
-        // return ResponseEntity.ok(new ApiResponse<ReviewResponseDTO>(true, null,
-        // reviewResponseDTO));
-        return ResponseEntity
-                .ok(ApiResponse.success("Successfully updated review", reviewResponseDTO, request.getRequestURI()));
-    }
+                // return ResponseEntity.ok(new ApiResponse<ReviewResponseDTO>(true, null,
+                // reviewResponseDTO));
+                return ResponseEntity
+                                .ok(ApiResponse.success("Successfully updated review", reviewResponseDTO,
+                                                request.getRequestURI()));
+        }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
-    @DeleteMapping("/{reviewId}")
-    public ResponseEntity<ApiResponse<ReviewResponseDTO>> deleteReview(@PathVariable Integer productId,
-            @PathVariable Integer reviewId,
-            HttpServletRequest request) {
+        @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+        @DeleteMapping("/{reviewId}")
+        public ResponseEntity<ApiResponse<ReviewResponseDTO>> deleteReview(@PathVariable Integer productId,
+                        @PathVariable Integer reviewId,
+                        HttpServletRequest request) {
 
-        ReviewResponseDTO reviewResponseDTO = reviewService.deleteReview(productId, reviewId);
+                ReviewResponseDTO reviewResponseDTO = reviewService.deleteReview(productId, reviewId);
 
-        // return ResponseEntity.ok(new ApiResponse<ReviewResponseDTO>(true, null,
-        // reviewResponseDTO));
-        return ResponseEntity
-                .ok(ApiResponse.success("Successfully deleted review", reviewResponseDTO, request.getRequestURI()));
-    }
+                // return ResponseEntity.ok(new ApiResponse<ReviewResponseDTO>(true, null,
+                // reviewResponseDTO));
+                return ResponseEntity
+                                .ok(ApiResponse.success("Successfully deleted review", reviewResponseDTO,
+                                                request.getRequestURI()));
+        }
 
 }

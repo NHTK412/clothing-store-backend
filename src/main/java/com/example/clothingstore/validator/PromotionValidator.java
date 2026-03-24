@@ -1,9 +1,11 @@
 package com.example.clothingstore.validator;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.example.clothingstore.dto.order.OrderPreviewDTO;
 import com.example.clothingstore.dto.promotion.PromotionCreateRequestDTO;
 import com.example.clothingstore.enums.PromotionActionTypeEnum;
 import com.example.clothingstore.enums.PromotionApplicationTypeEnum;
@@ -11,9 +13,27 @@ import com.example.clothingstore.enums.PromotionConditionTypeEnum;
 import com.example.clothingstore.enums.PromotionScopeTypeEnum;
 import com.example.clothingstore.enums.PromotionTypeEnum;
 import com.example.clothingstore.exception.business.BadRequestException;
+import com.example.clothingstore.exception.business.ConflictException;
+import com.example.clothingstore.exception.business.NotFoundException;
+import com.example.clothingstore.model.Promotion;
+import com.example.clothingstore.model.PromotionAction;
+import com.example.clothingstore.model.PromotionCondition;
+import com.example.clothingstore.repository.PromotionRepository;
+import com.example.clothingstore.strategy.action.PromotionActionFactory;
+import com.example.clothingstore.strategy.action.PromotionActionStrategy;
+import com.example.clothingstore.strategy.condition.PromotionConditionFactory;
+import com.example.clothingstore.strategy.condition.PromotionConditionStrategy;
+
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class PromotionValidator {
+
+    private final PromotionRepository promotionRepository;
+
+    private final PromotionConditionFactory promotionConditionFactory;
+    private final PromotionActionFactory promotionActionFactory;
 
     public void validatePromotionRequest(PromotionCreateRequestDTO requestDTO) {
 
@@ -148,4 +168,61 @@ public class PromotionValidator {
         }
         return couponCode.toString();
     }
+
+    public List<Promotion> validateAndGetPromotions(List<Integer> promotionIds) {
+        if (promotionIds == null || promotionIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<Promotion> promotions = promotionRepository.findAllById(promotionIds);
+
+        if (promotions.isEmpty() || promotions.size() != promotionIds.size()) {
+            throw new NotFoundException("Some promotion items not found");
+        }
+
+        // Kiểm tra tất cả promotions đều active
+        for (Promotion promotion : promotions) {
+            if (promotion.getIsActive() == false) {
+                throw new ConflictException(
+                        "Promotion with id " + promotion.getPromotionId() + " is not active");
+            }
+        }
+
+        return promotions;
+    }
+
+    // --------------------------------------------------------------------------------
+    public void applyPromotions(OrderPreviewDTO orderPreview, List<Promotion> promotions) {
+        for (Promotion promotion : promotions) {
+            if (isPromotionApplicable(orderPreview, promotion)) {
+                executePromotionActions(orderPreview, promotion);
+                orderPreview.getAppliedPromotions().add(promotion.getPromotionId());
+            }
+        }
+    }
+
+    private boolean isPromotionApplicable(OrderPreviewDTO orderPreview, Promotion promotion) {
+        for (PromotionCondition promotionCondition : promotion.getPromotionConditions()) {
+            PromotionConditionStrategy conditionStrategy = promotionConditionFactory
+                    .getPromotionConditionStrategy(promotionCondition.getConditionType());
+
+            if (!conditionStrategy.isSatisfied(orderPreview, promotionCondition.getValue())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void executePromotionActions(OrderPreviewDTO orderPreview, Promotion promotion) {
+        List<PromotionAction> actions = promotion.getPromotionActions();
+
+        for (int index = 0; index < actions.size(); index++) {
+            PromotionAction action = actions.get(index);
+            PromotionActionStrategy actionStrategy = promotionActionFactory
+                    .getPromotionActionStrategy(action.getActionType());
+            actionStrategy.execute(orderPreview, promotion, index);
+        }
+    }
+    // --------------------------------------------------------------------------------
+
 }

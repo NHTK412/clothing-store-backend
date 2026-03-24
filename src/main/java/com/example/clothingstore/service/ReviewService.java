@@ -1,12 +1,12 @@
 package com.example.clothingstore.service;
 
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.example.clothingstore.dto.review.ReviewRequestDTO;
 import com.example.clothingstore.dto.review.ReviewResponseDTO;
+import com.example.clothingstore.exception.business.ConflictException;
 import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.mapper.ReviewMapper;
 import com.example.clothingstore.model.Customer;
@@ -63,7 +63,10 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewResponseDTO createReviewByProductId(Integer orderDetailId, Integer customerId, Integer productId,
+    public ReviewResponseDTO createReviewByProductId(
+            Integer productId,
+            Integer customerId,
+            // Integer productId,
             ReviewRequestDTO reviewRequestDTO) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Invalid product code"));
@@ -71,8 +74,12 @@ public class ReviewService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new NotFoundException("Invalid customer code"));
 
-        OrderDetail orderDetail = orderDetailRepository.findById(orderDetailId)
+        OrderDetail orderDetail = orderDetailRepository.findById(reviewRequestDTO.getOrderdetailId())
                 .orElseThrow(() -> new NotFoundException("Invalid order detail code"));
+
+        if (orderDetail.getIsReview() == true) {
+            throw new ConflictException("This order detail has already been reviewed");
+        }
 
         Review review = new Review();
 
@@ -87,11 +94,6 @@ public class ReviewService {
         // Cập nhật isReview trong OrderDetail
         orderDetail.setIsReview(true);
         orderDetailRepository.save(orderDetail);
-
-        // for (OrderDetail od : orderDetail.getOrder().getOrderDetails())
-        // {
-        // if ()
-        // }
 
         for (int i = 0; i < orderDetail.getOrder().getOrderDetails().size(); i++) {
             if (orderDetail.getIsReview() == false) {

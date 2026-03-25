@@ -1,15 +1,34 @@
 spring.application.name=clothingstore
-server.port=
-server.servlet.context-path=
+server.port=8080
+server.servlet.context-path=/api
+spring.servlet.multipart.max-file-size=100MB
+spring.servlet.multipart.max-request-size=100MB
+spring.output.ansi.enabled=always
+
 spring.datasource.url=
 spring.datasource.username=
 spring.datasource.password=
 spring.datasource.driver-class-name=
+spring.jpa.open-in-view=false
+spring.jpa.hibernate.ddl-auto=update
 
-spring.jpa.hibernate.ddl-auto=
-spring.jpa.show-sql=
-spring.jpa.properties.hibernate.format_sql
+image-upload-path = src/main/resources/static/image
 
+springdoc.swagger-ui.doc-expansion=none
 
+jwt.secret-key=
+jwt.expiration.access-token=3600000 
+jwt.expiration.refresh-token=86400000
+api-key=
 
-jwt.secret-key = 
+spring.data.redis.host=
+spring.data.redis.port=
+spring.cache.type=
+
+# Cấu hình cho ZaloPay
+zalopay.app-id=
+zalopay.key1=
+zalopay.key2=
+zalopay.create-order-url=
+zalopay.callback-url=
+zalopay.return-url=

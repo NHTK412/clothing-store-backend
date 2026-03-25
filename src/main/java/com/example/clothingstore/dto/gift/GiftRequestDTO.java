@@ -1,5 +1,7 @@
 package com.example.clothingstore.dto.gift;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,9 +10,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GiftRequestDTO {
-    private Integer giftQuantity;
 
+    @NotNull(message = "Gift name is required")
+    @Positive(message = "Gift quantity must be positive")
+    private Integer giftQuantity; 
+
+    @Positive(message = "Max gift must be positive")
     private Integer maxGift;
 
+    @NotNull(message = "Product detail ID is required")
     private Integer productDetailId;
 }

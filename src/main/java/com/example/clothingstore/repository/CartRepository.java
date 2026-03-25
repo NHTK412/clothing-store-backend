@@ -19,9 +19,9 @@ public interface CartRepository extends JpaRepository<Cart, Integer> {
             LEFT JOIN FETCH pd.productColor pc
             LEFT JOIN FETCH pc.product p
             LEFT JOIN FETCH c.customer cu
-            WHERE cu.customerId = :customerId
+            WHERE cu.userId = :customerId
                 """)
     Optional<Cart> findByCustomerIdWithALLFetch(Integer customerId);
 
-    Optional<Cart> findByCustomer_CustomerId(Integer customerId);
+    Optional<Cart> findByCustomer_UserId(Integer userId);
 }

@@ -1,103 +1,111 @@
-package com.example.clothingstore.mapper;
+// package com.example.clothingstore.mapper;
 
-import java.util.List;
+// import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+// import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.stereotype.Component;
 
-import com.example.clothingstore.dto.discount.DiscountResponseDTO;
-import com.example.clothingstore.dto.gift.GiftResponseDTO;
-import com.example.clothingstore.dto.promotion.PromotionRequestDTO;
-import com.example.clothingstore.dto.promotion.PromotionResponseDTO;
-import com.example.clothingstore.dto.promotion.PromotionSummaryDTO;
-import com.example.clothingstore.dto.promotiongroup.PromotionGroupResponseDTO;
-import com.example.clothingstore.enums.PromotionTypeEnum;
-import com.example.clothingstore.model.Promotion;
+// import com.example.clothingstore.dto.discount.DiscountResponseDTO;
+// import com.example.clothingstore.dto.gift.GiftResponseDTO;
+// import com.example.clothingstore.dto.promotion.PromotionRequestDTO;
+// import com.example.clothingstore.dto.promotion.PromotionResponseDTO;
+// import com.example.clothingstore.dto.promotion.PromotionSummaryDTO;
+// import com.example.clothingstore.dto.promotiongroup.PromotionGroupResponseDTO;
+// import com.example.clothingstore.enums.PromotionTypeEnum;
+// import com.example.clothingstore.model.Promotion;
 
-@Component
-public class PromotionMapper {
+// import lombok.RequiredArgsConstructor;
 
-    @Autowired
-    private PromotionGroupMapper promotionGroupMapper;
+// @Component
+// @RequiredArgsConstructor
 
-    @Autowired
-    private DiscountMapper discountMapper;
+// public class PromotionMapper {
 
-    @Autowired
-    private GiftMapper giftMapper;
+//     // @Autowired
+//     // private PromotionGroupMapper promotionGroupMapper;
 
-    public PromotionResponseDTO convertModelToPromotionResponseDTO(Promotion promotion) {
-        PromotionResponseDTO promotionResponseDTO = new PromotionResponseDTO();
+//     // @Autowired
+//     // private DiscountMapper discountMapper;
 
-        promotionResponseDTO.setPromotionId(promotion.getPromotionId());
+//     // @Autowired
+//     // private GiftMapper giftMapper;
 
-        promotionResponseDTO.setPromotionName(promotion.getPromotionName());
+//     private final PromotionGroupMapper promotionGroupMapper;
+//     private final DiscountMapper discountMapper;
+//     private final GiftMapper giftMapper;
 
-        promotionResponseDTO.setPromotionType(promotion.getPromotionType());
+//     public PromotionResponseDTO convertModelToPromotionResponseDTO(Promotion promotion) {
+//         PromotionResponseDTO promotionResponseDTO = new PromotionResponseDTO();
 
-        promotionResponseDTO.setDescription(promotion.getDescription());
+//         promotionResponseDTO.setPromotionId(promotion.getPromotionId());
 
-        promotionResponseDTO.setStartDate(promotion.getStartDate());
+//         promotionResponseDTO.setPromotionName(promotion.getPromotionName());
 
-        promotionResponseDTO.setEndDate(promotion.getEndDate());
+//         promotionResponseDTO.setPromotionType(promotion.getPromotionType());
 
-        List<PromotionGroupResponseDTO> promotionGroupResponseDTOs = promotion.getPromotionGroups().stream()
-                .map((promotionGroup) -> promotionGroupMapper.convertModelPromotionGroupResponseDTO(promotionGroup))
-                .toList();
+//         promotionResponseDTO.setDescription(promotion.getDescription());
 
-        promotionResponseDTO.setPromotionGroupResponseDTOs(promotionGroupResponseDTOs);
+//         promotionResponseDTO.setStartDate(promotion.getStartDate());
 
-        if (promotion.getPromotionType() == PromotionTypeEnum.GIFT) {
-            List<GiftResponseDTO> giftResponseDTOs = promotion.getGits().stream()
-                    .map((gift) -> giftMapper.convertModelToDiscountResponseDTO(gift)).toList();
+//         promotionResponseDTO.setEndDate(promotion.getEndDate());
 
-            promotionResponseDTO.setGiftResponseDTOs(giftResponseDTOs);
+//         List<PromotionGroupResponseDTO> promotionGroupResponseDTOs = promotion.getPromotionGroups().stream()
+//                 .map((promotionGroup) -> promotionGroupMapper.convertModelPromotionGroupResponseDTO(promotionGroup))
+//                 .toList();
 
-        } else {
-            promotionResponseDTO
-                    .setDiscountResponseDTO(discountMapper.convertModelToDiscountResponseDTO(promotion.getDiscount()));
-        }
-        return promotionResponseDTO;
-    }
+//         promotionResponseDTO.setPromotionGroupResponseDTOs(promotionGroupResponseDTOs);
 
-    public Promotion convertPromotionRequestDTOToModel(PromotionRequestDTO promotionRequestDTO, Promotion promotion) {
-        promotion.setPromotionName(promotionRequestDTO.getPromotionName());
+//         if (promotion.getPromotionType() == PromotionTypeEnum.GIFT) {
+//             List<GiftResponseDTO> giftResponseDTOs = promotion.getGits().stream()
+//                     .map((gift) -> giftMapper.convertModelToDiscountResponseDTO(gift)).toList();
 
-        promotion.setPromotionType(promotionRequestDTO.getPromotionType());
+//             promotionResponseDTO.setGiftResponseDTOs(giftResponseDTOs);
 
-        promotion.setDescription(promotionRequestDTO.getDescription());
+//         } else {
+//             promotionResponseDTO
+//                     .setDiscountResponseDTO(discountMapper.convertModelToDiscountResponseDTO(promotion.getDiscount()));
+//         }
+//         return promotionResponseDTO;
+//     }
 
-        promotion.setStartDate(promotionRequestDTO.getStartDate());
+//     public Promotion convertPromotionRequestDTOToModel(PromotionRequestDTO promotionRequestDTO, Promotion promotion) {
+//         promotion.setPromotionName(promotionRequestDTO.getPromotionName());
 
-        promotion.setEndDate(promotionRequestDTO.getEndDate());
+//         promotion.setPromotionType(promotionRequestDTO.getPromotionType());
 
-        return promotion;
-    }
+//         promotion.setDescription(promotionRequestDTO.getDescription());
 
-    public PromotionSummaryDTO convertModelToPromotionSummaryDTO(Promotion promotion) {
-        PromotionSummaryDTO promotionSummaryDTO = new PromotionSummaryDTO();
+//         promotion.setStartDate(promotionRequestDTO.getStartDate());
 
-        promotionSummaryDTO.setPromotionId(promotion.getPromotionId());
+//         promotion.setEndDate(promotionRequestDTO.getEndDate());
 
-        promotionSummaryDTO.setPromotionName(promotion.getPromotionName());
+//         return promotion;
+//     }
 
-        promotionSummaryDTO.setPromotionType(promotion.getPromotionType());
+//     public PromotionSummaryDTO convertModelToPromotionSummaryDTO(Promotion promotion) {
+//         PromotionSummaryDTO promotionSummaryDTO = new PromotionSummaryDTO();
 
-        promotionSummaryDTO.setDescription(promotion.getDescription());
+//         promotionSummaryDTO.setPromotionId(promotion.getPromotionId());
 
-        promotionSummaryDTO.setStartDate(promotion.getStartDate());
+//         promotionSummaryDTO.setPromotionName(promotion.getPromotionName());
 
-        promotionSummaryDTO.setEndDate(promotion.getEndDate());
+//         promotionSummaryDTO.setPromotionType(promotion.getPromotionType());
 
-        if (promotion.getPromotionType() == PromotionTypeEnum.DISCOUNT_AMOUNT) {
+//         promotionSummaryDTO.setDescription(promotion.getDescription());
 
-            promotionSummaryDTO.setDiscountAmount(promotion.getDiscount().getDiscountAmount());
+//         promotionSummaryDTO.setStartDate(promotion.getStartDate());
+
+//         promotionSummaryDTO.setEndDate(promotion.getEndDate());
+
+//         if (promotion.getPromotionType() == PromotionTypeEnum.DISCOUNT_AMOUNT) {
+
+//             promotionSummaryDTO.setDiscountAmount(promotion.getDiscount().getDiscountAmount());
 
 
-        } else if (promotion.getPromotionType() == PromotionTypeEnum.DISCOUNT_PERCENTAGE) {
-            promotionSummaryDTO.setDiscountPercentage(promotion.getDiscount().getDiscountPercentage());
-        }
+//         } else if (promotion.getPromotionType() == PromotionTypeEnum.DISCOUNT_PERCENTAGE) {
+//             promotionSummaryDTO.setDiscountPercentage(promotion.getDiscount().getDiscountPercentage());
+//         }
 
-        return promotionSummaryDTO;
-    }
-}
+//         return promotionSummaryDTO;
+//     }
+// }

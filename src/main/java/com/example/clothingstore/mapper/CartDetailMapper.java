@@ -2,7 +2,7 @@ package com.example.clothingstore.mapper;
 
 import org.springframework.stereotype.Component;
 
-import com.example.clothingstore.dto.cartdetail.CartItemResponseDTO;
+import com.example.clothingstore.dto.cart.CartItemResponseDTO;
 import com.example.clothingstore.model.CartItem;
 
 @Component

@@ -2,8 +2,8 @@ package com.example.clothingstore.mapper;
 
 import org.springframework.stereotype.Component;
 
-import com.example.clothingstore.dto.productdetail.ProductDetailPromotionDTO;
-import com.example.clothingstore.dto.productdetail.ProductDetailResponseDTO;
+import com.example.clothingstore.dto.product.ProductDetailPromotionDTO;
+import com.example.clothingstore.dto.product.ProductDetailResponseDTO;
 import com.example.clothingstore.model.ProductDetail;
 
 @Component
@@ -58,3 +58,4 @@ public class ProductDetailMapper {
     // return productDetailPromotionDTO;
     // }
 }
+

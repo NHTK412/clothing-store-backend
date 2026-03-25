@@ -1,8 +1,6 @@
 package com.example.clothingstore.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -17,110 +15,140 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.clothingstore.dto.order.OrderPreviewDTO;
 import com.example.clothingstore.dto.order.OrderRequestDTO;
 import com.example.clothingstore.dto.order.OrderResponseDTO;
 import com.example.clothingstore.dto.order.OrderSummaryDTO;
+import com.example.clothingstore.dto.product.CreatePreviewDTO;
 import com.example.clothingstore.enums.OrderStatusEnum;
-import com.example.clothingstore.model.Order;
-import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.OrderService;
 import com.example.clothingstore.util.ApiResponse;
+import com.example.clothingstore.util.CustomerUserDetails;
+
+import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
-@RequestMapping("/orders")
+@RequestMapping("v1/orders")
+@RequiredArgsConstructor
+
 public class OrderController {
 
-    @Autowired
-    private OrderService orderService;
+        private final OrderService orderService;
 
-    @PreAuthorize("hasRole('CUSTOMER')")
-    @PostMapping
-    public ResponseEntity<ApiResponse<OrderResponseDTO>> createOrder(@AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody OrderRequestDTO orderRequestDTO) {
+        @PreAuthorize("hasRole('CUSTOMER')")
+        @PostMapping
+        public ResponseEntity<ApiResponse<OrderResponseDTO>> createOrder(
+                        @AuthenticationPrincipal UserDetails userDetails,
+                        @Valid @RequestBody OrderRequestDTO orderRequestDTO,
+                        HttpServletRequest request) {
+                String userName = userDetails.getUsername();
+                OrderResponseDTO createdOrder = orderService.createOrder_v2(userName, orderRequestDTO);
+                return ResponseEntity.ok(
+                                ApiResponse.created(
+                                                "Successfully created order",
+                                                createdOrder,
+                                                request.getRequestURI()));
+        }
 
-        // Integer customerId = 1; // Temporary hardcoded customer ID for testing
+        @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
+        @GetMapping("/{orderId}")
+        public ResponseEntity<ApiResponse<OrderResponseDTO>> getOrderById(
+                        @AuthenticationPrincipal CustomerUserDetails userDetails,
+                        @PathVariable Integer orderId,
+                        HttpServletRequest request) {
+                OrderResponseDTO orderResponseDTO = orderService.getOrderById(orderId, userDetails.getUserId());
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                "Successfully retrieved order",
+                                                orderResponseDTO,
+                                                request.getRequestURI()));
+        }
 
-        String userName = userDetails.getUsername();
+        @PreAuthorize("hasRole('CUSTOMER')")
+        @GetMapping("/me")
+        public ResponseEntity<ApiResponse<Page<OrderSummaryDTO>>> getAllOrderByCustomer(
+                        @RequestParam(defaultValue = "1") Integer page,
+                        @RequestParam(defaultValue = "10") Integer size,
+                        @AuthenticationPrincipal CustomerUserDetails userDetails,
+                        HttpServletRequest request) {
+                Pageable pageable = PageRequest.of(page - 1, size);
+                Integer customerId = userDetails.getUserId();
+                Page<OrderSummaryDTO> orderSummaries = orderService.getAllOrdersByCustomer(customerId, pageable);
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                "Successfully retrieved orders",
+                                                orderSummaries,
+                                                request.getRequestURI()));
+        }
 
-        OrderResponseDTO createdOrder = orderService.createOrder(userName, orderRequestDTO);
+        @PreAuthorize("hasRole('ADMIN')")
+        @GetMapping
+        public ResponseEntity<ApiResponse<Page<OrderSummaryDTO>>> getAllOrder(
+                        @RequestParam(defaultValue = "1") Integer page,
+                        @RequestParam(defaultValue = "10") Integer size,
+                        HttpServletRequest request) {
+                Pageable pageable = PageRequest.of(page - 1, size);
+                Page<OrderSummaryDTO> orderSummaries = orderService.getAllOrders(pageable);
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                "Successfully retrieved orders",
+                                                orderSummaries,
+                                                request.getRequestURI()));
+        }
 
-        ApiResponse<OrderResponseDTO> response = new ApiResponse<OrderResponseDTO>(true, null, createdOrder);
+        @PreAuthorize("hasRole('CUSTOMER')")
+        @PatchMapping("/{orderId}/canceled")
+        public ResponseEntity<ApiResponse<OrderResponseDTO>> cancelOrder(
+                        @AuthenticationPrincipal CustomerUserDetails userDetails,
+                        @PathVariable Integer orderId,
+                        HttpServletRequest request) {
+                Integer customerId = userDetails.getUserId();
+                OrderResponseDTO updatedOrder = orderService.cancelOrder(
+                                customerId,
+                                orderId);
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                "Successfully canceled order",
+                                                updatedOrder,
+                                                request.getRequestURI()));
+        }
 
-        return ResponseEntity.ok(response);
-    }
+        @PreAuthorize("hasRole('ADMIN')")
+        @PatchMapping("/{orderId}/status")
+        public ResponseEntity<ApiResponse<OrderResponseDTO>> updateStatus(
+                        @PathVariable Integer orderId,
+                        @RequestParam OrderStatusEnum status,
+                        HttpServletRequest request) {
+                OrderResponseDTO updatedOrder = orderService.updateStatus(orderId, status);
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                "Successfully updated order status",
+                                                updatedOrder,
+                                                request.getRequestURI()));
+        }
 
-    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
-    @GetMapping("/{orderId}")
-    public ResponseEntity<ApiResponse<OrderResponseDTO>> getOrderById(@PathVariable Integer orderId) {
+        @PostMapping("preview")
+        public ResponseEntity<ApiResponse<OrderPreviewDTO>> previewOrder(
+                        @AuthenticationPrincipal CustomerUserDetails userDetails,
+                        // @RequestParam List<Integer> cartItemIds,
+                        // @RequestParam(required = false) List<Integer> promotionIds,
+                        @RequestBody CreatePreviewDTO createPreviewDTO,
+                        HttpServletRequest request) {
+                Integer customerId = userDetails.getUserId();
 
-        OrderResponseDTO orderResponseDTO = orderService.getOrderById(orderId);
+                // OrderPreviewDTO orderPreviewDTO = cartService.previewOrder(customerId,
+                // cartItemIds, promotionIds);
+                OrderPreviewDTO orderPreviewDTO = orderService.createPreviewOrder_v2(customerId, createPreviewDTO);
 
-        ApiResponse<OrderResponseDTO> response = new ApiResponse<>(true, null, orderResponseDTO);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @PreAuthorize("hasRole('CUSTOMER')")
-    @GetMapping("/me")
-    public ResponseEntity<ApiResponse<List<OrderSummaryDTO>>> getAllOrderByCustomer(@RequestParam Integer page,
-            @RequestParam Integer size, @AuthenticationPrincipal CustomerUserDetails userDetails) {
-        // return new String();
-
-        Pageable pageable = PageRequest.of(page - 1, size);
-
-        Integer customerId = userDetails.getUserId(); // Temporary hardcoded customer ID for testing
-        // String userName = userDetails.getUsername();
-
-        List<OrderSummaryDTO> orderSummaries = orderService.getAllOrdersByCustomer(customerId, pageable); // Temporary
-                                                                                                          // hardcoded
-                                                                                                          // customer ID
-                                                                                                          // for testing
-
-        ApiResponse<List<OrderSummaryDTO>> response = new ApiResponse<>(true, null, orderSummaries);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<OrderSummaryDTO>>> getAllOrder(@RequestParam Integer page,
-            @RequestParam Integer size) {
-        // return new String();
-
-        Pageable pageable = PageRequest.of(page - 1, size);
-
-        List<OrderSummaryDTO> orderSummaries = orderService.getAllOrders(pageable); // Temporary
-                                                                                    // hardcoded
-                                                                                    // customer ID
-                                                                                    // for testing
-
-        ApiResponse<List<OrderSummaryDTO>> response = new ApiResponse<>(true, null, orderSummaries);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/{orderId}")
-    public ResponseEntity<ApiResponse<OrderResponseDTO>> updateStatus(@PathVariable Integer orderId,
-            @RequestParam OrderStatusEnum status) {
-
-        OrderResponseDTO updatedOrder = orderService.updateStatus(orderId, status);
-
-        ApiResponse<OrderResponseDTO> response = new ApiResponse<>(true, null, updatedOrder);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @PreAuthorize("hasRole('CUSTOMER')")
-    @PatchMapping("/{orderId}/canceled")
-    public ResponseEntity<ApiResponse<OrderResponseDTO>> updateStatus(@PathVariable Integer orderId) {
-
-        OrderResponseDTO updatedOrder = orderService.updateStatus(orderId, OrderStatusEnum.CANCELED);
-
-        ApiResponse<OrderResponseDTO> response = new ApiResponse<>(true, null, updatedOrder);
-
-        return ResponseEntity.ok(response);
-    }
+                // return ResponseEntity.ok(new ApiResponse<OrderPreviewDTO>(true, null,
+                // orderPreviewDTO));
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully previewed order", orderPreviewDTO,
+                                                request.getRequestURI()));
+        }
 
 }

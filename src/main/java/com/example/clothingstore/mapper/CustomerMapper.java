@@ -15,7 +15,7 @@ public class CustomerMapper {
 
         CustomerResponseDTO customerResponseDTO = new CustomerResponseDTO();
 
-        customerResponseDTO.setCustomerId(customer.getCustomerId());
+        customerResponseDTO.setCustomerId(customer.getUserId());
 
         customerResponseDTO.setUserName(customer.getUserName());
 
@@ -31,13 +31,13 @@ public class CustomerMapper {
 
         customerResponseDTO.setPhone(customer.getPhone());
 
-        customerResponseDTO.setMembership(customer.getMembershipTier().getDescription());
+        // customerResponseDTO.setMembership(customer.getMembershipTier().getDescription()); ================================
 
         customerResponseDTO.setColorMembership(customer.getMembershipTier().getColor());
 
         customerResponseDTO.setStatus(customer.getStatus());
 
-        customerResponseDTO.setLastLogin(customer.getLastLogin());
+        // customerResponseDTO.setLastLogin(customer.());
 
         customerResponseDTO.setImage(customer.getImage());
 
@@ -48,7 +48,7 @@ public class CustomerMapper {
 
         CustomerSummaryDTO customerSummaryDTO = new CustomerSummaryDTO();
 
-        customerSummaryDTO.setCustomerId(customer.getCustomerId());
+        customerSummaryDTO.setCustomerId(customer.getUserId());
 
         customerSummaryDTO.setUserName(customer.getUserName());
 
@@ -62,7 +62,7 @@ public class CustomerMapper {
 
         customerSummaryDTO.setPhone(customer.getPhone());
 
-        customerSummaryDTO.setMembership(customer.getMembershipTier().getDescription());
+        // customerSummaryDTO.setMembership(customer.getMembershipTier().getDescription()); ================================
 
         customerSummaryDTO.setColorMembership(customer.getMembershipTier().getColor());
 

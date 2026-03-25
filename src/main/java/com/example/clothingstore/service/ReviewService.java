@@ -1,15 +1,13 @@
 package com.example.clothingstore.service;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.example.clothingstore.dto.review.ReviewRequestDTO;
 import com.example.clothingstore.dto.review.ReviewResponseDTO;
-import com.example.clothingstore.exception.customer.NotFoundException;
+import com.example.clothingstore.exception.business.ConflictException;
+import com.example.clothingstore.exception.business.NotFoundException;
 import com.example.clothingstore.mapper.ReviewMapper;
 import com.example.clothingstore.model.Customer;
 import com.example.clothingstore.model.OrderDetail;
@@ -21,35 +19,54 @@ import com.example.clothingstore.repository.ProductRepository;
 import com.example.clothingstore.repository.ReviewRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class ReviewService {
 
-    @Autowired
-    private ReviewRepository reviewRepository;
+    // @Autowired
+    // private ReviewRepository reviewRepository;
 
-    @Autowired
-    private ProductRepository productRepository;
+    // @Autowired
+    // private ProductRepository productRepository;
 
-    @Autowired
-    private CustomerRepository customerRepository;
+    // @Autowired
+    // private CustomerRepository customerRepository;
 
-    @Autowired
-    private OrderDetailRepository orderDetailRepository;
+    // @Autowired
+    // private OrderDetailRepository orderDetailRepository;
 
-    @Autowired
-    private ReviewMapper reviewMapper;
+    // @Autowired
+    // private ReviewMapper reviewMapper;
 
-    public List<ReviewResponseDTO> getALLReviewByProductId(Integer productId, Pageable pageable) {
+    private final ReviewRepository reviewRepository;
+    private final ProductRepository productRepository;
+    private final CustomerRepository customerRepository;
+    private final OrderDetailRepository orderDetailRepository;
+    private final ReviewMapper reviewMapper;
+
+    private final com.example.clothingstore.mapper.mapstruct.ReviewMapper reviewMapper2;
+
+    @Transactional
+    public Page<ReviewResponseDTO> getALLReviewByProductId(Integer productId, Pageable pageable) {
         Page<Review> reviews = reviewRepository.findByProduct_ProductId(productId, pageable);
 
-        return reviews
-                .map((review) -> reviewMapper.convertModelToReviewResponseDTO(review))
-                .toList();
+        // return reviews
+        // .map((review) -> reviewMapper.convertModelToReviewResponseDTO(review))
+        // .toList();
+
+        return reviews.map(reviewMapper::convertModelToReviewResponseDTO);
+
+        // return reviews.map(reviewMapper2::toResponseDTO);
+
     }
 
     @Transactional
-    public ReviewResponseDTO createReviewByProductId(Integer orderDetailId, Integer customerId, Integer productId,
+    public ReviewResponseDTO createReviewByProductId(
+            Integer productId,
+            Integer customerId,
+            // Integer productId,
             ReviewRequestDTO reviewRequestDTO) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Invalid product code"));
@@ -57,8 +74,12 @@ public class ReviewService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new NotFoundException("Invalid customer code"));
 
-        OrderDetail orderDetail = orderDetailRepository.findById(orderDetailId)
+        OrderDetail orderDetail = orderDetailRepository.findById(reviewRequestDTO.getOrderdetailId())
                 .orElseThrow(() -> new NotFoundException("Invalid order detail code"));
+
+        if (orderDetail.getIsReview() == true) {
+            throw new ConflictException("This order detail has already been reviewed");
+        }
 
         Review review = new Review();
 
@@ -73,11 +94,6 @@ public class ReviewService {
         // Cập nhật isReview trong OrderDetail
         orderDetail.setIsReview(true);
     
-
-        // for (OrderDetail od : orderDetail.getOrder().getOrderDetails())
-        // {
-        // if ()
-        // }
 
         for (int i = 0; i < orderDetail.getOrder().getOrderDetails().size(); i++) {
             if (orderDetail.getIsReview() == false) {
@@ -124,4 +140,7 @@ public class ReviewService {
 
         return reviewResponseDTO;
     }
+
+    // New
+
 }

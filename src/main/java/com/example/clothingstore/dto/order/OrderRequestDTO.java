@@ -4,8 +4,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.example.clothingstore.dto.orderdetail.OrderDetailRequestDTO;
+import com.example.clothingstore.enums.OrderTypeEnum;
 import com.example.clothingstore.enums.PaymentMethodEnum;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,22 +19,28 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrderRequestDTO {
 
-    // private Double shippingFee;
-
-    // private LocalDateTime deliveryDate; // Ngày giao hàng dự kiến
-
+    @NotNull(message = "Address shipping ID is required")
     private Integer addressShippingId;
 
+    @NotNull(message = "Payment method is required")
     private PaymentMethodEnum paymentMethod;
 
-    // private String vnpayCode;
+    @Valid
+    @NotEmpty(message = "Order details cannot be empty")
+    private List<OrderDetailRequestDTO> orderDetails;
 
-    // private Integer customerId;
+    private List<Integer> promotionApplyIds;
 
-    private List<OrderDetailRequestDTO> orderDetailRequestDTOs;
+    // private Double totalAmount;
 
-    // private Integer promotionDiscountId; // Mã khuyến mãi giảm giá
+    // private Double discount;
 
-    // danh sách mã quà tặng
-    // private List<Integer> promotionGiftIds;
+    // private Double shippingFee;
+
+    // private Double discountShippingFee; // Số tiền giảm giá cho phí vận chuyển
+
+    // private Double finalAmount;
+
+    private OrderTypeEnum orderType;
+
 }

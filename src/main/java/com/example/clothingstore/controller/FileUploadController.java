@@ -9,6 +9,9 @@ import com.example.clothingstore.dto.fileupload.FileUploadResponseDTO;
 import com.example.clothingstore.service.FileUploadService;
 import com.example.clothingstore.util.ApiResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -20,43 +23,56 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
-@RequestMapping("file-upload")
+@RequestMapping("v1/file-upload")
+@RequiredArgsConstructor
+
 public class FileUploadController {
 
-    @Autowired
-    private FileUploadService fileUploadService;
+    // @Autowired
+    // private FileUploadService fileUploadService;
+
+    private final FileUploadService fileUploadService;
 
     @PreAuthorize("hasRole('ADMIN')")
     // Consumer để nói kiểu gửi lên
     @PostMapping(value = "/image", consumes = "multipart/form-data")
-    public ResponseEntity<ApiResponse<FileUploadResponseDTO>> uploadImage(@RequestParam("file") MultipartFile file) {
-        try {
-            FileUploadResponseDTO fileUploadResponseDTO = fileUploadService.uploadImage(file);
-            return ResponseEntity.ok(new ApiResponse<>(true, null, fileUploadResponseDTO));
-        } catch (IOException e) {
-            return ResponseEntity.status(500)
-                    .body(new ApiResponse<>(false, "Unable to save file due to I/O error:" + e.getMessage(), null));
-        }
+    public ResponseEntity<ApiResponse<FileUploadResponseDTO>> uploadImage(@RequestParam("file") MultipartFile file,
+            HttpServletRequest request)
+            throws IOException {
+
+        FileUploadResponseDTO fileUploadResponseDTO = fileUploadService.uploadImage(file);
+        // return ResponseEntity.ok(new ApiResponse<>(true, null,
+        // fileUploadResponseDTO));
+        return ResponseEntity.ok(
+                ApiResponse.created("Successfully uploaded image", fileUploadResponseDTO, request.getRequestURI()));
+
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value = "/multiple", consumes = "multipart/form-data")
     public ResponseEntity<ApiResponse<List<FileUploadResponseDTO>>> uploadMultipleImage(
-            @RequestParam("files") List<MultipartFile> files) {
-        try {
-            List<FileUploadResponseDTO> fileUploadResponseDTOs = fileUploadService.uploadMultipleImage(files);
-            return ResponseEntity.ok(new ApiResponse<>(true, null, fileUploadResponseDTOs));
-        } catch (IOException e) {
-            return ResponseEntity.status(500)
-                    .body(new ApiResponse<>(false, "Unable to save file due to I/O error:" + e.getMessage(), null));
-        }
+            @RequestParam("files") List<MultipartFile> files,
+            HttpServletRequest request) throws IOException {
+
+        List<FileUploadResponseDTO> fileUploadResponseDTOs = fileUploadService.uploadMultipleImage(files);
+        // return ResponseEntity.ok(new ApiResponse<>(true, null,
+        // fileUploadResponseDTOs));
+        return ResponseEntity.ok(ApiResponse.created("Successfully uploaded multiple images", fileUploadResponseDTOs,
+                request.getRequestURI()));
+
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{fileName}")
-    public ResponseEntity<ApiResponse<FileUploadResponseDTO>> deleteImage(@PathVariable String fileName) {
+    public ResponseEntity<ApiResponse<FileUploadResponseDTO>> deleteImage(@PathVariable String fileName,
+            HttpServletRequest request) {
         FileUploadResponseDTO fileUploadResponseDTO = fileUploadService.deleteImage(fileName);
-        return ResponseEntity.ok(new ApiResponse<>(true, null, fileUploadResponseDTO));
+        // return ResponseEntity.ok(new ApiResponse<>(true, null,
+        // fileUploadResponseDTO));
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Successfully deleted image", fileUploadResponseDTO, request.getRequestURI()));
+
     }
 
 }

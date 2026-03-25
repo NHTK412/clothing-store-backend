@@ -17,7 +17,7 @@ public class OrderSummaryDTO {
 
     private Integer orderId; // Nghĩa tiếng việt: Mã đơn hàng
 
-    private Double totalAmount; // Nghĩa tiếng việt: Tổng tiền hàng
+    private Double finalAmount; // Nghĩa tiếng việt: Tổng tiền hàng
 
     // private Double discountAmount; // Nghĩa tiếng việt: Số tiền được giảm giá
 

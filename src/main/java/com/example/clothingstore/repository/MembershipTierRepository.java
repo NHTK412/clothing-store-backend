@@ -1,6 +1,5 @@
 package com.example.clothingstore.repository;
 
-
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,5 +11,7 @@ import com.example.clothingstore.model.MembershipTier;
 public interface MembershipTierRepository extends JpaRepository<MembershipTier, Integer> {
 
     Optional<MembershipTier> findByTierName(String tierName);
+
+    boolean existsByTierName(String tierName);
 
 }

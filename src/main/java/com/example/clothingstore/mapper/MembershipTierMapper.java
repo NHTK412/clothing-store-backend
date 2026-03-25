@@ -12,13 +12,15 @@ public class MembershipTierMapper {
     public MembershipTier convertMembershipTierRequestDTOToModel(
             MembershipTierRequestDTO membershipTierRequestDTO, MembershipTier membershipTier) {
 
+        membershipTier.setTierName(membershipTierRequestDTO.getTierName());
+
         membershipTier.setColor(membershipTierRequestDTO.getColor());
 
         membershipTier.setMinimumSpending(membershipTierRequestDTO.getMinimumSpending());
 
-        membershipTier.setDiscountRate(membershipTierRequestDTO.getDiscountRate());
+        // membershipTier.setDiscountRate(membershipTierRequestDTO.getDiscountRate());
 
-        membershipTier.setDescription(membershipTierRequestDTO.getDescription());
+        // membershipTier.setDescription(membershipTierRequestDTO.getDescription());
 
         return membershipTier;
     }
@@ -27,13 +29,15 @@ public class MembershipTierMapper {
 
         MembershipTierResponseDTO membershipTierResponseDTO = new MembershipTierResponseDTO();
 
+        membershipTierResponseDTO.setTierName(membershipTier.getTierName());
+
         membershipTierResponseDTO.setTiedId(membershipTier.getTiedId());
 
         membershipTierResponseDTO.setMinimumSpending(membershipTier.getMinimumSpending());
 
-        membershipTierResponseDTO.setDiscountRate(membershipTier.getDiscountRate());
+        // membershipTierResponseDTO.setDiscountRate(membershipTier.getDiscountRate());
 
-        membershipTierResponseDTO.setDescription(membershipTier.getDescription());
+        // membershipTierResponseDTO.setDescription(membershipTier.getDescription());
 
         membershipTierResponseDTO.setColor(membershipTier.getColor());
 

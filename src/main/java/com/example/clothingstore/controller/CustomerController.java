@@ -7,14 +7,21 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.clothingstore.dto.customer.CustomerRequestDTO;
 import com.example.clothingstore.dto.customer.CustomerResponseDTO;
 import com.example.clothingstore.dto.customer.CustomerSummaryDTO;
+import com.example.clothingstore.dto.order.OrderSummaryDTO;
 import com.example.clothingstore.model.Customer;
-import com.example.clothingstore.security.CustomerUserDetails;
 import com.example.clothingstore.service.CustomerService;
+import com.example.clothingstore.service.OrderService;
 import com.example.clothingstore.util.ApiResponse;
+import com.example.clothingstore.util.CustomerUserDetails;
+
+import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -28,88 +35,87 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
-@RequestMapping("/customer")
+@RequestMapping("v1/customers")
+@RequiredArgsConstructor
 public class CustomerController {
 
-    @Autowired
-    private CustomerService customerService;
+        // @Autowired
+        // private CustomerService customerService;
 
-    @PreAuthorize("hasRole('CUSTOMER')")
-    @PutMapping("/me")
-    public ResponseEntity<ApiResponse<CustomerResponseDTO>> updateMe(
-            @AuthenticationPrincipal CustomerUserDetails userDetails,
-            @RequestBody CustomerRequestDTO customerRequestDTO) {
+        private final CustomerService customerService;
 
-        // BCryptPasswordEncoder bCryptPasswordEncoder = BCryptPasswordEncoder();
+        // private final OrderService orderService;
 
-        Integer customerId = userDetails.getUserId();
+        @PreAuthorize("hasRole('CUSTOMER')")
+        @PutMapping("/me")
+        public ResponseEntity<ApiResponse<CustomerResponseDTO>> updateMe(
+                        @AuthenticationPrincipal CustomerUserDetails userDetails,
+                        @Valid @RequestBody CustomerRequestDTO customerRequestDTO,
+                        HttpServletRequest request) {
 
-        CustomerResponseDTO customerResponseDTO = customerService.updateCustomer(customerId, customerRequestDTO);
+                // BCryptPasswordEncoder bCryptPasswordEncoder = BCryptPasswordEncoder();
 
-        return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
-    }
+                Integer customerId = userDetails.getUserId();
 
-    @PreAuthorize("hasRole('CUSTOMER')")
-    @GetMapping("/me")
-    public ResponseEntity<ApiResponse<CustomerResponseDTO>> getMe(
-            @AuthenticationPrincipal CustomerUserDetails userDetails) {
+                CustomerResponseDTO customerResponseDTO = customerService.updateCustomer(customerId,
+                                customerRequestDTO);
 
-        Integer customerId = userDetails.getUserId();
+                // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null,
+                // customerResponseDTO));
 
-        CustomerResponseDTO customerResponseDTO = customerService.getCustomerById(customerId);
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully updated customer", customerResponseDTO,
+                                                request.getRequestURI()));
+        }
 
-        return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
-    }
+        @PreAuthorize("hasRole('CUSTOMER')")
+        @GetMapping("/me")
+        public ResponseEntity<ApiResponse<CustomerResponseDTO>> getMe(
+                        @AuthenticationPrincipal CustomerUserDetails userDetails,
+                        HttpServletRequest request) {
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/{customerId}")
-    public ResponseEntity<ApiResponse<CustomerResponseDTO>> getCustomerByID(@PathVariable Integer customerId) {
+                Integer customerId = userDetails.getUserId();
 
-        CustomerResponseDTO customerResponseDTO = customerService.getCustomerById(customerId);
+                CustomerResponseDTO customerResponseDTO = customerService.getCustomerById(customerId);
 
-        return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
-    }
+                // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null,
+                // customerResponseDTO));
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<CustomerSummaryDTO>>> getAllCustomer(@RequestParam Integer page,
-            @RequestParam Integer size) {
-        Pageable pageable = PageRequest.of(page - 1, size);
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully retrieved customer information",
+                                                customerResponseDTO, request.getRequestURI()));
+        }
 
-        List<CustomerSummaryDTO> customerSummaryDTO = customerService.getAllCustomer(pageable);
+        @PreAuthorize("hasRole('ADMIN')")
+        @GetMapping("/{customerId}")
+        public ResponseEntity<ApiResponse<CustomerResponseDTO>> getCustomerByID(@PathVariable Integer customerId,
+                        HttpServletRequest request) {
 
-        return ResponseEntity.ok(new ApiResponse<List<CustomerSummaryDTO>>(true, null, customerSummaryDTO));
-    }
+                CustomerResponseDTO customerResponseDTO = customerService.getCustomerById(customerId);
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
-    public ResponseEntity<ApiResponse<CustomerResponseDTO>> createCustomer(
-            @RequestBody CustomerRequestDTO customerRequestDTO) {
+                // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null,
+                // customerResponseDTO));
 
-        CustomerResponseDTO customerResponseDTO = customerService.createCustomer(customerRequestDTO);
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully retrieved customer information",
+                                                customerResponseDTO, request.getRequestURI()));
+        }
 
-        return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
-    }
+        @PreAuthorize("hasRole('ADMIN')")
+        @GetMapping
+        public ResponseEntity<ApiResponse<Page<CustomerSummaryDTO>>> getAllCustomer(
+                        @RequestParam(defaultValue = "1") Integer page,
+                        @RequestParam(defaultValue = "10") Integer size,
+                        HttpServletRequest request) {
+                Pageable pageable = PageRequest.of(page - 1, size);
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{customerId}") // dành cho admin
-    public ResponseEntity<ApiResponse<CustomerResponseDTO>> updateCustomer(@PathVariable Integer customerId,
-            @RequestBody CustomerRequestDTO customerRequestDTO) {
+                Page<CustomerSummaryDTO> customerSummaryDTO = customerService.getAllCustomer(pageable);
 
-        // BCryptPasswordEncoder bCryptPasswordEncoder = BCryptPasswordEncoder();
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully retrieved customers", customerSummaryDTO,
+                                                request.getRequestURI()));
+        }
 
-        CustomerResponseDTO customerResponseDTO = customerService.updateCustomer(customerId, customerRequestDTO);
-
-        return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{customerId}")
-    public ResponseEntity<ApiResponse<CustomerResponseDTO>> deleteCustomer(@PathVariable Integer customerId) {
-
-        CustomerResponseDTO customerResponseDTO = customerService.deleteCustomer(customerId);
-
-        return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null, customerResponseDTO));
-    }
+        
 
 }

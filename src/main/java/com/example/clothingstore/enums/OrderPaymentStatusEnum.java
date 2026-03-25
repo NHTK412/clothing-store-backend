@@ -6,7 +6,4 @@ public enum OrderPaymentStatusEnum {
 
     UNPAID, // Chưa thanh toán
 
-    REFUNDED // Đã hoàn tiền
-
 }
-

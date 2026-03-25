@@ -6,7 +6,6 @@ import java.util.List;
 import com.example.clothingstore.enums.OrderPaymentStatusEnum;
 import com.example.clothingstore.enums.OrderStatusEnum;
 import com.example.clothingstore.enums.PaymentMethodEnum;
-// import com.example.clothingstore.enums.PaymentMethodStatusEnum;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -17,6 +16,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -46,6 +47,12 @@ public class Order extends Base {
     @Column(name = "ShippingFee")
     private Double shippingFee;
 
+    @Column(name = "DiscountShippingFee")
+    private Double discountShippingFee;
+
+    @Column(name = "FinalAmount")
+    private Double finalAmount;
+
     @Column(name = "DeliveryDate")
     private LocalDateTime deliveryDate;
 
@@ -68,23 +75,19 @@ public class Order extends Base {
     @Column(name = "Province")
     private String province;
 
-    // @Enumerated(EnumType.STRING)
-    // @Column(name = "PaymentStatus")
-    // private OrderPaymentStatusEnum paymentStatus;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "PaymentMethod")
     private PaymentMethodEnum paymentMethod;
 
-    @Column(name = "ZaloAppTransId") 
-    private String zaloAppTransId;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "PaymentStatus")
+    private OrderPaymentStatusEnum paymentStatus;
 
+    @Column(name = "PaymentId")
+    private String paymentId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails;
-
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderGift> orderGifts;
 
     @ManyToOne
     @JoinColumn(name = "CustomerId")
@@ -93,4 +96,12 @@ public class Order extends Base {
     @Column(name = "IsReview")
     private Boolean isReview;
 
+    @ManyToMany()
+    @JoinTable(name = "OrderPromotion", joinColumns = @JoinColumn(name = "OrderId"), inverseJoinColumns = @JoinColumn(name = "PromotionId"))
+    private List<Promotion> promotions;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RefundRequest> refundRequests;
+
+    
 }

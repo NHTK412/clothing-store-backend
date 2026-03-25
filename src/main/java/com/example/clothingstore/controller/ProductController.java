@@ -2,17 +2,21 @@ package com.example.clothingstore.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.clothingstore.dto.product.ProductColorRequestDTO;
+import com.example.clothingstore.dto.product.ProductColorResponseDTO;
+import com.example.clothingstore.dto.product.ProductDetailRequestDTO;
+import com.example.clothingstore.dto.product.ProductDetailResponseDTO;
 import com.example.clothingstore.dto.product.ProductRequestDTO;
 import com.example.clothingstore.dto.product.ProductResponseDTO;
 import com.example.clothingstore.dto.product.ProductSummaryDTO;
 import com.example.clothingstore.dto.product.ProductUpdateDTO;
-import com.example.clothingstore.dto.productcolor.ProductColorRequestDTO;
-import com.example.clothingstore.dto.productcolor.ProductColorResponseDTO;
-import com.example.clothingstore.dto.productdetail.ProductDetailRequestDTO;
-import com.example.clothingstore.dto.productdetail.ProductDetailResponseDTO;
 import com.example.clothingstore.model.Product;
 import com.example.clothingstore.service.ProductService;
 import com.example.clothingstore.util.ApiResponse;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -20,6 +24,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,134 +37,155 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
-@RequestMapping("product")
+@RequestMapping("v1/products")
+@RequiredArgsConstructor
 public class ProductController {
 
-    @Autowired
-    ProductService productService;
+        private final ProductService productService;
 
-    // @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
-    @GetMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductResponseDTO>> getProductDetailById(@PathVariable Integer productId) {
-        ProductResponseDTO productResponseDTO = productService.getProductDetailById(productId);
+        // Chưa xử lý search và sortBy
+        @GetMapping
+        // public ResponseEntity<ApiResponse<List<ProductSummaryDTO>>> getAllProduct(
+        public ResponseEntity<ApiResponse<Page<ProductSummaryDTO>>> getAllProduct(
+                        @RequestParam(defaultValue = "1") Integer page,
+                        @RequestParam(defaultValue = "10") Integer size,
+                        @RequestParam(required = false) Integer categoryId,
+                        @RequestParam(required = false) String search,
+                        @RequestParam(required = false) String sortBy,
+                        HttpServletRequest request) {
+                Pageable pageable = PageRequest.of(page - 1, size);
 
-        return ResponseEntity.ok(new ApiResponse<ProductResponseDTO>(true, null, productResponseDTO));
-    }
+                Page<ProductSummaryDTO> productSummaryDTOs = productService.getAllProduct(categoryId, pageable);
 
-    // @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<ProductSummaryDTO>>> getAllProduct(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size, @RequestParam(required = false) Integer categoryId) {
+                System.out.println(request.getRequestURI());
+                return ResponseEntity.ok(ApiResponse.success("Successfully get the product list", productSummaryDTOs,
+                                request.getRequestURI()));
+        }
 
-        Pageable pageable = PageRequest.of(page - 1, size);
+        @GetMapping("/{productId}")
+        public ResponseEntity<ApiResponse<ProductResponseDTO>> getProductDetailById(@PathVariable Integer productId,
+                        HttpServletRequest request) {
+                ProductResponseDTO productResponseDTO = productService.getProductDetailById(productId);
 
-        List<ProductSummaryDTO> productSummaryDTOs = productService.getAllProduct(categoryId, pageable);
+                return ResponseEntity
+                                .ok(ApiResponse.success("Successfully get the product detail", productResponseDTO,
+                                                request.getRequestURI()));
+        }
 
-        return ResponseEntity.ok(new ApiResponse<List<ProductSummaryDTO>>(true, null, productSummaryDTOs));
-    }
+        @PreAuthorize("hasRole('ADMIN')")
+        @PostMapping
+        public ResponseEntity<ApiResponse<ProductSummaryDTO>> createProduct(
+                        @Valid @RequestBody ProductRequestDTO productRequest,
+                        HttpServletRequest request) {
+                return ResponseEntity
+                                .ok(ApiResponse.created("Successfully created the product",
+                                                productService.createProduct(productRequest), request.getRequestURI()));
+        }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
-    public ResponseEntity<ApiResponse<ProductSummaryDTO>> createProduct(@RequestBody ProductRequestDTO productRequest) {
-        return ResponseEntity
-                .ok(new ApiResponse<ProductSummaryDTO>(true, null,
-                        productService.createProduct(productRequest)));
-    }
+        @PreAuthorize("hasRole('ADMIN')")
+        @DeleteMapping("/{productId}")
+        public ResponseEntity<ApiResponse<ProductSummaryDTO>> deleteProduct(@PathVariable Integer productId,
+                        HttpServletRequest request) {
+                ProductSummaryDTO productSummaryDTO = productService.deleteProduct(productId);
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductSummaryDTO>> deleteProduct(@PathVariable Integer productId) {
-        ProductSummaryDTO productSummaryDTO = productService.deleteProduct(productId);
+                return ResponseEntity.ok(ApiResponse.success("Successfully deleted the product", productSummaryDTO,
+                                request.getRequestURI()));
+        }
 
-        return ResponseEntity.ok(new ApiResponse<ProductSummaryDTO>(true, null, productSummaryDTO));
-    }
+        @PreAuthorize("hasRole('ADMIN')")
+        @PutMapping("/{productId}")
+        public ResponseEntity<ApiResponse<ProductSummaryDTO>> updateProduct(@PathVariable Integer productId,
+                        @Valid @RequestBody ProductUpdateDTO productUpdate,
+                        HttpServletRequest request) {
+                return ResponseEntity
+                                .ok(ApiResponse.success("Successfully updated the product",
+                                                productService.updateProduct(productId, productUpdate),
+                                                request.getRequestURI()));
+        }
 
-    // @PreAuthorize("hasRole('ADMIN')")
-    // @PutMapping("/{productId}")
-    // public ResponseEntity<ApiResponse<ProductSummaryDTO>> updateProduct(@PathVariable Integer productId,
-    //         @RequestBody ProductRequestDTO productRequest) {
-    //     return ResponseEntity
-    //             .ok(new ApiResponse<ProductSummaryDTO>(true, null,
-    //                     productService.updateProduct(productId, productRequest)));
-    // }
+        @PreAuthorize("hasRole('ADMIN')")
+        @PostMapping("/colors")
+        public ResponseEntity<ApiResponse<ProductColorResponseDTO>> createProductColor(
+                        @RequestBody ProductColorRequestDTO productColorRequest,
+                        HttpServletRequest request) {
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductSummaryDTO>> updateProduct(@PathVariable Integer productId,
-            @RequestBody ProductUpdateDTO productUpdate) {
-        return ResponseEntity
-                .ok(new ApiResponse<ProductSummaryDTO>(true, null,
-                        productService.updateProduct(productId, productUpdate)));
-    }
+                return ResponseEntity
+                                .ok(ApiResponse.created("Successfully created the product color",
+                                                productService.createProductColor(productColorRequest),
+                                                request.getRequestURI()));
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/product-color/{productColorId}")
-    public ResponseEntity<ApiResponse<ProductColorResponseDTO>> updateProductColor(
-            @PathVariable Integer productColorId,
-            @RequestBody ProductColorRequestDTO productColorRequest) {
+        }
 
-        return ResponseEntity
-                .ok(new ApiResponse<ProductColorResponseDTO>(true, null,
-                        productService.updateProductColor(productColorId, productColorRequest)));
+        @PreAuthorize("hasRole('ADMIN')")
+        @PutMapping("/colors/{productColorId}")
+        public ResponseEntity<ApiResponse<ProductColorResponseDTO>> updateProductColor(
+                        @PathVariable Integer productColorId,
+                        @RequestBody ProductColorRequestDTO productColorRequest,
+                        HttpServletRequest request) {
 
-    }
+                return ResponseEntity
+                                .ok(ApiResponse.success("Successfully updated the product color",
+                                                productService.updateProductColor(productColorId,
+                                                                productColorRequest),
+                                                request.getRequestURI()));
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/product-color/{productColorId}")
-    public ResponseEntity<ApiResponse<ProductColorResponseDTO>> deleteProductColor(
-            @PathVariable Integer productColorId) {
-        ProductColorResponseDTO productColorResponseDTO = productService.deleteProductColor(productColorId);
+        }
 
-        return ResponseEntity.ok(new ApiResponse<ProductColorResponseDTO>(true, null, productColorResponseDTO));
-    }
+        @PreAuthorize("hasRole('ADMIN')")
+        @DeleteMapping("/colors/{productColorId}")
+        public ResponseEntity<ApiResponse<ProductColorResponseDTO>> deleteProductColor(
+                        @PathVariable Integer productColorId,
+                        HttpServletRequest request) {
+                ProductColorResponseDTO productColorResponseDTO = productService.deleteProductColor(productColorId);
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/product-color")
-    public ResponseEntity<ApiResponse<ProductColorResponseDTO>> createProductColor(
-            @RequestBody ProductColorRequestDTO productColorRequest) {
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully deleted the product color", productColorResponseDTO,
+                                                request.getRequestURI()));
+        }
 
-        return ResponseEntity
-                .ok(new ApiResponse<ProductColorResponseDTO>(true, null,
-                        productService.createProductColor(productColorRequest)));
+        @PreAuthorize("hasRole('ADMIN')")
+        @PostMapping("/colors/{productColorId}/details")
+        public ResponseEntity<ApiResponse<ProductDetailResponseDTO>> createProductDetail(
+                        @RequestBody ProductDetailRequestDTO productDetailRequest,
+                        @PathVariable Integer productColorId,
+                        HttpServletRequest request) {
 
-    }
+                return ResponseEntity
+                                .ok(ApiResponse.created("Successfully created the product detail",
+                                                productService.createProductDetail(productColorId,
+                                                                productDetailRequest),
+                                                request.getRequestURI()));
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/product-color/{productColorId}/product-detail")
-    public ResponseEntity<ApiResponse<ProductDetailResponseDTO>> createProductDetail(@RequestBody ProductDetailRequestDTO productDetailRequest, 
-            @PathVariable Integer productColorId) {
+        }
 
-        return ResponseEntity
-                .ok(new ApiResponse<ProductDetailResponseDTO>(true, null,
-                        productService.createProductDetail(productColorId, productDetailRequest)));
+        @PreAuthorize("hasRole('ADMIN')")
+        @PutMapping("/colors/{productColorId}/details/{productDetailId}")
+        public ResponseEntity<ApiResponse<ProductDetailResponseDTO>> updateProductDetail(
+                        @PathVariable Integer productColorId,
+                        @PathVariable Integer productDetailId,
+                        @RequestBody ProductDetailRequestDTO productDetailRequest,
+                        HttpServletRequest request) {
 
-    }
+                return ResponseEntity
+                                .ok(ApiResponse.success("Successfully updated the product detail",
+                                                productService.updateProductDetail(productColorId, productDetailId,
+                                                                productDetailRequest),
+                                                request.getRequestURI()));
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/product-color/{productColorId}/product-detail/{productDetailId}")
-    public ResponseEntity<ApiResponse<ProductDetailResponseDTO>> updateProductDetail(
-            @PathVariable Integer productColorId,
-            @PathVariable Integer productDetailId,
-            @RequestBody ProductDetailRequestDTO productDetailRequest) {
+        }
 
-        return ResponseEntity
-                .ok(new ApiResponse<ProductDetailResponseDTO>(true, null,
-                        productService.updateProductDetail(productColorId, productDetailId, productDetailRequest)));
+        @PreAuthorize("hasRole('ADMIN')")
+        @DeleteMapping("/colors/{productColorId}/details/{productDetailId}")
+        public ResponseEntity<ApiResponse<ProductDetailResponseDTO>> deleteProductDetail(
+                        @PathVariable Integer productColorId,
+                        @PathVariable Integer productDetailId,
+                        HttpServletRequest request) {
 
-    }
+                ProductDetailResponseDTO productDetailResponseDTO = productService.deleteProductDetail(productColorId,
+                                productDetailId);
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/product-color/{productColorId}/product-detail/{productDetailId}")
-    public ResponseEntity<ApiResponse<ProductDetailResponseDTO>> deleteProductDetail(
-            @PathVariable Integer productColorId,
-            @PathVariable Integer productDetailId) {
-
-        ProductDetailResponseDTO productDetailResponseDTO = productService.deleteProductDetail(productColorId,
-                productDetailId);
-
-        return ResponseEntity.ok(new ApiResponse<ProductDetailResponseDTO>(true, null, productDetailResponseDTO));
-    }
-    
+                return ResponseEntity.ok(ApiResponse.success("Successfully deleted the product detail",
+                                productDetailResponseDTO, request.getRequestURI()));
+        }
 
 }

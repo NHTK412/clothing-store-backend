@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -31,6 +33,12 @@ public class OrderDetail extends Base {
     @Column(name = "Price")
     private Double price;
 
+    @Column(name = "Discount")
+    private Double discount;
+
+    @Column(name = "FinalPrice")
+    private Double finalPrice;
+
     // Lưu thông tin sản phẩm tại thời điểm mua (de-normalize)
     @Column(name = "ProductName")
     private String productName;
@@ -55,4 +63,5 @@ public class OrderDetail extends Base {
 
     @Column(name = "IsReview")
     private Boolean isReview;
+
 }

@@ -1,6 +1,5 @@
 package com.example.clothingstore.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -8,59 +7,75 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.clothingstore.dto.auth.AuthRequestDTO;
+import com.example.clothingstore.dto.auth.AuthRegisterDTO;
 import com.example.clothingstore.dto.auth.AuthResponseDTO;
 import com.example.clothingstore.service.AuthService;
 import com.example.clothingstore.util.ApiResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 @RestController
-@RequestMapping("auth")
+@RequestMapping("v1/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
-    @Autowired
-    AuthService authService;
+        private final AuthService authService;
 
-    // @PostMapping("/login")
-    // public ResponseEntity<ApiResponse<AuthResponseDTO>> login(@RequestBody
-    // AuthRequestDTO authRequestDTO) {
-    // AuthResponseDTO authResponseDTO =
-    // authService.login(authRequestDTO.getUsername(),
-    // authRequestDTO.getPassword());
-    // return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null,
-    // authResponseDTO));
-    // }
+        @PostMapping("/login")
+        public ResponseEntity<ApiResponse<AuthResponseDTO>> login(
+                        @Valid @RequestBody AuthRegisterDTO authRequestDTO,
+                        HttpServletRequest request) {
+                AuthResponseDTO authResponseDTO = authService.login_v2(
+                                authRequestDTO.getUsername(),
+                                authRequestDTO.getPassword());
 
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponseDTO>> login(@RequestParam(defaultValue = "false") Boolean admin,
-            @RequestBody AuthRequestDTO authRequestDTO) {
-        AuthResponseDTO authResponseDTO = authService.login(authRequestDTO.getUsername(), authRequestDTO.getPassword(), admin);
-        return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null, authResponseDTO));
-    }
+                // false);
 
-    // Đăng ký tài khoản
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthResponseDTO>> register(@RequestBody AuthRequestDTO authRequestDTO) {
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully logged in", authResponseDTO,
+                                                request.getRequestURI()));
+        }
 
-        AuthResponseDTO authResponseDTO = authService.register(authRequestDTO.getUsername(),
-                authRequestDTO.getPassword());
-        return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null, authResponseDTO));
-    }
+        @PostMapping("/register-admin")
+        public ResponseEntity<ApiResponse<AuthResponseDTO>> registerAdmin(
+                        @Valid @RequestBody AuthRegisterDTO authRequestDTO,
+                        @RequestParam String apiKey,
+                        HttpServletRequest request) {
+                AuthResponseDTO authResponseDTO = authService.registerAdmin(
+                                authRequestDTO.getUsername(),
+                                authRequestDTO.getPassword(),
+                                apiKey);
 
-    @PostMapping("/login-admin")
-    public ResponseEntity<ApiResponse<AuthResponseDTO>> loginAdmin(@RequestBody AuthRequestDTO authRequestDTO) {
-        AuthResponseDTO authResponseDTO = authService.loginAdmin(authRequestDTO.getUsername(),
-                authRequestDTO.getPassword());
-        return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null, authResponseDTO));
-    }
-    // @PostMapping("/refresh-token")
-    // public ResponseEntity<ApiResponse<AuthResponseDTO>>
-    // getAccessTokenWithRefreshToken(@RequestParam String refreshToken) {
+                return ResponseEntity.ok(ApiResponse.created("Successfully registered admin", authResponseDTO,
+                                request.getRequestURI()));
 
-    // AuthResponseDTO authResponseDTO =
-    // authService.getAccessTokenWithRefreshToken(refreshToken);
+        }
 
-    // return ResponseEntity.ok(new ApiResponse<AuthResponseDTO>(true, null,
-    // authResponseDTO));
-    // }
+        // Đăng ký tài khoản
+        @PostMapping("/register")
+        public ResponseEntity<ApiResponse<AuthResponseDTO>> register(
+                        @Valid @RequestBody AuthRegisterDTO authRequestDTO,
+                        HttpServletRequest request) {
+
+                AuthResponseDTO authResponseDTO = authService.register(authRequestDTO.getUsername(),
+                                authRequestDTO.getPassword());
+                return ResponseEntity.ok(ApiResponse.created("Successfully registered", authResponseDTO,
+                                request.getRequestURI()));
+
+        }
+
+        // Đăng xuất
+        // Refresh token cấp lại access token mới
+
+        @PostMapping("/refresh-token")
+        public ResponseEntity<ApiResponse<AuthResponseDTO>> getAccessTokenWithRefreshToken(
+                        @RequestParam String refreshToken,
+                        HttpServletRequest request) {
+                AuthResponseDTO authResponseDTO = authService.getAccessTokenWithRefreshToken(refreshToken);
+                return ResponseEntity.ok(ApiResponse.success("Successfully refreshed token", authResponseDTO,
+                                request.getRequestURI()));
+        }
 
 }

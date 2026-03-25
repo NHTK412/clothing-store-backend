@@ -3,6 +3,7 @@ package com.example.clothingstore.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -21,74 +22,117 @@ import com.example.clothingstore.dto.category.CategorySummaryDTO;
 import com.example.clothingstore.service.CategoryService;
 import com.example.clothingstore.util.ApiResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
-@RequestMapping("/category")
+@RequestMapping("v1/categories")
+@RequiredArgsConstructor
 public class CategoryController {
 
-    @Autowired
-    private CategoryService categoryService;
+        // @Autowired
+        // private CategoryService categoryService;
 
+        private final CategoryService categoryService;
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<CategorySummaryDTO>>> getAllCategory(@RequestParam Integer page,
-            @RequestParam Integer size) {
-        Pageable pageable = PageRequest.of(page - 1, size);
+        @GetMapping
+        // public ResponseEntity<ApiResponse<List<CategorySummaryDTO>>> getAllCategory(
+        public ResponseEntity<ApiResponse<Page<CategorySummaryDTO>>> getAllCategory(
 
-        List<CategorySummaryDTO> categorySummaryDTOs = categoryService.getAllCategory(pageable);
+                        @RequestParam(defaultValue = "1") Integer page,
+                        @RequestParam(defaultValue = "10") Integer size,
+                        HttpServletRequest request) {
+                Pageable pageable = PageRequest.of(page - 1, size);
 
-        return ResponseEntity.ok(new ApiResponse<List<CategorySummaryDTO>>(true, null, categorySummaryDTOs));
-    }
+                Page<CategorySummaryDTO> categorySummaryDTOs = categoryService.getAllCategory(pageable);
 
-    @GetMapping("/{categoryId}")
-    public ResponseEntity<ApiResponse<CategoryResponseDTO>> getCategoryById(@PathVariable Integer categoryId) {
+                // return ResponseEntity.ok(new ApiResponse<List<CategorySummaryDTO>>(true,
+                // null, categorySummaryDTOs));
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully retrieved categories", categorySummaryDTOs,
+                                                request.getRequestURI()));
+        }
 
-        CategoryResponseDTO categoryResponseDTO = categoryService.getCategoryById(categoryId);
+        @GetMapping("/{categoryId}")
+        public ResponseEntity<ApiResponse<CategoryResponseDTO>> getCategoryById(@PathVariable Integer categoryId,
+                        HttpServletRequest request) {
 
-        return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
-    }
+                CategoryResponseDTO categoryResponseDTO = categoryService.getCategoryById(categoryId);
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
-    public ResponseEntity<ApiResponse<CategoryResponseDTO>> createCategory(
-            @RequestBody CategoryRequestDTO categoryRequestDTO) {
+                // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null,
+                // categoryResponseDTO));
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully retrieved category", categoryResponseDTO,
+                                                request.getRequestURI()));
+        }
 
-        CategoryResponseDTO categoryResponseDTO = categoryService.createCategory(categoryRequestDTO);
+        @PreAuthorize("hasRole('ADMIN')")
+        @PostMapping
+        public ResponseEntity<ApiResponse<CategoryResponseDTO>> createCategory(
+                        @Valid @RequestBody CategoryRequestDTO categoryRequestDTO,
+                        HttpServletRequest request) {
 
-        return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
-    }
+                CategoryResponseDTO categoryResponseDTO = categoryService.createCategory(categoryRequestDTO);
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{categoryId}")
-    public ResponseEntity<ApiResponse<CategoryResponseDTO>> updateCategory(@PathVariable Integer categoryId,
-            @RequestBody CategoryRequestDTO categoryRequestDTO) {
+                // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null,
+                // categoryResponseDTO));
+                return ResponseEntity.ok(
+                                ApiResponse.created("Successfully created category", categoryResponseDTO,
+                                                request.getRequestURI()));
+        }
 
-        CategoryResponseDTO categoryResponseDTO = categoryService.updateCategory(categoryId, categoryRequestDTO);
+        @PreAuthorize("hasRole('ADMIN')")
+        @PutMapping("/{categoryId}")
+        public ResponseEntity<ApiResponse<CategoryResponseDTO>> updateCategory(@PathVariable Integer categoryId,
+                        @Valid @RequestBody CategoryRequestDTO categoryRequestDTO,
+                        HttpServletRequest request) {
 
-        return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
-    }
+                CategoryResponseDTO categoryResponseDTO = categoryService.updateCategory(categoryId,
+                                categoryRequestDTO);
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{categoryId}")
-    public ResponseEntity<ApiResponse<CategoryResponseDTO>> deleteCategory(@PathVariable Integer categoryId) {
+                // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null,
+                // categoryResponseDTO));
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully updated category", categoryResponseDTO,
+                                                request.getRequestURI()));
+        }
 
-        CategoryResponseDTO categoryResponseDTO = categoryService.deleteCategory(categoryId);
+        @PreAuthorize("hasRole('ADMIN')")
+        @DeleteMapping("/{categoryId}")
+        public ResponseEntity<ApiResponse<CategoryResponseDTO>> deleteCategory(@PathVariable Integer categoryId,
+                        HttpServletRequest request) {
 
-        return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null, categoryResponseDTO));
-    }
+                CategoryResponseDTO categoryResponseDTO = categoryService.deleteCategory(categoryId);
 
-    // endpoint này dùng cho bên admin hiển thị danh sách các danh mục
-    @GetMapping("/details")
-    public ResponseEntity<ApiResponse<List<CategoryResponseDTO>>> getAllCategoriesDetailed(@RequestParam Integer page,
-            @RequestParam Integer size) {
-        Pageable pageable = PageRequest.of(page - 1, size);
+                // return ResponseEntity.ok(new ApiResponse<CategoryResponseDTO>(true, null,
+                // categoryResponseDTO));
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully deleted category", categoryResponseDTO,
+                                                request.getRequestURI()));
+        }
 
-        List<CategoryResponseDTO> categorySummaryDTOs = categoryService.getAllCategoriesDetailed(pageable);
+        // endpoint này dùng cho bên admin hiển thị danh sách các danh mục
+        // @GetMapping("/details")
+        // public ResponseEntity<ApiResponse<List<CategoryResponseDTO>>>
+        // getAllCategoriesDetailed(
+        // @RequestParam(defaultValue = "1") Integer page,
+        // @RequestParam(defaultValue = "10") Integer size) {
+        // Pageable pageable = PageRequest.of(page - 1, size);
 
-        return ResponseEntity.ok(new ApiResponse<List<CategoryResponseDTO>>(true, null, categorySummaryDTOs));
-    }
+        // List<CategoryResponseDTO> categorySummaryDTOs =
+        // categoryService.getAllCategoriesDetailed(pageable);
+
+        // // return ResponseEntity.ok(new ApiResponse<List<CategoryResponseDTO>>(true,
+        // null, categorySummaryDTOs));
+        // return ResponseEntity.ok(
+        // ApiResponse.success("Successfully retrieved categories with details",
+        // categorySummaryDTOs)
+        // );
+        // }
 
 }

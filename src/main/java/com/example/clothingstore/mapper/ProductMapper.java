@@ -27,6 +27,6 @@ public class ProductMapper {
 
     // public ProductPromotionDTO convertModelToProductPromotionDTO(Product product)
     // {
-        
+
     // }
 }

@@ -1,30 +1,30 @@
 package com.example.clothingstore.service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 
 import org.springframework.stereotype.Service;
 
+import com.example.clothingstore.dto.product.ProductColorRequestDTO;
+import com.example.clothingstore.dto.product.ProductColorResponseDTO;
+import com.example.clothingstore.dto.product.ProductColorUpdateDTO;
+import com.example.clothingstore.dto.product.ProductDetailRequestDTO;
+import com.example.clothingstore.dto.product.ProductDetailResponseDTO;
+import com.example.clothingstore.dto.product.ProductDetailUpdateDTO;
 import com.example.clothingstore.dto.product.ProductRequestDTO;
 import com.example.clothingstore.dto.product.ProductResponseDTO;
 import com.example.clothingstore.dto.product.ProductSummaryDTO;
 import com.example.clothingstore.dto.product.ProductUpdateDTO;
-import com.example.clothingstore.dto.productcolor.ProductColorRequestDTO;
-import com.example.clothingstore.dto.productcolor.ProductColorResponseDTO;
-import com.example.clothingstore.dto.productcolor.ProductColorUpdateDTO;
-import com.example.clothingstore.dto.productdetail.ProductDetailRequestDTO;
-import com.example.clothingstore.dto.productdetail.ProductDetailResponseDTO;
-import com.example.clothingstore.dto.productdetail.ProductDetailUpdateDTO;
 import com.example.clothingstore.enums.StatusEnum;
-import com.example.clothingstore.exception.customer.NotFoundException;
+import com.example.clothingstore.exception.business.NotFoundException;
+import com.example.clothingstore.mapper.mapstruct.ProductColorMapper;
+import com.example.clothingstore.mapper.mapstruct.ProductDetailMapper;
+import com.example.clothingstore.mapper.mapstruct.ProductMapper;
 import com.example.clothingstore.model.Category;
 import com.example.clothingstore.model.Product;
 import com.example.clothingstore.model.ProductColor;
@@ -35,43 +35,63 @@ import com.example.clothingstore.repository.ProductDetailRepository;
 import com.example.clothingstore.repository.ProductRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class ProductService {
 
-    @Autowired
-    ProductRepository productRepository;
+    // @Autowired
+    // ProductRepository productRepository;
 
-    @Autowired
-    ProductColorRepository productColorRepository;
+    // @Autowired
+    // ProductColorRepository productColorRepository;
 
-    @Autowired
-    ProductDetailRepository productDetailRepository;
+    // @Autowired
+    // ProductDetailRepository productDetailRepository;
 
-    @Autowired
-    CategoryRepository categoryRepository;
+    // @Autowired
+    // CategoryRepository categoryRepository;
 
+    private final ProductRepository productRepository;
+    private final ProductColorRepository productColorRepository;
+    private final ProductDetailRepository productDetailRepository;
+    private final CategoryRepository categoryRepository;
+
+    // Các mapper
+    private final ProductMapper productMapper;
+    private final ProductColorMapper productColorMapper;
+    private final ProductDetailMapper productDetailMapper;
+
+    @Transactional
     public ProductResponseDTO getProductDetailById(Integer productId) {
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Invalid product code"));
 
-        return new ProductResponseDTO(product);
+        // return new ProductResponseDTO(product);
+        return productMapper.toResponseDTO(product);
     }
 
-    public List<ProductSummaryDTO> getAllProduct(Integer categoryId, Pageable pageable) {
+    @Transactional
+    // public List<ProductSummaryDTO> getAllProduct(Integer categoryId, Pageable
+    // pageable) {
+    public Page<ProductSummaryDTO> getAllProduct(Integer categoryId, Pageable pageable) {
 
         Page<Product> products = (categoryId == null) ? productRepository.findAll(pageable)
                 : productRepository.findByCategories_CategoryId(categoryId, pageable);
 
-        List<ProductSummaryDTO> productSummaryDTOs = products.toList()
-                .stream()
-                .map((product) -> {
-                    return new ProductSummaryDTO(product);
-                })
-                .toList();
+        // List<ProductSummaryDTO> productSummaryDTOs = products.toList()
+        // .stream()
+        // .map((product) -> {
+        // // return new ProductSummaryDTO(product);
+        // return productMapper.toSummaryDTO(product);
+        // })
+        // .toList();
 
-        return productSummaryDTOs;
+        return products.map(productMapper::toSummaryDTO);
+
+        // return productSummaryDTOs;
     }
 
     @Transactional
@@ -86,7 +106,8 @@ public class ProductService {
 
         productRepository.save(product);
 
-        return new ProductSummaryDTO(product);
+        // return new ProductSummaryDTO(product);
+        return productMapper.toSummaryDTO(product);
     }
 
     @Transactional
@@ -106,7 +127,8 @@ public class ProductService {
 
         productRepository.save(product);
 
-        return new ProductSummaryDTO(product);
+        // return new ProductSummaryDTO(product);
+        return productMapper.toSummaryDTO(product);
     }
 
     // @Transactional
@@ -181,7 +203,6 @@ public class ProductService {
             product.getProductColors().add(productColor);
         }
 
-
     }
 
     @Transactional
@@ -191,12 +212,15 @@ public class ProductService {
         ProductColor productColor = productColorRepository.findById(productColorId)
                 .orElseThrow(() -> new NotFoundException("Invalid product color id"));
 
-        productColor.setColor(productColorRequest.getColor());
-        productColor.setProductImage(productColorRequest.getProductImage());
+        // productColor.setColor(productColorRequest.getColor());
+        // productColor.setProductImage(productColorRequest.getProductImage());
+        productColorMapper.updateEntityFromDTO(productColorRequest, productColor);
 
         productColorRepository.save(productColor);
 
-        ProductColorResponseDTO productColorResponseDTO = new ProductColorResponseDTO(productColor);
+        // ProductColorResponseDTO productColorResponseDTO = new
+        // ProductColorResponseDTO(productColor);
+        ProductColorResponseDTO productColorResponseDTO = productColorMapper.toResponseDTO(productColor);
         return productColorResponseDTO;
     }
 
@@ -210,7 +234,9 @@ public class ProductService {
 
         productColorRepository.save(productColor);
 
-        ProductColorResponseDTO productColorResponseDTO = new ProductColorResponseDTO(productColor);
+        // ProductColorResponseDTO productColorResponseDTO = new
+        // ProductColorResponseDTO(productColor);
+        ProductColorResponseDTO productColorResponseDTO = productColorMapper.toResponseDTO(productColor);
         return productColorResponseDTO;
     }
 
@@ -223,7 +249,9 @@ public class ProductService {
 
         ProductColor savedProductColor = productColorRepository.save(productColor);
 
-        ProductColorResponseDTO productColorResponseDTO = new ProductColorResponseDTO(savedProductColor);
+        // ProductColorResponseDTO productColorResponseDTO = new
+        // ProductColorResponseDTO(savedProductColor);
+        ProductColorResponseDTO productColorResponseDTO = productColorMapper.toResponseDTO(savedProductColor);
         return productColorResponseDTO;
     }
 
@@ -242,6 +270,8 @@ public class ProductService {
 
         ProductDetail savedProductDetail = productDetailRepository.save(productDetail);
 
+        // ProductDetailResponseDTO productDetailResponseDTO =
+        // productDetailMapper.toResponseDTO(savedProductDetail);
         ProductDetailResponseDTO productDetailResponseDTO = new ProductDetailResponseDTO(savedProductDetail);
         return productDetailResponseDTO;
     }
@@ -253,12 +283,15 @@ public class ProductService {
         ProductDetail productDetail = productDetailRepository.findById(productDetailId)
                 .orElseThrow(() -> new NotFoundException("Invalid product detail id"));
 
-        productDetail.setSize(productDetailRequest.getSize());
-        productDetail.setQuantity(productDetailRequest.getQuantity());
+        // productDetail.setSize(productDetailRequest.getSize());
+        // productDetail.setQuantity(productDetailRequest.getQuantity());
+        productDetailMapper.updateEntityFromDTO(productDetailRequest, productDetail);
 
         productDetailRepository.save(productDetail);
 
-        ProductDetailResponseDTO productDetailResponseDTO = new ProductDetailResponseDTO(productDetail);
+        // ProductDetailResponseDTO productDetailResponseDTO = new
+        // ProductDetailResponseDTO(productDetail);
+        ProductDetailResponseDTO productDetailResponseDTO = productDetailMapper.toResponseDTO(productDetail);
         return productDetailResponseDTO;
     }
 
@@ -272,7 +305,9 @@ public class ProductService {
 
         productDetailRepository.save(productDetail);
 
-        ProductDetailResponseDTO productDetailResponseDTO = new ProductDetailResponseDTO(productDetail);
+        // ProductDetailResponseDTO productDetailResponseDTO = new
+        // ProductDetailResponseDTO(productDetail);
+        ProductDetailResponseDTO productDetailResponseDTO = productDetailMapper.toResponseDTO(productDetail);
         return productDetailResponseDTO;
     }
 
@@ -385,7 +420,8 @@ public class ProductService {
         // Chuyển thành INACTIVE cho các product detail không có trong update
 
         productRepository.save(product);
-        return new ProductSummaryDTO(product);
+        // return new ProductSummaryDTO(product);
+        return productMapper.toSummaryDTO(product);
 
     }
 

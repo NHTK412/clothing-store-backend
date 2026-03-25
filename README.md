@@ -228,8 +228,7 @@ curl -X POST "http://localhost:8080/api/v1/promotions" \
   "conditions": [
     {
       "conditionType": "PRODUCT_SPECIFIC",
-      "value": {
-      }
+      "value": {}
     }
   ],
   "actions": [
@@ -275,16 +274,176 @@ src/main/java/com/example/clothingstore
 |- validator/     # Custom validations
 ```
 
-## 7. Hướng dẫn chạy nhanh
+## 7. Chạy bằng Docker và khởi tạo dữ liệu ban đầu
 
-### 7.1 Yêu cầu môi trường
+### 7.1 Yêu cầu trước khi chạy Docker
+
+- Đã cài Docker Desktop
+- Docker Engine đang chạy
+- Cổng `8080`, `3306`, `6379` chưa bị chiếm
+
+### 7.2 Lệnh chạy Docker Compose
+
+```bash
+docker compose up -d --build
+```
+
+Kiểm tra container:
+
+```bash
+docker compose ps
+```
+
+Kiểm tra log ứng dụng:
+
+```bash
+docker compose logs -f app
+```
+
+Stop toàn bộ:
+
+```bash
+docker compose down
+```
+
+Stop và xóa luôn volume dữ liệu:
+
+```bash
+docker compose down -v
+```
+
+Ghi chú cấu hình Docker hiện tại:
+
+- `API_KEY` mặc định: `my-secret-api-key-12345`
+- DB: `clothing_store_new`
+- MySQL user: `root`
+- MySQL password: `root123`
+
+### 7.3 Luồng khởi tạo ứng dụng sau khi Docker chạy
+
+Base URL:
+
+- `http://localhost:8080/api`
+
+Swagger UI:
+
+- `http://localhost:8080/api/swagger-ui/index.html`
+
+#### Bước 1: Tạo tài khoản admin
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/auth/register-admin?apiKey=my-secret-api-key-12345" \
+  -H "accept: */*" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "<ADMIN_PASSWORD>"
+  }'
+```
+
+Kết quả mong đợi:
+
+- `success = true`
+- `message = Successfully registered admin`
+- Lấy `data.accessToken` để dùng cho các bước sau.
+
+#### Bước 2: Tạo category
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/categories" \
+  -H "accept: */*" \
+  -H "Authorization: Bearer <ADMIN_ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "categoryName": "Bo suu tap ao",
+    "description": "Bo suu tap ao moi nhat nam 2026",
+    "status": "ACTIVE"
+  }'
+```
+
+Kết quả mong đợi:
+
+- `success = true`
+- `data.categoryId` có giá trị (ví dụ `1`).
+
+#### Bước 3: Upload ảnh sản phẩm
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/file-upload/image" \
+  -H "accept: */*" \
+  -H "Authorization: Bearer <ADMIN_ACCESS_TOKEN>" \
+  -F "file=@product-demo.png;type=image/png"
+```
+
+Kết quả mong đợi:
+
+- `success = true`
+- `data.fileName` trả về tên file đã lưu (ví dụ `20260325171909_product-demo.png` ở cuối path).
+
+#### Bước 4: Tạo sản phẩm đầu tiên
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/products" \
+  -H "accept: */*" \
+  -H "Authorization: Bearer <ADMIN_ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "productName": "Ao thun basic",
+    "unitPrice": 199000,
+    "description": "Ao thun cotton 100%",
+    "productImage": "<UPLOADED_FILE_NAME>",
+    "discount": 0.0,
+    "categoryId": [1],
+    "productColors": [
+      {
+        "color": "#000000",
+        "productImage": "<UPLOADED_FILE_NAME>",
+        "productDetails": [
+          { "size": "M", "quantity": 50 },
+          { "size": "L", "quantity": 30 }
+        ]
+      },
+      {
+        "color": "#FFFFFF",
+        "productImage": "<UPLOADED_FILE_NAME>",
+        "productDetails": [
+          { "size": "M", "quantity": 40 }
+        ]
+      }
+    ]
+  }'
+```
+
+Kết quả mong đợi:
+
+- `success = true`
+- Có `data.productId`, `data.productColors[].colorId`, `data.productColors[].productDetails[].detailId`.
+
+### 7.4 Sau khi bootstrap xong
+
+- Đã có admin để gọi endpoint yêu cầu quyền `ADMIN`.
+- Đã có category và product để test cart/order/promotion.
+- Có thể chuyển sang phần [Hướng dẫn tạo khuyến mãi](#5-hướng-dẫn-tạo-khuyến-mãi).
+
+### 7.5 Lỗi Docker Compose thường gặp
+
+- Lỗi `port is already allocated`:
+  - Đóng service đang chiếm cổng hoặc đổi map port trong `docker-compose.yml`.
+- Lỗi không build được app image:
+  - Kiểm tra kết nối mạng để Maven tải dependency.
+- Lỗi app chưa kết nối được MySQL ngay khi start:
+  - Chờ thêm vài giây rồi xem lại `docker compose logs -f app` (compose đã có healthcheck và depends_on).
+
+## 8. Hướng dẫn chạy local (không dùng Docker)
+
+### 8.1 Yêu cầu môi trường
 
 - JDK 21
 - Maven Wrapper (đã có sẵn trong dự án)
 - MySQL
 - Redis
 
-### 7.2 Cấu hình
+### 8.2 Cấu hình
 
 1. Sao chép file cấu hình:
 
@@ -302,7 +461,7 @@ cp src/main/resources/application.properties.example src/main/resources/applicat
 - `spring.data.redis.port`
 - `zalopay.*` (nếu test thanh toán)
 
-### 7.3 Chạy ứng dụng
+### 8.3 Chạy ứng dụng
 
 Windows:
 
@@ -316,13 +475,13 @@ macOS/Linux:
 ./mvnw spring-boot:run
 ```
 
-### 7.4 Chạy test
+### 8.4 Chạy test
 
 ```bash
 ./mvnw test
 ```
 
-## 8. Bảo mật và chất lượng
+## 9. Bảo mật và chất lượng
 
 - Stateless authentication với JWT filter.
 - `@EnableMethodSecurity` + `@PreAuthorize` cho endpoint nhạy cảm.

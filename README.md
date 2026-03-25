@@ -60,12 +60,12 @@ Mỗi thành phần là một strategy độc lập, nên thêm loại khuyến 
 
 ```mermaid
 flowchart LR
-    A[Create Promotion\nisActive=false] --> B[Scheduler check every ~60s]
-    B --> C{Current time in\n[startDate, endDate]?}
-    C -- Yes --> D[Activate Promotion\nisActive=true]
+  A[Create Promotion<br/>isActive=false] --> B[Scheduler check every ~60s]
+  B --> C{Current time in<br/>startDate to endDate?}
+  C -- Yes --> D[Activate Promotion<br/>isActive=true]
     C -- No --> E[Keep Inactive]
     D --> F{endDate passed?}
-    F -- Yes --> G[Deactivate Promotion\nisActive=false]
+  F -- Yes --> G[Deactivate Promotion<br/>isActive=false]
     F -- No --> H[Continue Active]
 ```
 
@@ -228,7 +228,8 @@ curl -X POST "http://localhost:8080/api/v1/promotions" \
   "conditions": [
     {
       "conditionType": "PRODUCT_SPECIFIC",
-      "value": { "note": "product-level by promotion group" }
+      "value": {
+      }
     }
   ],
   "actions": [

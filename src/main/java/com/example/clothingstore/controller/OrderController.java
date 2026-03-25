@@ -46,7 +46,7 @@ public class OrderController {
                         @Valid @RequestBody OrderRequestDTO orderRequestDTO,
                         HttpServletRequest request) {
                 String userName = userDetails.getUsername();
-                OrderResponseDTO createdOrder = orderService.createOrder(userName, orderRequestDTO);
+                OrderResponseDTO createdOrder = orderService.createOrder_v2(userName, orderRequestDTO);
                 return ResponseEntity.ok(
                                 ApiResponse.created(
                                                 "Successfully created order",

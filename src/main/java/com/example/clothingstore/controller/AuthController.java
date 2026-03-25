@@ -72,9 +72,8 @@ public class AuthController {
         @PostMapping("/refresh-token")
         public ResponseEntity<ApiResponse<AuthResponseDTO>> getAccessTokenWithRefreshToken(
                         @RequestParam String refreshToken,
-                        @RequestParam boolean isAdmin,
                         HttpServletRequest request) {
-                AuthResponseDTO authResponseDTO = authService.getAccessTokenWithRefreshToken(refreshToken, isAdmin);
+                AuthResponseDTO authResponseDTO = authService.getAccessTokenWithRefreshToken(refreshToken);
                 return ResponseEntity.ok(ApiResponse.success("Successfully refreshed token", authResponseDTO,
                                 request.getRequestURI()));
         }

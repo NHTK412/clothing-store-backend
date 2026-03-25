@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.clothingstore.dto.order.OrderPreviewDTO;
 import com.example.clothingstore.dto.order.OrderRequestDTO;
 import com.example.clothingstore.dto.order.OrderResponseDTO;
 import com.example.clothingstore.dto.order.OrderSummaryDTO;
+import com.example.clothingstore.dto.product.CreatePreviewDTO;
 import com.example.clothingstore.enums.OrderStatusEnum;
 import com.example.clothingstore.service.OrderService;
 import com.example.clothingstore.util.ApiResponse;
@@ -129,17 +131,24 @@ public class OrderController {
                                                 request.getRequestURI()));
         }
 
-        // @PreAuthorize("hasRole('ADMIN')")
-        // @PatchMapping("/{orderId}/refund-payment")
-        // public ResponseEntity<ApiResponse<OrderResponseDTO>> refundPayment(
-        // @PathVariable Integer orderId,
-        // HttpServletRequest request) {
-        // OrderResponseDTO updatedOrder = orderService.refundPayment(orderId);
-        // return ResponseEntity.ok(
-        // ApiResponse.success(
-        // "Successfully refunded payment for order",
-        // updatedOrder,
-        // request.getRequestURI()));
-        // }
+        @PostMapping("preview")
+        public ResponseEntity<ApiResponse<OrderPreviewDTO>> previewOrder(
+                        @AuthenticationPrincipal CustomerUserDetails userDetails,
+                        // @RequestParam List<Integer> cartItemIds,
+                        // @RequestParam(required = false) List<Integer> promotionIds,
+                        @RequestBody CreatePreviewDTO createPreviewDTO,
+                        HttpServletRequest request) {
+                Integer customerId = userDetails.getUserId();
+
+                // OrderPreviewDTO orderPreviewDTO = cartService.previewOrder(customerId,
+                // cartItemIds, promotionIds);
+                OrderPreviewDTO orderPreviewDTO = orderService.createPreviewOrder_v2(customerId, createPreviewDTO);
+
+                // return ResponseEntity.ok(new ApiResponse<OrderPreviewDTO>(true, null,
+                // orderPreviewDTO));
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully previewed order", orderPreviewDTO,
+                                                request.getRequestURI()));
+        }
 
 }

@@ -50,20 +50,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CartService {
 
-    // @Autowired
-    // private CartRepository cartRepository;
-
-    // @Autowired
-    // private CartDetailRepository cartDetailRepository;
-
-    // @Autowired
-    // private ProductDetailRepository productDetailRepository;
-
-    // @Autowired
-    // private CartMapper cartMapper;
-
-    // @Autowired
-    // private CartDetailMapper cartDetailMapper;
 
     private final CartRepository cartRepository;
     private final CartDetailRepository cartDetailRepository;
@@ -134,19 +120,11 @@ public class CartService {
         CartItemResponseDTO cartItemResponseDTO = null;
         if (quantity != null) {
             if (quantity <= 0) {
-                // cartItemResponseDTO =
-                // cartDetailMapper.convertModelToCartItemResponseDTO(cartDetail);
                 cartDetailRepository.delete(cartItem);
             } else {
                 cartItem.setQuantity(quantity);
             }
         }
-        // if (isSelected != null) {
-        // cartDetail.setIsSelected(isSelected);
-        // // cartItemResponseDTO =
-        // // cartDetailMapper.convertModelToCartItemResponseDTO(cartDetail);
-
-        // }
         cartItemResponseDTO = cartDetailMapper.convertModelToCartItemResponseDTO(cartItem);
 
         return cartItemResponseDTO;
@@ -171,257 +149,234 @@ public class CartService {
 
     }
 
-    @Transactional
-    // public OrderPreviewDTO previewOrder(Integer customerId, List<Integer>
-    // cartItemIds, List<Integer> promotionIds) {
-    public OrderPreviewDTO previewOrder(Integer customerId, CreatePreviewDTO createPreviewDTO) {
-
-        // Kiểm tra xem cartItemIds có thuộc về customerId hay không
-        // Cart cart = cartRepository.findByCustomer_UserId(customerId)
-        // .orElseThrow(() -> new NotFoundException("Invalue Cart By Customer"));
-
-        // List<CartItem> cartItems = cartDetailRepository.findAllById(cartItemIds);
-
-        // if (cartItems.size() != cartItemIds.size() || cartItems.isEmpty()) {
-        // throw new NotFoundException("Some cart items not found");
-        // }
-
-        // for (CartItem cartItem : cartItems) {
-        // if (!cartItem.getCart().getCartId().equals(cart.getCartId())) {
-        // throw new AccessDeniedException("You cannot preview items from another user's
-        // cart");
-        // }
-        // }
-
-        Map<Integer, Integer> productDetailIdToQuantity = createPreviewDTO.getDetails().stream()
-                .collect(
-                        Collectors.toMap(
-                                CreatePreviewDTO.CreatePreviewDetailsDTO::getProductDetailIds,
-                                CreatePreviewDTO.CreatePreviewDetailsDTO::getQuantity));
-
-        List<ProductDetail> productDetails = productDetailRepository.findAllById(productDetailIdToQuantity.keySet());
-
-        boolean isStockEnough = productDetails.stream()
-                .allMatch(productDetail -> productDetail.getQuantity() >= productDetailIdToQuantity
-                        .get(productDetail.getDetailId()));
-
-        if (!isStockEnough) {
-            throw new ConflictException("Some product details do not have enough stock");
-        }
-
-        // Tạo OrderPreviewDTO ban đầu
-
-        // Set<OrderDetailPreviewDTO> orderDetails = cartItems.stream()
-        // .map(cartItem -> {
-        Set<OrderDetailPreviewDTO> orderDetails = productDetails.stream()
-                .map(productDetail -> {
+    // @Transactional
+    // public OrderPreviewDTO previewOrder(Integer customerId, CreatePreviewDTO createPreviewDTO) {
+
+    //     Map<Integer, Integer> productDetailIdToQuantity = createPreviewDTO.getDetails().stream()
+    //             .collect(
+    //                     Collectors.toMap(
+    //                             CreatePreviewDTO.CreatePreviewDetailsDTO::getProductDetailIds,
+    //                             CreatePreviewDTO.CreatePreviewDetailsDTO::getQuantity));
+
+    //     List<ProductDetail> productDetails = productDetailRepository.findAllById(productDetailIdToQuantity.keySet());
+
+    //     boolean isStockEnough = productDetails.stream()
+    //             .allMatch(productDetail -> productDetail.getQuantity() >= productDetailIdToQuantity
+    //                     .get(productDetail.getDetailId()));
+
+    //     if (!isStockEnough) {
+    //         throw new ConflictException("Some product details do not have enough stock");
+    //     }
 
-                    // final Double discountAmount = 0.0;
-                    final Double discountAmount = productDetail.getProductColor().getProduct()
-                            .getDiscount() != null
-                                    ? productDetail.getProductColor().getProduct().getDiscount()
-                                    : 0.0; // Lấy giá trị giảm giá từ sản phẩm, nếu không có thì mặc định là 0
+    //     Set<OrderDetailPreviewDTO> orderDetails = productDetails.stream()
+    //             .map(productDetail -> {
 
-                    final Double price = productDetail.getProductColor().getProduct().getUnitPrice();
+    //                 final Double discountAmount = productDetail.getProductColor().getProduct()
+    //                         .getDiscount() != null
+    //                                 ? productDetail.getProductColor().getProduct().getUnitPrice()
+    //                                         * (productDetail.getProductColor().getProduct().getDiscount() / 100)
+    //                                 : 0.0;
 
-                    final Double finalPrice = price - discountAmount; // Tính giá cuối cùng sau khi áp dụng giảm giá
+    //                 final Double price = productDetail.getProductColor().getProduct().getUnitPrice();
 
-                    final Boolean isFree = false;
+    //                 final Double finalPrice = price - discountAmount;
 
-                    OrderDetailPreviewDTO orderDetailPreviewDTO = OrderDetailPreviewDTO.builder()
-                            .productDetailId(productDetail.getDetailId())
-                            .productName(productDetail.getProductColor().getProduct().getProductName())
-                            .productImage(productDetail.getProductColor().getProductImage())
-                            .color(productDetail.getProductColor().getColor())
-                            .size(productDetail.getSize())
-                            .quantity(productDetail.getQuantity())
-                            .price(price)
-                            .discountAmount(discountAmount)
-                            .finalPrice(finalPrice)
-                            .isFree(isFree)
-                            .build();
-                    return orderDetailPreviewDTO;
-                }).collect(Collectors.toSet());
+    //                 final Boolean isFree = false;
 
-        Double totalAmount = orderDetails.stream()
-                .mapToDouble(orderDetail -> orderDetail.getFinalPrice() * orderDetail.getQuantity())
-                .sum();
+    //                 OrderDetailPreviewDTO orderDetailPreviewDTO = OrderDetailPreviewDTO.builder()
+    //                         .productDetailId(productDetail.getDetailId())
+    //                         .productName(productDetail.getProductColor().getProduct().getProductName())
+    //                         .productImage(productDetail.getProductColor().getProductImage())
+    //                         .color(productDetail.getProductColor().getColor())
+    //                         .size(productDetail.getSize())
+    //                         .quantity(productDetailIdToQuantity.get(productDetail.getDetailId()))
+    //                         .price(price)
+    //                         .discountAmount(discountAmount)
+    //                         .finalPrice(finalPrice)
+    //                         .isFree(isFree)
+    //                         .build();
+    //                 return orderDetailPreviewDTO;
+    //             }).collect(Collectors.toSet());
 
-        Double discountAmount = 0.0; // Tính tổng số tiền giảm giá từ các chiến lược khuyến mãi áp dụng
+    //     Double totalAmount = orderDetails.stream()
+    //             .mapToDouble(orderDetail -> orderDetail.getFinalPrice() * orderDetail.getQuantity())
+    //             .sum();
 
-        Double shippingFee = 30000.0; // Tính phí vận chuyển
+    //     Double discountAmount = 0.0; // Tính tổng số tiền giảm giá từ các chiến lược khuyến mãi áp dụng
 
-        Double discountShippingFee = 0.0; // Tính số tiền giảm giá cho phí vận chuyển từ các chiến lược khuyến mãi áp
-                                          // dụng
+    //     Double shippingFee = 30000.0; // Tính phí vận chuyển
 
-        Double finalAmount = totalAmount - discountAmount + shippingFee - discountShippingFee;
+    //     Double discountShippingFee = 0.0; // Tính số tiền giảm giá cho phí vận chuyển từ các chiến lược khuyến mãi áp
+    //                                       // dụng
 
-        OrderPreviewDTO orderPreviewDTO = OrderPreviewDTO.builder()
-                .orderDetails(orderDetails)
-                .totalAmount(totalAmount)
-                .discountAmount(discountAmount)
-                .shippingFee(shippingFee)
-                .discountShippingFee(discountShippingFee)
-                .finalAmount(finalAmount)
-                .appliedPromotions(new ArrayList<>())
-                .build();
+    //     Double finalAmount = totalAmount - discountAmount + shippingFee - discountShippingFee;
 
-        // Áp dụng khuyến mãi tự động không cần nhập mã khuyến mãi
-        List<Promotion> automaticPromotions = promotionRepository.findByPromotionTypeAndStartDateBeforeAndEndDateAfter(
-                PromotionTypeEnum.AUTOMATIC, java.time.LocalDateTime.now(), java.time.LocalDateTime.now());
+    //     OrderPreviewDTO orderPreviewDTO = OrderPreviewDTO.builder()
+    //             .orderDetails(orderDetails)
+    //             .totalAmount(totalAmount)
+    //             .discountAmount(discountAmount)
+    //             .shippingFee(shippingFee)
+    //             .discountShippingFee(discountShippingFee)
+    //             .finalAmount(finalAmount)
+    //             .appliedPromotions(new ArrayList<>())
+    //             .build();
 
-        for (Promotion promotion : automaticPromotions) {
-            if (promotion.getIsActive() == null ||
-                    !promotion.getIsActive() ||
-                    promotion.getStartDate() == null ||
-                    promotion.getEndDate() == null ||
-                    promotion.getStartDate().isAfter(java.time.LocalDateTime.now()) ||
-                    promotion.getEndDate().isBefore(java.time.LocalDateTime.now())) {
-                throw new NotFoundException("Promotion is not active");
-            }
+    //     // Áp dụng khuyến mãi tự động không cần nhập mã khuyến mãi
+    //     List<Promotion> automaticPromotions = promotionRepository.findByPromotionTypeAndStartDateBeforeAndEndDateAfter(
+    //             PromotionTypeEnum.AUTOMATIC, java.time.LocalDateTime.now(), java.time.LocalDateTime.now());
 
-            boolean checkCondtion = promotion.getPromotionConditions().stream()
-                    .allMatch((promotionCondition) -> promotionCondition
-                            .getConditionType() == PromotionConditionTypeEnum.PRODUCT_SPECIFIC);
+    //     for (Promotion promotion : automaticPromotions) {
+    //         if (promotion.getIsActive() == null ||
+    //                 !promotion.getIsActive() ||
+    //                 promotion.getStartDate() == null ||
+    //                 promotion.getEndDate() == null ||
+    //                 promotion.getStartDate().isAfter(java.time.LocalDateTime.now()) ||
+    //                 promotion.getEndDate().isBefore(java.time.LocalDateTime.now())) {
+    //             throw new NotFoundException("Promotion is not active");
+    //         }
 
-            if (checkCondtion) {
-                continue; // Nếu tất cả điều kiện đều là PRODUCT_SPECIFIC thì bỏ qua vì không thể áp dụng
-                          // nếu không nhập mã khuyến mãi
-            }
+    //         boolean checkCondtion = promotion.getPromotionConditions().stream()
+    //                 .allMatch((promotionCondition) -> promotionCondition
+    //                         .getConditionType() == PromotionConditionTypeEnum.PRODUCT_SPECIFIC);
 
-            List<PromotionCondition> conditions = promotion.getPromotionConditions();
+    //         if (checkCondtion) {
+    //             continue; // Nếu tất cả điều kiện đều là PRODUCT_SPECIFIC thì bỏ qua vì không thể áp dụng
+    //                       // nếu không nhập mã khuyến mãi
+    //         }
 
-            boolean isApplicable = true;
-            for (PromotionCondition condition : conditions) {
+    //         List<PromotionCondition> conditions = promotion.getPromotionConditions();
 
-                PromotionConditionTypeEnum conditionType = condition.getConditionType();
+    //         boolean isApplicable = true;
+    //         for (PromotionCondition condition : conditions) {
 
-                PromotionConditionStrategy conditionFactory = promotionConditionFactory
-                        .getPromotionConditionStrategy(conditionType);
+    //             PromotionConditionTypeEnum conditionType = condition.getConditionType();
 
-                Map<String, Object> conditionValue = condition.getValue();
+    //             PromotionConditionStrategy conditionFactory = promotionConditionFactory
+    //                     .getPromotionConditionStrategy(conditionType);
 
-                if (!conditionFactory.isSatisfied(orderPreviewDTO, conditionValue)) {
-                    isApplicable = false;
-                    break;
-                }
+    //             Map<String, Object> conditionValue = condition.getValue();
 
-            }
+    //             if (!conditionFactory.isSatisfied(orderPreviewDTO, conditionValue)) {
+    //                 isApplicable = false;
+    //                 break;
+    //             }
 
-            if (isApplicable) {
+    //         }
 
-                List<PromotionAction> actions = promotion.getPromotionActions();
+    //         if (isApplicable) {
 
-                for (PromotionAction action : actions) {
+    //             List<PromotionAction> actions = promotion.getPromotionActions();
 
-                    PromotionActionTypeEnum actionType = action.getActionType();
+    //             for (PromotionAction action : actions) {
 
-                    // Map<String, Object> actionValue = action.getValue();
+    //                 PromotionActionTypeEnum actionType = action.getActionType();
 
-                    PromotionActionStrategy actionFactory = promotionActionFactory
-                            .getPromotionActionStrategy(actionType);
+    //                 // Map<String, Object> actionValue = action.getValue();
 
-                    actionFactory.execute(orderPreviewDTO, promotion, promotion.getPromotionActions().indexOf(action));
+    //                 PromotionActionStrategy actionFactory = promotionActionFactory
+    //                         .getPromotionActionStrategy(actionType);
 
-                }
-                orderPreviewDTO.getAppliedPromotions().add(promotion.getPromotionId());
+    //                 actionFactory.execute(orderPreviewDTO, promotion, promotion.getPromotionActions().indexOf(action));
 
-            }
+    //             }
+    //             orderPreviewDTO.getAppliedPromotions().add(promotion.getPromotionId());
 
-        }
+    //         }
 
-        List<Integer> promotionIds = createPreviewDTO.getPromotionIds();
+    //     }
 
-        // Áp dụng khuyến mãi do nhập mã khuyến mãi
-        if (promotionIds == null || promotionIds.isEmpty()) {
-            return orderPreviewDTO;
-        }
+    //     List<Integer> promotionIds = createPreviewDTO.getPromotionIds();
 
-        List<Promotion> promotions = promotionRepository.findAllById(promotionIds);
+    //     // Áp dụng khuyến mãi do nhập mã khuyến mãi
+    //     if (promotionIds == null || promotionIds.isEmpty()) {
+    //         return orderPreviewDTO;
+    //     }
 
-        if (promotions.size() != promotionIds.size()) {
-            throw new NotFoundException("Some promotions not found");
-        }
+    //     List<Promotion> promotions = promotionRepository.findAllById(promotionIds);
 
-        List<VoucherWallet> voucherWallets = voucherWalletRepository
-                .findByPromotion_PromotionIdInAndCustomer_UserId(promotionIds,
-                        customerId);
+    //     if (promotions.size() != promotionIds.size()) {
+    //         throw new NotFoundException("Some promotions not found");
+    //     }
 
-        if (voucherWallets.size() != promotionIds.size()) {
-            throw new NotFoundException("Some promotions not found in customer's voucher wallet");
-        }
+    //     List<VoucherWallet> voucherWallets = voucherWalletRepository
+    //             .findByPromotion_PromotionIdInAndCustomer_UserId(promotionIds,
+    //                     customerId);
 
-        if (!hasAllStackable(promotions)) {
-            throw new ConflictException("Some promotions cannot be stacked together");
-        }
+    //     if (voucherWallets.size() != promotionIds.size()) {
+    //         throw new NotFoundException("Some promotions not found in customer's voucher wallet");
+    //     }
 
-        for (Promotion promotion : promotions) {
+    //     if (!hasAllStackable(promotions)) {
+    //         throw new ConflictException("Some promotions cannot be stacked together");
+    //     }
 
-            if (promotion.getIsActive() == null ||
-                    !promotion.getIsActive() ||
-                    promotion.getStartDate() == null ||
-                    promotion.getEndDate() == null ||
-                    promotion.getStartDate().isAfter(java.time.LocalDateTime.now()) ||
-                    promotion.getEndDate().isBefore(java.time.LocalDateTime.now())) {
-                throw new NotFoundException("Promotion is not active");
-            }
+    //     for (Promotion promotion : promotions) {
 
-            List<PromotionCondition> conditions = promotion.getPromotionConditions();
+    //         if (promotion.getIsActive() == null ||
+    //                 !promotion.getIsActive() ||
+    //                 promotion.getStartDate() == null ||
+    //                 promotion.getEndDate() == null ||
+    //                 promotion.getStartDate().isAfter(java.time.LocalDateTime.now()) ||
+    //                 promotion.getEndDate().isBefore(java.time.LocalDateTime.now())) {
+    //             throw new NotFoundException("Promotion is not active");
+    //         }
 
-            boolean isApplicable = true;
-            for (PromotionCondition condition : conditions) {
+    //         List<PromotionCondition> conditions = promotion.getPromotionConditions();
 
-                PromotionConditionTypeEnum conditionType = condition.getConditionType();
+    //         boolean isApplicable = true;
+    //         for (PromotionCondition condition : conditions) {
 
-                PromotionConditionStrategy conditionFactory = promotionConditionFactory
-                        .getPromotionConditionStrategy(conditionType);
+    //             PromotionConditionTypeEnum conditionType = condition.getConditionType();
 
-                Map<String, Object> conditionValue = condition.getValue();
+    //             PromotionConditionStrategy conditionFactory = promotionConditionFactory
+    //                     .getPromotionConditionStrategy(conditionType);
 
-                if (!conditionFactory.isSatisfied(orderPreviewDTO, conditionValue)) {
-                    isApplicable = false;
-                    break;
-                }
+    //             Map<String, Object> conditionValue = condition.getValue();
 
-            }
+    //             if (!conditionFactory.isSatisfied(orderPreviewDTO, conditionValue)) {
+    //                 isApplicable = false;
+    //                 break;
+    //             }
 
-            if (isApplicable) {
+    //         }
 
-                List<PromotionAction> actions = promotion.getPromotionActions();
+    //         if (isApplicable) {
 
-                for (PromotionAction action : actions) {
+    //             List<PromotionAction> actions = promotion.getPromotionActions();
 
-                    PromotionActionTypeEnum actionType = action.getActionType();
+    //             for (PromotionAction action : actions) {
 
-                    // Map<String, Object> actionValue = action.getValue();
+    //                 PromotionActionTypeEnum actionType = action.getActionType();
 
-                    PromotionActionStrategy actionFactory = promotionActionFactory
-                            .getPromotionActionStrategy(actionType);
+    //                 // Map<String, Object> actionValue = action.getValue();
 
-                    actionFactory.execute(orderPreviewDTO, promotion, promotion.getPromotionActions().indexOf(action));
+    //                 PromotionActionStrategy actionFactory = promotionActionFactory
+    //                         .getPromotionActionStrategy(actionType);
 
-                }
-                orderPreviewDTO.getAppliedPromotions().add(promotion.getPromotionId());
+    //                 actionFactory.execute(orderPreviewDTO, promotion, promotion.getPromotionActions().indexOf(action));
 
-            }
+    //             }
+    //             orderPreviewDTO.getAppliedPromotions().add(promotion.getPromotionId());
 
-        }
+    //         }
 
-        Set<Integer> promotionProductIds = productDetails.stream()
-                .map((productDetail) -> productDetail.getProductColor().getProduct().getPromotion().getPromotionId())
-                .collect(Collectors.toSet());
+    //     }
 
-        orderPreviewDTO.getAppliedPromotions().addAll(promotionProductIds);
+    //     Set<Integer> promotionProductIds = productDetails.stream()
+    //             .map((productDetail) -> productDetail.getProductColor().getProduct().getPromotion().getPromotionId())
+    //             .collect(Collectors.toSet());
 
-        return orderPreviewDTO;
-    }
+    //     orderPreviewDTO.getAppliedPromotions().addAll(promotionProductIds);
 
-    private boolean hasAllStackable(List<Promotion> promotions) {
-        if (promotions.size() <= 1) {
-            return true; // Nếu chỉ có một khuyến mãi hoặc không có khuyến mãi nào, thì mặc định là có
-                         // thể xếp chồng
-        }
-        return promotions.stream().allMatch(
-                (promotion) -> promotion.getStackable() == true);
-    }
+    //     return orderPreviewDTO;
+    // }
+
+    // private boolean hasAllStackable(List<Promotion> promotions) {
+    //     if (promotions.size() <= 1) {
+    //         return true; // Nếu chỉ có một khuyến mãi hoặc không có khuyến mãi nào, thì mặc định là có
+    //                      // thể xếp chồng
+    //     }
+    //     return promotions.stream().allMatch(
+    //             (promotion) -> promotion.getStackable() == true);
+    // }
 }

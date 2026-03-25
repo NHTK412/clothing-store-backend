@@ -28,7 +28,7 @@ public class ProductRequestDTO {
 
     private String productImage;
 
-    @PositiveOrZero(message = "Discount must be a non-negative number")
+    @PositiveOrZero(message = "Discount must be zero or a positive number")
     private Double discount; // VD: 0.1 cho 10% giảm giá
 
     private List<Integer> categoryId; // Dùng để gắn danh mục

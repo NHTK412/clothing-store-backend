@@ -194,8 +194,7 @@ public interface OrderMapper {
         @Mapping(target = "isReview", constant = "false")
         OrderDetail toOrderDetail(OrderDetailPreviewDTO preview,
                         @Context Map<Integer, ProductDetail> productDetailMap,
-                        @Context Order order
-                );
+                        @Context Order order);
 
         @AfterMapping
         default void setRelation(@MappingTarget OrderDetail orderDetail,

@@ -116,37 +116,24 @@ public class CartController {
         }
 
         // Xem trước đơn hàng
-        @GetMapping("preview")
-        public ResponseEntity<ApiResponse<OrderPreviewDTO>> previewOrder(
-                        @AuthenticationPrincipal CustomerUserDetails userDetails,
-                        // @RequestParam List<Integer> cartItemIds,
-                        // @RequestParam(required = false) List<Integer> promotionIds,
-                        @RequestBody CreatePreviewDTO createPreviewDTO,
-                        HttpServletRequest request) {
-                Integer customerId = userDetails.getUserId();
+        // @PostMapping("preview")
+        // public ResponseEntity<ApiResponse<OrderPreviewDTO>> previewOrder(
+        //                 @AuthenticationPrincipal CustomerUserDetails userDetails,
+        //                 // @RequestParam List<Integer> cartItemIds,
+        //                 // @RequestParam(required = false) List<Integer> promotionIds,
+        //                 @RequestBody CreatePreviewDTO createPreviewDTO,
+        //                 HttpServletRequest request) {
+        //         Integer customerId = userDetails.getUserId();
 
-                // OrderPreviewDTO orderPreviewDTO = cartService.previewOrder(customerId, cartItemIds, promotionIds);
-                OrderPreviewDTO orderPreviewDTO = cartService.previewOrder(customerId, createPreviewDTO);
-                
+        //         // OrderPreviewDTO orderPreviewDTO = cartService.previewOrder(customerId,
+        //         // cartItemIds, promotionIds);
+        //         OrderPreviewDTO orderPreviewDTO = cartService.previewOrder(customerId, createPreviewDTO);
 
-                // return ResponseEntity.ok(new ApiResponse<OrderPreviewDTO>(true, null,
-                // orderPreviewDTO));
-                return ResponseEntity.ok(
-                                ApiResponse.success("Successfully previewed order", orderPreviewDTO,
-                                                request.getRequestURI()));
-        }
+        //         // return ResponseEntity.ok(new ApiResponse<OrderPreviewDTO>(true, null,
+        //         // orderPreviewDTO));
+        //         return ResponseEntity.ok(
+        //                         ApiResponse.success("Successfully previewed order", orderPreviewDTO,
+        //                                         request.getRequestURI()));
+        // }
 
 }
-
-// 1 GET /v1/cart Lấy toàn bộ giỏ hàng hiện tại
-// 2 POST /v1/cart/items Thêm 1 sản phẩm vào giỏ
-// 3 PATCH /v1/cart/items/{itemId} Cập nhật số lượng / chọn/bỏ chọn
-// 4 DELETE /v1/cart/items/{itemId} Xóa 1 dòng
-// 5 DELETE /v1/cart/items Xóa nhiều dòng (query param ids)
-// 6 POST /v1/cart/clear Làm trống toàn bộ giỏ
-// 7 POST /v1/cart/select-all Chọn tất cả item
-// 8 POST /v1/cart/unselect-all Bỏ chọn tất cả item
-// 9 POST /v1/cart/apply-voucher Áp dụng mã giảm giá
-// 10 DELETE /v1/cart/voucher Gỡ mã giảm giá
-// 11 GET /v1/cart/totals Lấy tổng tiền, giảm giá, phí ship ước lượng
-// 12 POST /v1/cart/sync Đồng bộ giỏ guest → user khi login

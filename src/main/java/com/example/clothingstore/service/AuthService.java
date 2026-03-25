@@ -34,23 +34,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthService {
 
-    // @Autowired
-    // AccountRepository accountRepository;
-
-    // @Autowired
-    // private CustomerRepository customerRepository;
-
-    // @Autowired
-    // private AdminRepository adminRepository;
-
-    // @Autowired
-    // private MembershipTierRepository membershipTierRepository;
-
-    // @Autowired
-    // private CartRepository cartRepository;
-
-    // @Autowired
-    // JwtUtil jwtUtil;
 
     @Value("${api-key}")
     private String apiKey;
@@ -64,12 +47,14 @@ public class AuthService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static long expiration = 1000 * 60 * 60 * 4; // 4h
+    @Value("${jwt.expiration.access-token}")
+    private Long accessTokenExpiration;
+
+    @Value("${jwt.expiration.refresh-token}")
+    private Long refreshTokenExpiration;
 
     final private SecureRandom secureRandom = new SecureRandom();
 
-    // @Autowired
-    // private RedisTemplate<String, Object> redisTemplate;
 
     @Transactional
     public AuthResponseDTO register(String userName, String password) {
@@ -148,7 +133,7 @@ public class AuthService {
         String accessToken = jwtUtil.generateToken(
                 customer.getUserName(),
                 customer.getRole().name(),
-                expiration);
+                accessTokenExpiration);
 
         byte[] bytes = new byte[50];
 
@@ -169,7 +154,7 @@ public class AuthService {
         authResponseDTO.setRole(RoleEnum.ROLE_CUSTOMER.name());
         authResponseDTO.setAccessToken(accessToken);
         authResponseDTO.setRefreshToken(refreshToken);
-        authResponseDTO.setExpiresIn(expiration);
+        authResponseDTO.setExpiresIn(accessTokenExpiration);
         return authResponseDTO;
     }
 
@@ -189,23 +174,25 @@ public class AuthService {
         String accessToken = jwtUtil.generateToken(
                 user.getUserName(),
                 user.getRole().name(),
-                expiration);
+                accessTokenExpiration);
 
         byte[] bytes = new byte[50];
 
         secureRandom.nextBytes(bytes);
 
-        String refreshToken = jwtUtil.generateToken(
-                user.getUserName(),
-                user.getRole().name(),
-                Long.valueOf(1000 * 60 * 60 * 24 * 7));
+        // String refreshToken = jwtUtil.generateToken(
+        // user.getUserName(),
+        // user.getRole().name(),
+        // Long.valueOf(1000 * 60 * 60 * 24 * 7));
+
+        String refreshToken = new String(Hex.encode(bytes));
 
         try {
             redisTemplate.opsForValue().set(
-                    "refreshToken::" + user.getUserId(),
-                    refreshToken,
-                    7,
-                    java.util.concurrent.TimeUnit.DAYS);
+                    "refreshToken::" + refreshToken,
+                    user.getUserId(),
+                    refreshTokenExpiration,
+                    java.util.concurrent.TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             System.out.println("Error storing refresh token in Redis: " + e.getMessage());
         }
@@ -216,52 +203,35 @@ public class AuthService {
         authResponseDTO.setRole(user.getRole().name());
         authResponseDTO.setAccessToken(accessToken);
         authResponseDTO.setRefreshToken(refreshToken);
-        authResponseDTO.setExpiresIn(expiration);
+        authResponseDTO.setExpiresIn(accessTokenExpiration);
         return authResponseDTO;
     }
 
-    public AuthResponseDTO getAccessTokenWithRefreshToken(String refreshToken, boolean isAdmin) {
+    public AuthResponseDTO getAccessTokenWithRefreshToken(String refreshToken) {
 
-        String redisKey = isAdmin ? "refreshToken-admin::" : "refreshToken::";
-
-        Integer userId = (Integer) redisTemplate.opsForValue().get(redisKey + refreshToken);
+        // Integer userId = (Integer) redisTemplate.opsForValue().get(redisKey +
+        // refreshToken);
+        Integer userId = (Integer) redisTemplate.opsForValue().get("refreshToken::" + refreshToken);
 
         if (userId == null) {
             throw new InvalidRefreshTokenException("Refresh token is invalid");
         }
 
-        if (isAdmin) {
-            Admin admin = adminRepository.findById(userId)
-                    .orElseThrow(() -> new NotFoundException("User does not exist"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User does not exist"));
 
-            String accessToken = jwtUtil.generateToken(admin.getUserName(), RoleEnum.ROLE_ADMIN.name(),
-                    expiration);
+        String accessToken = jwtUtil.generateToken(
+                user.getUserName(),
+                user.getRole().name(),
+                accessTokenExpiration);
+        AuthResponseDTO authResponseDTO = new AuthResponseDTO();
+        authResponseDTO.setUsername(user.getUserName());
+        authResponseDTO.setRole(user.getRole().name());
+        authResponseDTO.setAccessToken(accessToken);
+        authResponseDTO.setRefreshToken(refreshToken);
+        authResponseDTO.setExpiresIn(accessTokenExpiration);
+        return authResponseDTO;
 
-            AuthResponseDTO authResponseDTO = new AuthResponseDTO();
-            authResponseDTO.setUsername(admin.getUserName());
-            authResponseDTO.setRole(RoleEnum.ROLE_ADMIN.name());
-            authResponseDTO.setAccessToken(accessToken);
-            authResponseDTO.setRefreshToken(refreshToken);
-            authResponseDTO.setExpiresIn(expiration);
-
-            return authResponseDTO;
-        } else {
-            Customer customer = customerRepository.findById(userId)
-                    .orElseThrow(() -> new NotFoundException("User does not exist"));
-
-            String accessToken = jwtUtil.generateToken(customer.getUserName(), RoleEnum.ROLE_CUSTOMER.name(),
-                    expiration);
-
-            AuthResponseDTO authResponseDTO = new AuthResponseDTO();
-            authResponseDTO.setUsername(customer.getUserName());
-            authResponseDTO.setRole(RoleEnum.ROLE_CUSTOMER.name());
-            authResponseDTO.setAccessToken(accessToken);
-            authResponseDTO.setRefreshToken(refreshToken);
-            authResponseDTO.setExpiresIn(expiration);
-
-            return authResponseDTO;
-
-        }
     }
 
 }

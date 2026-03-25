@@ -55,7 +55,8 @@ public class MinQuantityConditionStrategy implements PromotionConditionStrategy 
         // .map(product -> product.getProductId())
         // .toList();
 
-        List<Integer> productIds = List.of();
+        // List<Integer> productIds = List.of();
+        List<Integer> productIds = new java.util.ArrayList<>();
 
         for (Product product : promotionGroup.getProducts()) {
             for (ProductColor productColor : product.getProductColors()) {

@@ -20,3 +20,6 @@
 // Thêm type vào jwt để phân biệt refresh token và access token
 // Điều chỉnh fundResonseDTO --> done
 // Thêm endpoint Update
+
+
+// Ngày 25/3/2026: Test logic của tạo đơn khi có discount và lưu cái promotion của discount 

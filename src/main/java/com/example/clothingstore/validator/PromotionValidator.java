@@ -1,7 +1,9 @@
 package com.example.clothingstore.validator;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
@@ -34,6 +36,8 @@ public class PromotionValidator {
 
     private final PromotionConditionFactory promotionConditionFactory;
     private final PromotionActionFactory promotionActionFactory;
+
+    private final static org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PromotionValidator.class);
 
     public void validatePromotionRequest(PromotionCreateRequestDTO requestDTO) {
 
@@ -224,5 +228,67 @@ public class PromotionValidator {
         }
     }
     // --------------------------------------------------------------------------------
+
+    // Hàm dùng để validate danh sách promotion khi khách hàng tạo đơn hàng (preview
+    // order)
+    public Set<Promotion> validationPromotions(Set<Integer> promotionIds) {
+        if (promotionIds == null || promotionIds.isEmpty()) {
+            return Set.of();
+        }
+
+        List<Promotion> promotions = promotionRepository.findAllById(promotionIds);
+
+        if (promotions.isEmpty() || promotions.size() != promotionIds.size()) {
+            throw new NotFoundException("Some promotion items not found");
+        }
+
+        return new HashSet<>(promotions);
+    }
+
+    // Hàm dùng để validate tất cả promotion đều active khi khách hàng tạo đơn hàng
+    // (preview order)
+    public boolean validationActivePromotion(Set<Promotion> promotions) {
+        for (Promotion promotion : promotions) {
+            logger.warn("PROMOTION " + promotion.getPromotionId() + " - " + promotion.getIsActive());
+            if (promotion.getIsActive() == false) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // public boolean validateAutomaticPromotion(Promotion promotion) {
+
+    // }
+
+    public boolean validateConditions(OrderPreviewDTO orderPreview, List<PromotionCondition> conditions) {
+        for (PromotionCondition condition : conditions) {
+            PromotionConditionStrategy conditionStrategy = promotionConditionFactory
+                    .getPromotionConditionStrategy(condition.getConditionType());
+
+            if (!conditionStrategy.isSatisfied(orderPreview, condition.getValue())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void executeActions(OrderPreviewDTO orderPreview, Promotion promotion, boolean checkCondition) {
+        List<PromotionAction> actions = promotion.getPromotionActions();
+
+        for (int index = 0; index < actions.size(); index++) {
+
+            if (checkCondition && actions.get(index)
+                    .getActionType() == PromotionActionTypeEnum.PRODUCT_FIXED_DISCOUNT
+                    || actions.get(index).getActionType() == PromotionActionTypeEnum.PRODUCT_PERCENT_DISCOUNT) {
+                continue;
+            }
+
+            PromotionAction action = actions.get(index);
+            PromotionActionStrategy actionStrategy = promotionActionFactory
+                    .getPromotionActionStrategy(action.getActionType());
+            actionStrategy.execute(orderPreview, promotion, index);
+        }
+    }
 
 }

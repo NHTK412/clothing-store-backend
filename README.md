@@ -282,10 +282,31 @@ src/main/java/com/example/clothingstore
 - Docker Engine đang chạy
 - Cổng `8080`, `3306`, `6379` chưa bị chiếm
 
+Khuyến nghị tạo file `.env` ở thư mục root để chủ động cấu hình bí mật:
+
+```env
+# Database
+SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/clothing_store_new?createDatabaseIfNotExist=true&serverTimezone=UTC
+SPRING_DATASOURCE_USERNAME=root
+SPRING_DATASOURCE_PASSWORD=root123
+
+# Redis
+SPRING_DATA_REDIS_HOST=redis
+SPRING_DATA_REDIS_PORT=6379
+
+# JWT
+JWT_SECRET_KEY=change-me-to-a-strong-secret
+JWT_EXPIRATION_ACCESS_TOKEN=3600000
+JWT_EXPIRATION_REFRESH_TOKEN=86400000
+
+# API key dùng cho endpoint register-admin
+API_KEY=my-secret-api-key-12345
+```
+
 ### 7.2 Lệnh chạy Docker Compose
 
 ```bash
-docker compose up -d --build
+docker compose --env-file .env up -d --build
 ```
 
 Kiểm tra container:
@@ -318,6 +339,15 @@ Ghi chú cấu hình Docker hiện tại:
 - DB: `clothing_store_new`
 - MySQL user: `root`
 - MySQL password: `root123`
+- App container mặc định kết nối vào host `mysql` (service name trong compose)
+
+Kiểm tra nhanh app đã sẵn sàng:
+
+```bash
+curl http://localhost:8080/api/actuator/health
+```
+
+Nếu chưa mở endpoint actuator, có thể xác nhận bằng Swagger UI: `http://localhost:8080/api/swagger-ui/index.html`
 
 ### 7.3 Luồng khởi tạo ứng dụng sau khi Docker chạy
 

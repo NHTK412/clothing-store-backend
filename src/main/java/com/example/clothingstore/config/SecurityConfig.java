@@ -82,7 +82,7 @@ public class SecurityConfig {
                                                 "/swagger-ui/**",
                                                 "/v3/api-docs/**",
                                                 "/image/**",
-                                                "v1/categories/**",
+                                                "/v1/categories/**",
                                                 "/v1/products/**",
                                                 "/v1/payments/zalopay/callback")
                                 .permitAll() // Cho phép truy cập không cần authentication

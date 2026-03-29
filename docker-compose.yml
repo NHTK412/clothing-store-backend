@@ -10,11 +10,11 @@ services:
       redis:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/clothing_store_new?createDatabaseIfNotExist=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root123
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:mysql://mysql:3306/clothing_store_new?createDatabaseIfNotExist=true&serverTimezone=UTC}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-root}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-root123}
+      SPRING_DATA_REDIS_HOST: ${SPRING_DATA_REDIS_HOST:-redis}
+      SPRING_DATA_REDIS_PORT: ${SPRING_DATA_REDIS_PORT:-6379}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-akslfjalskfjalkfjwofijasfamlkfmalf}
       JWT_EXPIRATION_ACCESS_TOKEN: ${JWT_EXPIRATION_ACCESS_TOKEN:-3600000}
       JWT_EXPIRATION_REFRESH_TOKEN: ${JWT_EXPIRATION_REFRESH_TOKEN:-86400000}

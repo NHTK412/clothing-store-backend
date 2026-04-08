@@ -18,6 +18,8 @@ public class UserService {
 
     final private UserMapper userMapper;
 
+    final private FileUploadService fileUploadService;
+
     public UserResponseDTO getUserById(
             Integer userId) {
         User user = userRepository.findById(userId)
@@ -33,6 +35,11 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
         userMapper.updateModelFromDTO(userRequestDTO, user);
+
+        if (userRequestDTO.getImage() != null) {
+            user.setImage(userRequestDTO.getImage());
+            fileUploadService.deleteFile(userRequestDTO.getImage());
+        }
 
         User updatedUser = userRepository.save(user);
 

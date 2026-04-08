@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,6 +16,7 @@ import com.example.clothingstore.dto.membershiptier.MembershipTierRequestDTO;
 import com.example.clothingstore.dto.membershiptier.MembershipTierResponseDTO;
 import com.example.clothingstore.service.MembershipTierService;
 import com.example.clothingstore.util.ApiResponse;
+import com.example.clothingstore.util.CustomerUserDetails;
 
 import jakarta.validation.Valid;
 import jakarta.servlet.http.HttpServletRequest;
@@ -109,5 +111,22 @@ public class MembershipTierController {
                                 ApiResponse.success("Successfully updated membership tier", membershipTierResponseDTO,
                                                 request.getRequestURI()));
         }
+
+        @PreAuthorize("hasRole('CUSTOMER')")
+        @GetMapping("/me")
+        public ResponseEntity<ApiResponse<MembershipTierResponseDTO>> getCurrentMembershipTier(
+                        @AuthenticationPrincipal CustomerUserDetails userDetails,
+                        HttpServletRequest request) {
+
+                Integer customerId = userDetails.getUserId();
+
+                MembershipTierResponseDTO membershipTierResponseDTO = membershipTierService
+                                .getCurrentMembershipTier(customerId);
+
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully retrieved current membership tier",
+                                                membershipTierResponseDTO, request.getRequestURI()));
+        }
+        
 
 }

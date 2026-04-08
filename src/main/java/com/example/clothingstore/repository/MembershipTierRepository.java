@@ -14,4 +14,6 @@ public interface MembershipTierRepository extends JpaRepository<MembershipTier, 
 
     boolean existsByTierName(String tierName);
 
+    MembershipTier findByCustomers_UserId(Integer customerId);
+
 }

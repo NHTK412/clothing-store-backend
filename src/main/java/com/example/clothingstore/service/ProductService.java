@@ -41,18 +41,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProductService {
 
-    // @Autowired
-    // ProductRepository productRepository;
-
-    // @Autowired
-    // ProductColorRepository productColorRepository;
-
-    // @Autowired
-    // ProductDetailRepository productDetailRepository;
-
-    // @Autowired
-    // CategoryRepository categoryRepository;
-
     private final ProductRepository productRepository;
     private final ProductColorRepository productColorRepository;
     private final ProductDetailRepository productDetailRepository;
@@ -62,6 +50,8 @@ public class ProductService {
     private final ProductMapper productMapper;
     private final ProductColorMapper productColorMapper;
     private final ProductDetailMapper productDetailMapper;
+
+    private final FileUploadService fileUploadService;
 
     @Transactional
     public ProductResponseDTO getProductDetailById(Integer productId) {
@@ -167,7 +157,10 @@ public class ProductService {
 
         product.setDescription(productRequest.getDescription());
 
-        product.setProductImage(productRequest.getProductImage());
+        if (productRequest.getProductImage() != null) {
+            product.setProductImage(productRequest.getProductImage());
+            fileUploadService.deleteFile(productRequest.getProductImage());
+        }
 
         product.setStatus(StatusEnum.ACTIVE);
 
@@ -177,7 +170,11 @@ public class ProductService {
         for (ProductColorRequestDTO productColorRequest : productRequest.getProductColors()) {
             ProductColor productColor = new ProductColor();
             productColor.setColor(productColorRequest.getColor());
-            productColor.setProductImage(productColorRequest.getProductImage());
+            // productColor.setProductImage(productColorRequest.getProductImage());
+            if (productColorRequest.getProductImage() != null) {
+                productColor.setProductImage(productColorRequest.getProductImage());
+                fileUploadService.deleteFile(productColorRequest.getProductImage());
+            }
 
             List<ProductDetail> productDetails = new ArrayList<>();
             for (ProductDetailRequestDTO productDetailRequest : productColorRequest.getProductDetails()) {
@@ -316,6 +313,22 @@ public class ProductService {
     public ProductSummaryDTO updateProduct(Integer productId, ProductUpdateDTO productUpdate) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Invalid product code"));
+        // Lưu các url image để xóa sau khi cập nhật thành công
+        List<String> oldImageUrls = new ArrayList<>();
+        if (product.getProductImage() != null && productUpdate.getProductImage() != null
+                && !product.getProductImage().equals(productUpdate.getProductImage())) {
+            oldImageUrls.add(product.getProductImage());
+        }
+        List<String> colorImageUrls = product.getProductColors().stream()
+                .filter(pc -> pc.getProductImage() != null)
+                .map(pc -> pc.getProductImage())
+                .collect(Collectors.toList());
+
+        product.getProductColors().forEach(pc -> {
+            if (pc.getProductImage() != null && !colorImageUrls.contains(pc.getProductImage())) { 
+                oldImageUrls.add(pc.getProductImage());
+            }
+        });
         // Cập nhật các trường cơ bản
         product.setProductName(productUpdate.getProductName());
         product.setUnitPrice(productUpdate.getUnitPrice());
@@ -421,6 +434,9 @@ public class ProductService {
 
         productRepository.save(product);
         // return new ProductSummaryDTO(product);
+        for (String url : oldImageUrls) {
+            fileUploadService.deleteFileFromCloudinary(url);
+        }
         return productMapper.toSummaryDTO(product);
 
     }

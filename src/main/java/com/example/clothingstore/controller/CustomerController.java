@@ -39,67 +39,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 @RequiredArgsConstructor
 public class CustomerController {
 
-        // @Autowired
-        // private CustomerService customerService;
 
         private final CustomerService customerService;
-
-        // private final OrderService orderService;
-
-        @PreAuthorize("hasRole('CUSTOMER')")
-        @PutMapping("/me")
-        public ResponseEntity<ApiResponse<CustomerResponseDTO>> updateMe(
-                        @AuthenticationPrincipal CustomerUserDetails userDetails,
-                        @Valid @RequestBody CustomerRequestDTO customerRequestDTO,
-                        HttpServletRequest request) {
-
-                // BCryptPasswordEncoder bCryptPasswordEncoder = BCryptPasswordEncoder();
-
-                Integer customerId = userDetails.getUserId();
-
-                CustomerResponseDTO customerResponseDTO = customerService.updateCustomer(customerId,
-                                customerRequestDTO);
-
-                // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null,
-                // customerResponseDTO));
-
-                return ResponseEntity.ok(
-                                ApiResponse.success("Successfully updated customer", customerResponseDTO,
-                                                request.getRequestURI()));
-        }
-
-        @PreAuthorize("hasRole('CUSTOMER')")
-        @GetMapping("/me")
-        public ResponseEntity<ApiResponse<CustomerResponseDTO>> getMe(
-                        @AuthenticationPrincipal CustomerUserDetails userDetails,
-                        HttpServletRequest request) {
-
-                Integer customerId = userDetails.getUserId();
-
-                CustomerResponseDTO customerResponseDTO = customerService.getCustomerById(customerId);
-
-                // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null,
-                // customerResponseDTO));
-
-                return ResponseEntity.ok(
-                                ApiResponse.success("Successfully retrieved customer information",
-                                                customerResponseDTO, request.getRequestURI()));
-        }
-
-        @PreAuthorize("hasRole('ADMIN')")
-        @GetMapping("/{customerId}")
-        public ResponseEntity<ApiResponse<CustomerResponseDTO>> getCustomerByID(@PathVariable Integer customerId,
-                        HttpServletRequest request) {
-
-                CustomerResponseDTO customerResponseDTO = customerService.getCustomerById(customerId);
-
-                // return ResponseEntity.ok(new ApiResponse<CustomerResponseDTO>(true, null,
-                // customerResponseDTO));
-
-                return ResponseEntity.ok(
-                                ApiResponse.success("Successfully retrieved customer information",
-                                                customerResponseDTO, request.getRequestURI()));
-        }
 
         @PreAuthorize("hasRole('ADMIN')")
         @GetMapping
@@ -116,6 +57,28 @@ public class CustomerController {
                                                 request.getRequestURI()));
         }
 
-        
+        @PreAuthorize("hasRole('ADMIN')")
+        @DeleteMapping("/{customerId}")
+        public ResponseEntity<ApiResponse<CustomerResponseDTO>> deleteCustomer(@PathVariable Integer customerId,
+                        HttpServletRequest request) {
+
+                CustomerResponseDTO customerResponseDTO = customerService.deleteCustomer(customerId);
+
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully deleted customer", customerResponseDTO,
+                                                request.getRequestURI()));
+        }
+
+        @PreAuthorize("hasRole('ADMIN')")
+        @GetMapping("/{customerId}")
+        public ResponseEntity<ApiResponse<CustomerResponseDTO>> getCustomerById(@PathVariable Integer customerId,
+                        HttpServletRequest request) {
+
+                CustomerResponseDTO customerResponseDTO = customerService.getCustomerById(customerId);
+
+                return ResponseEntity.ok(
+                                ApiResponse.success("Successfully retrieved customer information",
+                                                customerResponseDTO, request.getRequestURI()));
+        }
 
 }

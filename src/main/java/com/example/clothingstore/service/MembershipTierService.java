@@ -20,43 +20,24 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MembershipTierService {
 
-        // @Autowired
-        // private MembershipTierMapper membershipTierMapper;
-
-        // @Autowired
-        // private MembershipTierRepository membershipTierRepository;
-
         private final MembershipTierMapper membershipTierMapper;
         private final MembershipTierRepository membershipTierRepository;
 
         @Transactional
         public Page<MembershipTierResponseDTO> getAllMembershipTier(Pageable pageable) {
                 Page<MembershipTier> membershipTiers = membershipTierRepository.findAll(pageable);
-
-                // return membershipTiers
-                // .map((membershipTier) -> membershipTierMapper
-                // .convertModelToMembershipTierResponseDTO(membershipTier))
-                // .toList();
-
-                // return membershipTiers.map(membershipTierMapper::toResponseDTO);
-
                 return membershipTiers.map(membershipTierMapper::convertModelToMembershipTierResponseDTO);
         }
 
         @Transactional
         public MembershipTierResponseDTO createMembershipTier(MembershipTierRequestDTO membershipTierRequestDTO) {
-
                 if (membershipTierRepository.existsByTierName(membershipTierRequestDTO.getTierName())) {
                         throw new NotFoundException("Membership tier with the same name already exists");
                 }
-
                 MembershipTier membershipTier = new MembershipTier();
-
                 membershipTier = membershipTierMapper.convertMembershipTierRequestDTOToModel(membershipTierRequestDTO,
                                 membershipTier);
-
                 membershipTierRepository.save(membershipTier);
-
                 return membershipTierMapper.convertModelToMembershipTierResponseDTO(membershipTier);
         }
 
@@ -64,31 +45,33 @@ public class MembershipTierService {
         public MembershipTierResponseDTO deleteMembershipTier(Integer membershipTieId) {
                 MembershipTier membershipTier = membershipTierRepository.findById(membershipTieId)
                                 .orElseThrow(() -> new NotFoundException("Invalid membershipTie code"));
-
                 MembershipTierResponseDTO membershipTierResponseDTO = membershipTierMapper
                                 .convertModelToMembershipTierResponseDTO(membershipTier);
-
                 membershipTierRepository.delete(membershipTier);
-
                 return membershipTierResponseDTO;
         }
 
         @Transactional
         public MembershipTierResponseDTO updateMembershipTier(Integer membershipTieId,
                         MembershipTierRequestDTO membershipTierRequestDTO) {
-
                 if (membershipTierRepository.existsByTierName(membershipTierRequestDTO.getTierName())) {
                         throw new NotFoundException("Membership tier with the same name already exists");
                 }
-
                 MembershipTier membershipTier = membershipTierRepository.findById(membershipTieId)
                                 .orElseThrow(() -> new NotFoundException("Invalid membershipTie code"));
-
                 membershipTier = membershipTierMapper.convertMembershipTierRequestDTOToModel(membershipTierRequestDTO,
                                 membershipTier);
-
                 membershipTierRepository.save(membershipTier);
+                return membershipTierMapper.convertModelToMembershipTierResponseDTO(membershipTier);
+        }
 
+        @Transactional
+        public MembershipTierResponseDTO getCurrentMembershipTier(
+                        Integer customerId) {
+                MembershipTier membershipTier = membershipTierRepository.findByCustomers_UserId(customerId);
+                if (membershipTier == null) {
+                        throw new NotFoundException("Membership tier not found for customer ID: " + customerId);
+                }
                 return membershipTierMapper.convertModelToMembershipTierResponseDTO(membershipTier);
         }
 }
